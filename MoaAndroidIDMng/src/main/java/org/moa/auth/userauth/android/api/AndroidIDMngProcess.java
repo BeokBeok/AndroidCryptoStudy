@@ -37,7 +37,7 @@ public class AndroidIDMngProcess {
         autoLoginManager.init(context, uniqueDeviceID);
     }
 
-    public void generateNonMemberPIN() {
+    public void setNonMemberPIN() {
         if (isNotValidUniqueDeviceID())
             return;
         List<String> nonMemberInfo = new ArrayList<>();
