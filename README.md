@@ -1,2 +1,2 @@
-# AndroidIDMngProcess
+# AndroidAuthenticationManager
 Android Authentication Module
