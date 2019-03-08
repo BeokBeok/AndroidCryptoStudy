@@ -128,8 +128,7 @@ public class AndroidIDMngProcess {
             return;
         WalletManager walletManager = WalletManager.getInstance();
         walletManager.init(context);
-        List<String> requiredWalletData = walletManager.generateRequiredData(password);
-        walletManager.createFile(requiredWalletData);
+        walletManager.generateInfo(password);
     }
 
     public byte[] getSigendTransactionData(String transaction, String password) {
@@ -153,7 +152,7 @@ public class AndroidIDMngProcess {
             return false;
         WalletManager walletManager = WalletManager.getInstance();
         walletManager.init(context);
-        return walletManager.existFile();
+        return walletManager.existPreference();
     }
 
     public String getWalletContent() {
@@ -161,7 +160,23 @@ public class AndroidIDMngProcess {
             return "";
         WalletManager walletManager = WalletManager.getInstance();
         walletManager.init(context);
-        return walletManager.getContent();
+        final String versionInfo = walletManager.getValuesInPreference(SharedPreferencesManager.KEY_WALLET_VERSION_INFO);
+        final String osInfo = walletManager.getValuesInPreference(SharedPreferencesManager.KEY_WALLET_OS_INFO);
+        final String salt = walletManager.getValuesInPreference(SharedPreferencesManager.KEY_WALLET_SALT);
+        final String iterationCount = walletManager.getValuesInPreference(SharedPreferencesManager.KEY_WALLET_ITERATION_COUNT);
+        final String cipheredData = walletManager.getValuesInPreference(SharedPreferencesManager.KEY_WALLET_CIPHERED_DATA);
+        final String walletPuk = walletManager.getValuesInPreference(SharedPreferencesManager.KEY_WALLET_PUBLIC_KEY);
+        final String walletAddr = walletManager.getValuesInPreference(SharedPreferencesManager.KEY_WALLET_ADDRESS);
+        final String macData = walletManager.getValuesInPreference(SharedPreferencesManager.KEY_WALLET_MAC_DATA);
+        String walletInfo = "Version.Info=" + versionInfo + "\n" +
+                "OS.Info=" + osInfo + "\n" +
+                "Salt.Value=" + salt + "\n" +
+                "Iteration.Count=" + iterationCount + "\n" +
+                "Ciphered.Data=" + cipheredData + "\n" +
+                "Wallet.PublicKey=" + walletPuk + "\n" +
+                "Wallet.Addr=" + walletAddr + "\n" +
+                "MAC.Data=" + macData;
+        return walletInfo;
     }
 
     public void setAutoLogin(String password) {

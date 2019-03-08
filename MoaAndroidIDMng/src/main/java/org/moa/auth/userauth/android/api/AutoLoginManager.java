@@ -50,11 +50,16 @@ class AutoLoginManager extends PINAuthManager implements KeyStoreTEEManager {
 
     private AutoLoginManager() {
         initKeyStore();
-        generateKey();
     }
 
     static AutoLoginManager getInstance() {
         return Singleton.instance;
+    }
+
+    @Override
+    void init(Context context, String uniqueDeviceID) {
+        super.init(context, uniqueDeviceID);
+        generateKey();
     }
 
     @Override
