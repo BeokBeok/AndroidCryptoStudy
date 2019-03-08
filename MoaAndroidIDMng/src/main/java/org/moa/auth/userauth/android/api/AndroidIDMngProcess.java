@@ -34,6 +34,7 @@ public class AndroidIDMngProcess {
         controlInfoManager = ControlInfoManager.getInstance();
         autoLoginManager = AutoLoginManager.getInstance();
         controlInfoManager.init(context, uniqueDeviceID);
+        autoLoginManager.init(context, uniqueDeviceID);
     }
 
     public void generateNonMemberPIN() {
