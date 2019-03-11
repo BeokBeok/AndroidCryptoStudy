@@ -157,6 +157,7 @@ class WalletManager implements KeyStoreTEEManager, SharedPreferencesManager {
         final String macDataBase58 = generateMACData(saltBase58, password, targetMacData);
 
         setValuesInPreference(SharedPreferencesManager.KEY_WALLET_OS_INFO, osInfo);
+        setValuesInPreference(SharedPreferencesManager.KEY_WALLET_SALT, saltBase58);
         setValuesInPreference(SharedPreferencesManager.KEY_WALLET_CIPHERED_DATA, rsaWithPbePrkBase58);
         setValuesInPreference(SharedPreferencesManager.KEY_WALLET_PUBLIC_KEY, publicKeyBase58);
         setValuesInPreference(SharedPreferencesManager.KEY_WALLET_ADDRESS, walletAddressCreatedPukBase58);
