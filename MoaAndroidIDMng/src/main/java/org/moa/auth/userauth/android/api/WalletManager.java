@@ -66,7 +66,12 @@ class WalletManager implements KeyStoreTEEManager, SharedPreferencesManager {
     void init(Context context) {
         this.context = context;
         initProperties();
-        generateKey();
+        try {
+            if (!keyStore.containsAlias(keyAlias))
+                generateKey();
+        } catch (KeyStoreException e) {
+            Log.d("MoaLib", "[WalletManager] failed to check key alias");
+        }
     }
 
     @Override
@@ -204,6 +209,8 @@ class WalletManager implements KeyStoreTEEManager, SharedPreferencesManager {
     }
 
     private void initProperties() {
+        if (getValuesInPreference(SharedPreferencesManager.KEY_WALLET_VERSION_INFO).length() > 0)
+            return;
         setValuesInPreference(SharedPreferencesManager.KEY_WALLET_VERSION_INFO, "1");
         setValuesInPreference(SharedPreferencesManager.KEY_WALLET_SYMMETRIC_ALGORITHM, "PBEwithSHAAND3-KEYTRIPLEDES-CBC");
         setValuesInPreference(SharedPreferencesManager.KEY_WALLET_SYMMETRIC_KEY_SIZE, "192");

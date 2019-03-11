@@ -33,7 +33,12 @@ class FingerprintAuthManger implements KeyStoreTEEManager {
     @RequiresApi(api = Build.VERSION_CODES.M)
     private FingerprintAuthManger() {
         initKeyStore();
-        generateKey();
+        try {
+            if (!keyStore.containsAlias(keyAlias))
+                generateKey();
+        } catch (KeyStoreException e) {
+            Log.d("MoaLib", "[FingerprintAuthManager] failed to check key alias");
+        }
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)

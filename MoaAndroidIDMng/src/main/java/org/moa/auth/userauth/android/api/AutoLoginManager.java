@@ -59,7 +59,12 @@ class AutoLoginManager extends PINAuthManager implements KeyStoreTEEManager {
     @Override
     void init(Context context, String uniqueDeviceID) {
         super.init(context, uniqueDeviceID);
-        generateKey();
+        try {
+            if (!keyStore.containsAlias(keyAlias))
+                generateKey();
+        } catch (KeyStoreException e) {
+            Log.d("MoaLib", "[AutoLoginManager] failed to check key alias");
+        }
     }
 
     @Override

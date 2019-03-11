@@ -38,7 +38,12 @@ class AuthTokenManager implements KeyStoreTEEManager, SharedPreferencesManager {
     @RequiresApi(api = Build.VERSION_CODES.M)
     private AuthTokenManager() {
         initKeyStore();
-        generateKey();
+        try {
+            if (!keyStore.containsAlias(keyAlias))
+                generateKey();
+        } catch (KeyStoreException e) {
+            Log.d("MoaLib", "[AuthTokenManager] failed to check key alias");
+        }
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)
