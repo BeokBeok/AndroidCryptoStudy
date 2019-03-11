@@ -148,7 +148,7 @@ public class AndroidIDMngProcess {
         return walletManager.getPublicKey();
     }
 
-    public boolean existWalletFile() {
+    public boolean existWallet() {
         if (isNotValidUniqueDeviceID())
             return false;
         WalletManager walletManager = WalletManager.getInstance();
