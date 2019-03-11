@@ -142,7 +142,7 @@ class WalletManager implements KeyStoreTEEManager, SharedPreferencesManager {
         if (pbeKeyPair.length == 0)
             return;
         final String base64PbePrk = Base64.encodeToString(pbeKeyPair[0], Base64.NO_WRAP);
-        final byte[] rsaWithPbePrk = getEncryptContent(base64PbePrk);
+        final byte[] rsaWithPbePrk = getEncryptRSAContent(base64PbePrk);
         if (rsaWithPbePrk == null)
             return;
 
@@ -343,7 +343,7 @@ class WalletManager implements KeyStoreTEEManager, SharedPreferencesManager {
         return targetByteArr;
     }
 
-    private byte[] getEncryptContent(String content) {
+    private byte[] getEncryptRSAContent(String content) {
         byte[] resultData;
         try {
             if (!keyStore.containsAlias(keyAlias))
@@ -360,7 +360,7 @@ class WalletManager implements KeyStoreTEEManager, SharedPreferencesManager {
             resultData = cipher.doFinal(targetByte);
         } catch (BadPaddingException | IllegalBlockSizeException | KeyStoreException | NoSuchAlgorithmException |
                 NoSuchPaddingException | InvalidKeyException e) {
-            Log.d("MoaLib", "[WalletManager][getEncryptContent] Failed to get encrypted content");
+            Log.d("MoaLib", "[WalletManager][getEncryptRSAContent] Failed to get encrypted content");
             throw new RuntimeException("Failed to get encrypted content", e);
         }
         return resultData;
