@@ -60,13 +60,13 @@ public class AndroidIDMngProcess {
         return controlInfoManager.getMemberInfo(type);
     }
 
-    public String idPswRegistMsgGenProcessForAndroid(String id, String password) {
+    public String generatePINRegisterMessage(String id, String password) {
         if (isNotValidUniqueDeviceID())
             return "";
         return controlInfoManager.generateOrGetRegisterMessage(id, password);
     }
 
-    public String pinLoginRequestMsgGenProcessForAndroid(String id, String password, String nonceOTP) {
+    public String generatePINLoginRequestMessage(String id, String password, String nonceOTP) {
         if (isNotValidUniqueDeviceID())
             return "";
         return controlInfoManager.generateOrGetLoginRequestMessage(id, password, nonceOTP);
@@ -156,6 +156,7 @@ public class AndroidIDMngProcess {
         return walletManager.existPreference();
     }
 
+    //TODO 지갑 데이터별로 Getter 함수 구현
     public String getWalletContent() {
         if (isNotValidUniqueDeviceID())
             return "";
@@ -180,7 +181,7 @@ public class AndroidIDMngProcess {
         return walletInfo;
     }
 
-    public void setAutoLogin(String password) {
+    public void setAutoLoginInfo(String password) {
         if (isNotValidUniqueDeviceID())
             return;
         autoLoginManager.setAutoInfo(password);

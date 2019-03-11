@@ -43,8 +43,8 @@ abstract class PINAuthManager implements SharedPreferencesManager {
             idPswRegistMsgGen = MoaClientMsgPacketLib.IdPswRegistRequestMsgGen(idBytes.length, idBytes,
                     pswDigestBytes.length, pswDigestBytes, idPswHmacDigestBytes.length, idPswHmacDigestBytes);
         } catch (UnsupportedEncodingException e) {
-            Log.d("MoaLib", "[PINAuthManager][generateOrGetRegisterMessage] failed to generate idPswRegistMsgGenProcess message");
-            throw new RuntimeException("Failed to generate idPswRegistMsgGenProcess message", e);
+            Log.d("MoaLib", "[PINAuthManager][generateOrGetRegisterMessage] failed to generate PIN register message");
+            throw new RuntimeException("Failed to generate PIN register message", e);
         }
         return Base64.encodeToString(idPswRegistMsgGen, Base64.NO_WRAP);
     }
@@ -71,8 +71,8 @@ abstract class PINAuthManager implements SharedPreferencesManager {
                     pswDigestBytes.length, pswDigestBytes, idPswHmacDigestBytes.length, idPswHmacDigestBytes,
                     nonceOTPBytes.length, nonceOTPBytes);
         } catch (UnsupportedEncodingException e) {
-            Log.d("MoaLib", "[PINAuthManager][generateOrGetLoginRequestMessage] failed to generate pinLoginRequestMsgGenProcess message");
-            throw new RuntimeException("Failed to generate pinLoginRequestMsgGenProcess message", e);
+            Log.d("MoaLib", "[PINAuthManager][generateOrGetLoginRequestMessage] failed to generate PIN login request message");
+            throw new RuntimeException("Failed to generate PIN login request message", e);
         }
         return Base64.encodeToString(pinLoginRequestMsgGen, Base64.NO_WRAP);
     }
