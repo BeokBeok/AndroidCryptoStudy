@@ -30,15 +30,8 @@ class FingerprintAuthManger implements KeyStoreTEEManager {
     private String signAlgorithmSuite;
     private KeyStore keyStore;
 
-    @RequiresApi(api = Build.VERSION_CODES.M)
     private FingerprintAuthManger() {
         initKeyStore();
-        try {
-            if (!keyStore.containsAlias(keyAlias))
-                generateKey();
-        } catch (KeyStoreException e) {
-            Log.d("MoaLib", "[FingerprintAuthManager] failed to check key alias");
-        }
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)
@@ -46,9 +39,16 @@ class FingerprintAuthManger implements KeyStoreTEEManager {
         return Singleton.instance;
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.M)
     void init(String ecdsaCurve, String ecdsaSignAlgorithmSuite) {
         this.curve = ecdsaCurve;
         this.signAlgorithmSuite = ecdsaSignAlgorithmSuite;
+        try {
+            if (!keyStore.containsAlias(keyAlias))
+                generateKey();
+        } catch (KeyStoreException e) {
+            Log.d("MoaLib", "[FingerprintAuthManager] failed to check key alias");
+        }
     }
 
     @Override
