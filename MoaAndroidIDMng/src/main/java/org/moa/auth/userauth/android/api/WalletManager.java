@@ -396,36 +396,19 @@ class WalletManager implements KeyStoreTEEManager, SharedPreferencesManager {
     }
 
     private byte[] getDecryptedPrivateKey(String password) {
-        byte[] privateKey = {0,};
-        final int keySize = Integer.parseInt(getValuesInPreference(SharedPreferencesManager.KEY_WALLET_SYMMETRIC_KEY_SIZE));
-        final String secretKeyAlgorithm = getValuesInPreference(SharedPreferencesManager.KEY_WALLET_SYMMETRIC_ALGORITHM);
-        if (keySize == 0 || secretKeyAlgorithm.length() == 0)
-            return privateKey;
-
+        byte[] privateKey;
         final String rsaWithPbePrkBase58 = getValuesInPreference(SharedPreferencesManager.KEY_WALLET_CIPHERED_DATA);
-        final String saltBase58 = getValuesInPreference(SharedPreferencesManager.KEY_WALLET_SALT);
-        final int iterationCount = Integer.parseInt(getValuesInPreference(SharedPreferencesManager.KEY_WALLET_ITERATION_COUNT));
-        if (rsaWithPbePrkBase58.length() == 0 || saltBase58.length() == 0 || iterationCount == 0)
+        if (rsaWithPbePrkBase58.length() == 0)
             return null;
-
         final byte[] rsaWithPbePrk = MoaBase58.decode(rsaWithPbePrkBase58);
-        final Cipher rsaCipher = getDecryptRSACipher();
-        if (rsaCipher == null)
-            return null;
         try {
-            final byte[] pbePrk = rsaCipher.doFinal(rsaWithPbePrk);
-            // Decrypt PBE
-            final Cipher pbeCipher = Cipher.getInstance(secretKeyAlgorithm);
-            byte[] salt = MoaBase58.decode(saltBase58);
-            final KeySpec keySpec = new PBEKeySpec(password.toCharArray(), salt, iterationCount, keySize);
-            final SecretKeyFactory secretKeyFactory = SecretKeyFactory.getInstance(secretKeyAlgorithm);
-            final SecretKey secretKey = secretKeyFactory.generateSecret(keySpec);
-
-            AlgorithmParameterSpec algorithmParameterSpec = new PBEParameterSpec(salt, iterationCount);
-            pbeCipher.init(Cipher.DECRYPT_MODE, secretKey, algorithmParameterSpec);
+            final Cipher rsaCipher = getDecryptRSACipher();
+            final Cipher pbeCipher = getDecryptPBECipher(password);
+            if (rsaCipher == null || pbeCipher == null)
+                return null;
+            byte[] pbePrk = rsaCipher.doFinal(rsaWithPbePrk);
             privateKey = pbeCipher.doFinal(pbePrk);
-        } catch (IllegalBlockSizeException | BadPaddingException | NoSuchAlgorithmException | NoSuchPaddingException |
-                InvalidKeySpecException | InvalidKeyException | InvalidAlgorithmParameterException e) {
+        } catch (IllegalBlockSizeException | BadPaddingException e) {
             Log.d("MoaLib", "[WalletManager][getDecryptedPrivateKey] Failed to get decrypted wallet private key");
             throw new RuntimeException("Failed to get decrypted wallet private key", e);
         }
@@ -444,10 +427,35 @@ class WalletManager implements KeyStoreTEEManager, SharedPreferencesManager {
             cipher.init(Cipher.DECRYPT_MODE, privateKey);
         } catch (NoSuchAlgorithmException | NoSuchPaddingException | UnrecoverableKeyException
                 | KeyStoreException | InvalidKeyException e) {
-            Log.d("MoaLib", "[WalletManager][getDecryptRSACipher] failed to cipher init");
-            throw new RuntimeException("Failed to cipher init", e);
+            Log.d("MoaLib", "[WalletManager][getDecryptRSACipher] failed to RSA cipher init");
+            throw new RuntimeException("Failed to RSA cipher init", e);
         }
         return cipher;
+    }
+
+    private Cipher getDecryptPBECipher(String password) {
+        final int keySize = Integer.parseInt(getValuesInPreference(SharedPreferencesManager.KEY_WALLET_SYMMETRIC_KEY_SIZE));
+        final String secretKeyAlgorithm = getValuesInPreference(SharedPreferencesManager.KEY_WALLET_SYMMETRIC_ALGORITHM);
+        final int iterationCount = Integer.parseInt(getValuesInPreference(SharedPreferencesManager.KEY_WALLET_ITERATION_COUNT));
+        final String saltBase58 = getValuesInPreference(SharedPreferencesManager.KEY_WALLET_SALT);
+        if (keySize == 0 || secretKeyAlgorithm.length() == 0 || saltBase58.length() == 0 || iterationCount == 0)
+            return null;
+
+        Cipher pbeCipher;
+        try {
+            pbeCipher = Cipher.getInstance(secretKeyAlgorithm);
+            byte[] salt = MoaBase58.decode(saltBase58);
+            final KeySpec keySpec = new PBEKeySpec(password.toCharArray(), salt, iterationCount, keySize);
+            final SecretKeyFactory secretKeyFactory = SecretKeyFactory.getInstance(secretKeyAlgorithm);
+            final SecretKey secretKey = secretKeyFactory.generateSecret(keySpec);
+
+            AlgorithmParameterSpec algorithmParameterSpec = new PBEParameterSpec(salt, iterationCount);
+            pbeCipher.init(Cipher.DECRYPT_MODE, secretKey, algorithmParameterSpec);
+        } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | InvalidAlgorithmParameterException | InvalidKeySpecException e) {
+            Log.d("MoaLib", "[WalletManager][getDecryptPBECipher] failed to PBE cipher init");
+            throw new RuntimeException("Failed to PBE cipher init", e);
+        }
+        return pbeCipher;
     }
 
     private byte[] generateSignedData(String algorithm, PrivateKey privateKey, byte[] targetData) {
