@@ -1,4 +1,9 @@
 -ignorewarnings
+-dontwarn org.bouncycastle.jce.provider.X509LDAPCertStoreSpi
+-dontwarn org.bouncycastle.x509.util.LDAPStoreHelper
+-dontwarn org.moa.auth.userauth.client.api.MoaClientLogInLib
+-dontwarn org.moa.auth.userauth.client.api.MoaClientRegistLib
+-dontwarn org.moa.auth.userauth.client.api.AndroidIDProcess
 # Add project specific ProGuard rules here.
 # You can control the set of applied configuration files using the
 # proguardFiles setting in build.gradle.
