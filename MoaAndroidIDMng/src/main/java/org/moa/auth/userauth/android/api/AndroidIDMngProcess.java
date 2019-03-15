@@ -11,7 +11,7 @@ import org.moa.auth.userauth.manager.AutoLoginManager;
 import org.moa.auth.userauth.manager.ControlInfoManager;
 import org.moa.auth.userauth.manager.FingerprintAuthManger;
 import org.moa.auth.userauth.manager.SharedPreferencesManager;
-import org.moa.auth.userauth.manager.UserSequenceIndexManager;
+import org.moa.auth.userauth.manager.BasePrimaryInfoManager;
 import org.moa.auth.userauth.manager.WalletManager;
 
 import java.security.PublicKey;
@@ -208,15 +208,15 @@ public class AndroidIDMngProcess {
     }
 
     public void setUserSequenceIndex(String userSequenceIndex) {
-        UserSequenceIndexManager userSequenceIndexManager = UserSequenceIndexManager.getInstance();
-        userSequenceIndexManager.init(context, uniqueDeviceID);
-        userSequenceIndexManager.setBasePrimaryInfo(userSequenceIndex);
+        BasePrimaryInfoManager basePrimaryInfoManager = BasePrimaryInfoManager.getInstance();
+        basePrimaryInfoManager.init(context, uniqueDeviceID);
+        basePrimaryInfoManager.setBasePrimaryInfo(userSequenceIndex);
     }
 
     public String getUserSequenceIndex() {
-        UserSequenceIndexManager userSequenceIndexManager = UserSequenceIndexManager.getInstance();
-        userSequenceIndexManager.init(context, uniqueDeviceID);
-        return userSequenceIndexManager.getBasePrimaryInfo();
+        BasePrimaryInfoManager basePrimaryInfoManager = BasePrimaryInfoManager.getInstance();
+        basePrimaryInfoManager.init(context, uniqueDeviceID);
+        return basePrimaryInfoManager.getBasePrimaryInfo();
     }
 
     private boolean isNotValidUniqueDeviceID() {
