@@ -210,13 +210,13 @@ public class AndroidIDMngProcess {
     public void setUserSequenceIndex(String userSequenceIndex) {
         UserSequenceIndexManager userSequenceIndexManager = UserSequenceIndexManager.getInstance();
         userSequenceIndexManager.init(context, uniqueDeviceID);
-        userSequenceIndexManager.setUserSequenceIndex(userSequenceIndex);
+        userSequenceIndexManager.setBasePrimaryInfo(userSequenceIndex);
     }
 
     public String getUserSequenceIndex() {
         UserSequenceIndexManager userSequenceIndexManager = UserSequenceIndexManager.getInstance();
         userSequenceIndexManager.init(context, uniqueDeviceID);
-        return userSequenceIndexManager.getUserSequenceIndex();
+        return userSequenceIndexManager.getBasePrimaryInfo();
     }
 
     private boolean isNotValidUniqueDeviceID() {

@@ -27,12 +27,12 @@ public class UserSequenceIndexManager extends ControlInfoManager {
         return super.getValuesInPreference(key);
     }
 
-    public void setUserSequenceIndex(String userSequenceIndex) {
-        setValuesInPreference(SharedPreferencesManager.KEY_USER_SEQUENCE_INDEX, userSequenceIndex);
+    public void setBasePrimaryInfo(String userSequenceIndex) {
+        setValuesInPreference(SharedPreferencesManager.KEY_BASE_PRIMARY_INDEX, userSequenceIndex);
     }
 
-    public String getUserSequenceIndex() {
-        return getValuesInPreference(SharedPreferencesManager.KEY_USER_SEQUENCE_INDEX);
+    public String getBasePrimaryInfo() {
+        return getValuesInPreference(SharedPreferencesManager.KEY_BASE_PRIMARY_INDEX);
     }
 
     private static class Singleton {
