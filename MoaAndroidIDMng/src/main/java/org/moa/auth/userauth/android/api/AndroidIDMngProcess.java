@@ -207,13 +207,13 @@ public class AndroidIDMngProcess {
         return "";
     }
 
-    public void setUserSequenceIndex(String userSequenceIndex) {
+    public void setBasePrimaryInfo(String userSequenceIndex) {
         BasePrimaryInfoManager basePrimaryInfoManager = BasePrimaryInfoManager.getInstance();
         basePrimaryInfoManager.init(context, uniqueDeviceID);
         basePrimaryInfoManager.setBasePrimaryInfo(userSequenceIndex);
     }
 
-    public String getUserSequenceIndex() {
+    public String getBasePrimaryInfo() {
         BasePrimaryInfoManager basePrimaryInfoManager = BasePrimaryInfoManager.getInstance();
         basePrimaryInfoManager.init(context, uniqueDeviceID);
         return basePrimaryInfoManager.getBasePrimaryInfo();
