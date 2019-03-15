@@ -1,4 +1,4 @@
-package org.moa.auth.userauth.android.api;
+package org.moa.auth.userauth.manager;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -8,6 +8,7 @@ import android.util.Base64;
 import android.util.Log;
 
 import org.moa.android.crypto.coreapi.DigestAndroidCoreAPI;
+import org.moa.auth.userauth.android.api.MemberInfo;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -41,7 +42,7 @@ import javax.crypto.spec.PBEParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import javax.security.auth.x500.X500Principal;
 
-class AutoLoginManager extends PINAuthManager implements KeyStoreTEEManager {
+public class AutoLoginManager extends PINAuthManager implements KeyStoreTEEManager {
     private final int iterationCount = 8192;
     private final int keySize = 192;
     private final String secretKeyAlgorithm = "PBEwithSHAAND3-KEYTRIPLEDES-CBC";
@@ -52,12 +53,12 @@ class AutoLoginManager extends PINAuthManager implements KeyStoreTEEManager {
         initKeyStore();
     }
 
-    static AutoLoginManager getInstance() {
+    public static AutoLoginManager getInstance() {
         return Singleton.instance;
     }
 
     @Override
-    void init(Context context, String uniqueDeviceID) {
+    public void init(Context context, String uniqueDeviceID) {
         super.init(context, uniqueDeviceID);
         try {
             if (!keyStore.containsAlias(keyAlias))
@@ -132,7 +133,7 @@ class AutoLoginManager extends PINAuthManager implements KeyStoreTEEManager {
         return "";
     }
 
-    void setAutoInfo(String password) {
+    public void setAutoInfo(String password) {
         if (password == null) {
             // Hashing "MoaPlanet" (SHA-512)
             password = "42009FFDDE80CA527DE3E1AB330481F7A4D76C35A3E7F9571BBA626927A25720B13E2C3F4EDE02DB5BA7B71151F8C7FFA5E4D559B7E7FED75DCCF636276B962B";

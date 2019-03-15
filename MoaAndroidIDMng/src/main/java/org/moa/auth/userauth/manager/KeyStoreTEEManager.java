@@ -1,4 +1,4 @@
-package org.moa.auth.userauth.android.api;
+package org.moa.auth.userauth.manager;
 
 interface KeyStoreTEEManager {
     String PROVIDER = "AndroidKeyStore";

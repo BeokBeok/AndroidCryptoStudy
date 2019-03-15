@@ -1,10 +1,12 @@
-package org.moa.auth.userauth.android.api;
+package org.moa.auth.userauth.manager;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Base64;
 import android.util.Log;
+
+import org.moa.auth.userauth.android.api.MemberInfo;
 
 import java.io.UnsupportedEncodingException;
 import java.security.InvalidAlgorithmParameterException;
@@ -21,17 +23,17 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
-class ControlInfoManager extends PINAuthManager {
+public class ControlInfoManager extends PINAuthManager {
 
-    private ControlInfoManager() {
+    ControlInfoManager() {
     }
 
-    static ControlInfoManager getInstance() {
+    public static ControlInfoManager getInstance() {
         return Singleton.instance;
     }
 
     @Override
-    void init(Context context, String uniqueDeviceID) {
+    public void init(Context context, String uniqueDeviceID) {
         super.init(context, uniqueDeviceID);
     }
 
@@ -54,12 +56,12 @@ class ControlInfoManager extends PINAuthManager {
         return getDecryptContent(controlInfo);
     }
 
-    boolean existPreference() {
+    public boolean existPreference() {
         String controlInfoData = getValuesInPreference(SharedPreferencesManager.KEY_CONTROL_INFO);
         return controlInfoData.length() > 0;
     }
 
-    void setMemberInfo(List<String> data) {
+    public void setMemberInfo(List<String> data) {
         try {
             final String MEMBER_TYPE = data.get(0);
             final String MEMBER_ID = data.get(1);
@@ -82,7 +84,7 @@ class ControlInfoManager extends PINAuthManager {
         }
     }
 
-    String getMemberInfo(String type) {
+    public String getMemberInfo(String type) {
         final String idManagerContent = getValuesInPreference(SharedPreferencesManager.KEY_CONTROL_INFO);
         String result = "";
         if (!checkData(idManagerContent))

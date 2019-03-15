@@ -6,6 +6,14 @@ import android.os.Build;
 import android.support.annotation.RequiresApi;
 import android.util.Log;
 
+import org.moa.auth.userauth.manager.AuthTokenManager;
+import org.moa.auth.userauth.manager.AutoLoginManager;
+import org.moa.auth.userauth.manager.ControlInfoManager;
+import org.moa.auth.userauth.manager.FingerprintAuthManger;
+import org.moa.auth.userauth.manager.SharedPreferencesManager;
+import org.moa.auth.userauth.manager.UserSequenceIndexManager;
+import org.moa.auth.userauth.manager.WalletManager;
+
 import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.List;
@@ -197,6 +205,18 @@ public class AndroidIDMngProcess {
         if (type.equals(MemberInfo.AutoLoginType.ACTIVE.getType()))
             return info;
         return "";
+    }
+
+    public void setUserSequenceIndex(String userSequenceIndex) {
+        UserSequenceIndexManager userSequenceIndexManager = UserSequenceIndexManager.getInstance();
+        userSequenceIndexManager.init(context, uniqueDeviceID);
+        userSequenceIndexManager.setUserSequenceIndex(userSequenceIndex);
+    }
+
+    public String getUserSequenceIndex() {
+        UserSequenceIndexManager userSequenceIndexManager = UserSequenceIndexManager.getInstance();
+        userSequenceIndexManager.init(context, uniqueDeviceID);
+        return userSequenceIndexManager.getUserSequenceIndex();
     }
 
     private boolean isNotValidUniqueDeviceID() {

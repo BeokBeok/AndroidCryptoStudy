@@ -1,4 +1,4 @@
-package org.moa.auth.userauth.android.api;
+package org.moa.auth.userauth.manager;
 
 import android.content.Context;
 import android.util.Base64;
@@ -19,11 +19,16 @@ abstract class PINAuthManager implements SharedPreferencesManager {
     KeyStore keyStore;
 
     void init(Context context, String uniqueDeviceID) {
+        boolean isContext = (this.context != null);
+        boolean isUniqueDeviceID = (this.uniqueDeviceID != null && this.uniqueDeviceID.length() > 0);
+        if (isContext && isUniqueDeviceID)
+            return;
+
         this.context = context;
         this.uniqueDeviceID = uniqueDeviceID;
     }
 
-    String generateOrGetRegisterMessage(String id, String password) {
+    public String generateOrGetRegisterMessage(String id, String password) {
         byte[] idPswRegistMsgGen;
         try {
             final String algorithmName = "SHA256";
@@ -49,7 +54,7 @@ abstract class PINAuthManager implements SharedPreferencesManager {
         return Base64.encodeToString(idPswRegistMsgGen, Base64.NO_WRAP);
     }
 
-    String generateOrGetLoginRequestMessage(String id, String password, String nonceOTP) {
+    public String generateOrGetLoginRequestMessage(String id, String password, String nonceOTP) {
         byte[] pinLoginRequestMsgGen;
         try {
             final String algorithmName = "SHA256";

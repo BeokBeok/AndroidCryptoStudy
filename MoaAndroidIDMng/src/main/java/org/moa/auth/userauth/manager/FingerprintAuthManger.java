@@ -1,4 +1,4 @@
-package org.moa.auth.userauth.android.api;
+package org.moa.auth.userauth.manager;
 
 import android.os.Build;
 import android.security.keystore.KeyGenParameterSpec;
@@ -24,7 +24,7 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.spec.ECGenParameterSpec;
 
-class FingerprintAuthManger implements KeyStoreTEEManager {
+public class FingerprintAuthManger implements KeyStoreTEEManager {
     private final String keyAlias = KeyStoreTEEManager.ALIAS_FINGERPRINT;
     private String curve;
     private String signAlgorithmSuite;
@@ -35,12 +35,12 @@ class FingerprintAuthManger implements KeyStoreTEEManager {
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)
-    static FingerprintAuthManger getInstance() {
+    public static FingerprintAuthManger getInstance() {
         return Singleton.instance;
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)
-    void init(String ecdsaCurve, String ecdsaSignAlgorithmSuite) {
+    public void init(String ecdsaCurve, String ecdsaSignAlgorithmSuite) {
         this.curve = ecdsaCurve;
         this.signAlgorithmSuite = ecdsaSignAlgorithmSuite;
         try {
@@ -83,7 +83,7 @@ class FingerprintAuthManger implements KeyStoreTEEManager {
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)
-    byte[] getRegisterSignature(String base64AuthToken) {
+    public byte[] getRegisterSignature(String base64AuthToken) {
         byte[] resultData;
         try {
             if (!keyStore.containsAlias(keyAlias))
@@ -103,7 +103,7 @@ class FingerprintAuthManger implements KeyStoreTEEManager {
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)
-    byte[] getLoginSignature(String base64NonceOTP, String base64AuthToken) {
+    public byte[] getLoginSignature(String base64NonceOTP, String base64AuthToken) {
         byte[] resultData;
         final byte[] nonceOTP = Base64.decode(base64NonceOTP, Base64.NO_WRAP);
         final byte[] authToken = Base64.decode(base64AuthToken, Base64.NO_WRAP);
@@ -121,7 +121,7 @@ class FingerprintAuthManger implements KeyStoreTEEManager {
         return resultData;
     }
 
-    PublicKey getPublicKey() {
+    public PublicKey getPublicKey() {
         PublicKey publicKey;
         try {
             final Certificate certificate = keyStore.getCertificate(keyAlias);

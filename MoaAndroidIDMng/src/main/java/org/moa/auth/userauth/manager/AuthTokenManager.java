@@ -1,4 +1,4 @@
-package org.moa.auth.userauth.android.api;
+package org.moa.auth.userauth.manager;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -28,7 +28,7 @@ import javax.crypto.KeyGenerator;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.GCMParameterSpec;
 
-class AuthTokenManager implements KeyStoreTEEManager, SharedPreferencesManager {
+public class AuthTokenManager implements KeyStoreTEEManager, SharedPreferencesManager {
     private final String keyAlias = KeyStoreTEEManager.ALIAS_AUTH_TOKEN;
     private final String FORMAT_ENCODE = "UTF-8";
     private final String transformation = "AES/GCM/NoPadding";
@@ -47,11 +47,11 @@ class AuthTokenManager implements KeyStoreTEEManager, SharedPreferencesManager {
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)
-    static AuthTokenManager getInstance() {
+    public static AuthTokenManager getInstance() {
         return Singleton.instance;
     }
 
-    void init(Context context) {
+    public void init(Context context) {
         this.context = context;
     }
 

@@ -1,4 +1,4 @@
-package org.moa.auth.userauth.android.api;
+package org.moa.auth.userauth.manager;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -49,7 +49,7 @@ import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.PBEParameterSpec;
 import javax.security.auth.x500.X500Principal;
 
-class WalletManager implements KeyStoreTEEManager, SharedPreferencesManager {
+public class WalletManager implements KeyStoreTEEManager, SharedPreferencesManager {
     private final String keyAlias = KeyStoreTEEManager.ALIAS_WALLET;
     private final String transformation = "RSA/ECB/PKCS1Padding";
     private Context context;
@@ -59,11 +59,11 @@ class WalletManager implements KeyStoreTEEManager, SharedPreferencesManager {
         initKeyStore();
     }
 
-    static WalletManager getInstance() {
+    public static WalletManager getInstance() {
         return Singleton.instance;
     }
 
-    void init(Context context) {
+    public void init(Context context) {
         this.context = context;
         initProperties();
         try {
@@ -127,12 +127,12 @@ class WalletManager implements KeyStoreTEEManager, SharedPreferencesManager {
         return value;
     }
 
-    boolean existPreference() {
+    public boolean existPreference() {
         String walletAddress = getValuesInPreference(SharedPreferencesManager.KEY_WALLET_ADDRESS);
         return walletAddress.length() > 0;
     }
 
-    void generateInfo(String password) {
+    public void generateInfo(String password) {
         byte[][] walletKeyPair = generateKeyPair();
         if (walletKeyPair.length == 0)
             return;
@@ -164,7 +164,7 @@ class WalletManager implements KeyStoreTEEManager, SharedPreferencesManager {
         setValuesInPreference(SharedPreferencesManager.KEY_WALLET_MAC_DATA, macDataBase58);
     }
 
-    byte[] generateSignedTransactionData(String transaction, String password) {
+    public byte[] generateSignedTransactionData(String transaction, String password) {
         byte[] signData = {0,};
         if (!checkMACData(password))
             return signData;
@@ -190,7 +190,7 @@ class WalletManager implements KeyStoreTEEManager, SharedPreferencesManager {
         return signData;
     }
 
-    PublicKey getPublicKey() {
+    public PublicKey getPublicKey() {
         if (!existPreference())
             return null;
 
