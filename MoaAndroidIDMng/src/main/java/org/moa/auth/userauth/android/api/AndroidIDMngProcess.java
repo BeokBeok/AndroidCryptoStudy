@@ -84,9 +84,9 @@ public class AndroidIDMngProcess {
     public byte[] getFingerprintRegisterECDSASign(List<String> fingerprintRegisterData) {
         if (isNotValidUniqueDeviceID())
             return new byte[0];
-        final String ECDSA_CURVE = fingerprintRegisterData.get(0);
-        final String ECDSA_SUITE = fingerprintRegisterData.get(1);
-        final String AUTH_TOKEN = fingerprintRegisterData.get(2);
+        String ECDSA_CURVE = fingerprintRegisterData.get(0);
+        String ECDSA_SUITE = fingerprintRegisterData.get(1);
+        String AUTH_TOKEN = fingerprintRegisterData.get(2);
         AuthTokenManager authTokenManager = AuthTokenManager.getInstance();
         authTokenManager.init(context);
         authTokenManager.setValuesInPreference(SharedPreferencesManager.KEY_AUTH_TOKEN, AUTH_TOKEN);
@@ -100,10 +100,10 @@ public class AndroidIDMngProcess {
     public byte[] getFingerprintLoginECDSASign(List<String> fingerprintLoginData) {
         if (isNotValidUniqueDeviceID())
             return new byte[0];
-        final String ECDSA_CURVE = fingerprintLoginData.get(0);
-        final String ECDSA_SUITE = fingerprintLoginData.get(1);
-        final String AUTH_TOKEN = fingerprintLoginData.get(2);
-        final String NONCE_OTP = fingerprintLoginData.get(3);
+        String ECDSA_CURVE = fingerprintLoginData.get(0);
+        String ECDSA_SUITE = fingerprintLoginData.get(1);
+        String AUTH_TOKEN = fingerprintLoginData.get(2);
+        String NONCE_OTP = fingerprintLoginData.get(3);
         FingerprintAuthManger fingerprintAuthManger = FingerprintAuthManger.getInstance();
         fingerprintAuthManger.init(ECDSA_CURVE, ECDSA_SUITE);
         return fingerprintAuthManger.getLoginSignature(NONCE_OTP, AUTH_TOKEN);
@@ -170,14 +170,14 @@ public class AndroidIDMngProcess {
             return "";
         WalletManager walletManager = WalletManager.getInstance();
         walletManager.init(context);
-        final String versionInfo = walletManager.getValuesInPreference(SharedPreferencesManager.KEY_WALLET_VERSION_INFO);
-        final String osInfo = walletManager.getValuesInPreference(SharedPreferencesManager.KEY_WALLET_OS_INFO);
-        final String salt = walletManager.getValuesInPreference(SharedPreferencesManager.KEY_WALLET_SALT);
-        final String iterationCount = walletManager.getValuesInPreference(SharedPreferencesManager.KEY_WALLET_ITERATION_COUNT);
-        final String cipheredData = walletManager.getValuesInPreference(SharedPreferencesManager.KEY_WALLET_CIPHERED_DATA);
-        final String walletPuk = walletManager.getValuesInPreference(SharedPreferencesManager.KEY_WALLET_PUBLIC_KEY);
-        final String walletAddr = walletManager.getValuesInPreference(SharedPreferencesManager.KEY_WALLET_ADDRESS);
-        final String macData = walletManager.getValuesInPreference(SharedPreferencesManager.KEY_WALLET_MAC_DATA);
+        String versionInfo = walletManager.getValuesInPreference(SharedPreferencesManager.KEY_WALLET_VERSION_INFO);
+        String osInfo = walletManager.getValuesInPreference(SharedPreferencesManager.KEY_WALLET_OS_INFO);
+        String salt = walletManager.getValuesInPreference(SharedPreferencesManager.KEY_WALLET_SALT);
+        String iterationCount = walletManager.getValuesInPreference(SharedPreferencesManager.KEY_WALLET_ITERATION_COUNT);
+        String cipheredData = walletManager.getValuesInPreference(SharedPreferencesManager.KEY_WALLET_CIPHERED_DATA);
+        String walletPuk = walletManager.getValuesInPreference(SharedPreferencesManager.KEY_WALLET_PUBLIC_KEY);
+        String walletAddr = walletManager.getValuesInPreference(SharedPreferencesManager.KEY_WALLET_ADDRESS);
+        String macData = walletManager.getValuesInPreference(SharedPreferencesManager.KEY_WALLET_MAC_DATA);
         String walletInfo = "Version.Info=" + versionInfo + "\n" +
                 "OS.Info=" + osInfo + "\n" +
                 "Salt.Value=" + salt + "\n" +
@@ -200,8 +200,8 @@ public class AndroidIDMngProcess {
             return "";
         String content = autoLoginManager.getValuesInPreference(SharedPreferencesManager.KEY_AUTO_LOGIN);
         StringTokenizer stringTokenizer = new StringTokenizer(content, "$");
-        final String type = stringTokenizer.nextToken();
-        final String info = stringTokenizer.nextToken();
+        String type = stringTokenizer.nextToken();
+        String info = stringTokenizer.nextToken();
         if (type.equals(MemberInfo.AutoLoginType.ACTIVE.getType()))
             return info;
         return "";

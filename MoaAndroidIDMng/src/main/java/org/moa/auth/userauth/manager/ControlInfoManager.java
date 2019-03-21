@@ -63,10 +63,10 @@ public class ControlInfoManager extends PINAuthManager {
 
     public void setMemberInfo(List<String> data) {
         try {
-            final String MEMBER_TYPE = data.get(0);
-            final String MEMBER_ID = data.get(1);
-            final String AUTH_TYPE = data.get(2);
-            final String COIN_STORE_TYPE = data.get(3);
+            String MEMBER_TYPE = data.get(0);
+            String MEMBER_ID = data.get(1);
+            String AUTH_TYPE = data.get(2);
+            String COIN_STORE_TYPE = data.get(3);
             String controlDataForm = MEMBER_TYPE + "$" +
                     Base64.encodeToString(MEMBER_ID.getBytes(FORMAT_ENCODE), Base64.NO_WRAP) + "$" +
                     AUTH_TYPE + "$" +
@@ -85,20 +85,20 @@ public class ControlInfoManager extends PINAuthManager {
     }
 
     public String getMemberInfo(String type) {
-        final String idManagerContent = getValuesInPreference(SharedPreferencesManager.KEY_CONTROL_INFO);
+        String idManagerContent = getValuesInPreference(SharedPreferencesManager.KEY_CONTROL_INFO);
         String result = "";
         if (!checkData(idManagerContent))
             return "";
         try {
             StringTokenizer stringTokenizer = new StringTokenizer(idManagerContent, "$");
-            final String memberType = stringTokenizer.nextToken();
-            final String base64MemberID = stringTokenizer.nextToken();
-            final byte[] decodeBase64MemberID = Base64.decode(base64MemberID, Base64.NO_WRAP);
+            String memberType = stringTokenizer.nextToken();
+            String base64MemberID = stringTokenizer.nextToken();
+            byte[] decodeBase64MemberID = Base64.decode(base64MemberID, Base64.NO_WRAP);
             String memberID = new String(decodeBase64MemberID, FORMAT_ENCODE);
             if (memberType.equals(MemberInfo.Type.NONMEMBER.getType()))
                 memberID = base64MemberID;
-            final String memberAuthType = stringTokenizer.nextToken();
-            final String memberCoinKeyMgrType = stringTokenizer.nextToken();
+            String memberAuthType = stringTokenizer.nextToken();
+            String memberCoinKeyMgrType = stringTokenizer.nextToken();
 
             if (type.equals(MemberInfo.Get.MEMBER.getType()))
                 result = memberType;
@@ -129,7 +129,7 @@ public class ControlInfoManager extends PINAuthManager {
     }
 
     private Cipher getCipher(int mode) {
-        final String transformation = "DESede/CBC/PKCS5Padding";
+        String transformation = "DESede/CBC/PKCS5Padding";
         byte[] originUniqueDeviceID = Base64.decode(uniqueDeviceID, Base64.NO_WRAP);
         byte[] keyBytes = new byte[24];
         System.arraycopy(originUniqueDeviceID, 0, keyBytes, 0, keyBytes.length);

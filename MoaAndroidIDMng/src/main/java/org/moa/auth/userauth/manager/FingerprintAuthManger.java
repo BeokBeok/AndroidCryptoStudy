@@ -66,7 +66,7 @@ public class FingerprintAuthManger implements KeyStoreTEEManager {
     @Override
     public void generateKey() {
         try {
-            final KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance(KeyProperties.KEY_ALGORITHM_EC, KeyStoreTEEManager.PROVIDER);
+            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance(KeyProperties.KEY_ALGORITHM_EC, KeyStoreTEEManager.PROVIDER);
             keyPairGenerator.initialize(
                     new KeyGenParameterSpec.Builder(keyAlias, KeyProperties.PURPOSE_SIGN)
                             .setDigests(KeyProperties.DIGEST_SHA256, KeyProperties.DIGEST_SHA512)
@@ -89,11 +89,11 @@ public class FingerprintAuthManger implements KeyStoreTEEManager {
             if (!keyStore.containsAlias(keyAlias))
                 generateKey();
 
-            final PublicKey publicKey = keyStore.getCertificate(keyAlias).getPublicKey();
-            final PrivateKey privateKey = (PrivateKey) keyStore.getKey(keyAlias, null);
+            PublicKey publicKey = keyStore.getCertificate(keyAlias).getPublicKey();
+            PrivateKey privateKey = (PrivateKey) keyStore.getKey(keyAlias, null);
 
-            final byte[] authToken = Base64.decode(base64AuthToken, Base64.NO_WRAP);
-            final byte[] combineAuthTokenWithPublicKey = getMergedByteArray(authToken, publicKey.getEncoded());
+            byte[] authToken = Base64.decode(base64AuthToken, Base64.NO_WRAP);
+            byte[] combineAuthTokenWithPublicKey = getMergedByteArray(authToken, publicKey.getEncoded());
             resultData = getSignedData(privateKey, combineAuthTokenWithPublicKey);
         } catch (NoSuchAlgorithmException | KeyStoreException | UnrecoverableKeyException e) {
             Log.d("MoaLib", "[FingerprintAuthManager][getRegisterSignature] Failed to get register signature data");
@@ -105,14 +105,14 @@ public class FingerprintAuthManger implements KeyStoreTEEManager {
     @RequiresApi(api = Build.VERSION_CODES.M)
     public byte[] getLoginSignature(String base64NonceOTP, String base64AuthToken) {
         byte[] resultData;
-        final byte[] nonceOTP = Base64.decode(base64NonceOTP, Base64.NO_WRAP);
-        final byte[] authToken = Base64.decode(base64AuthToken, Base64.NO_WRAP);
-        final byte[] combineNonceOTPWithAuthToken = getMergedByteArray(nonceOTP, authToken);
+        byte[] nonceOTP = Base64.decode(base64NonceOTP, Base64.NO_WRAP);
+        byte[] authToken = Base64.decode(base64AuthToken, Base64.NO_WRAP);
+        byte[] combineNonceOTPWithAuthToken = getMergedByteArray(nonceOTP, authToken);
         try {
             if (!keyStore.containsAlias(keyAlias))
                 generateKey();
 
-            final PrivateKey privateKey = (PrivateKey) keyStore.getKey(keyAlias, null);
+            PrivateKey privateKey = (PrivateKey) keyStore.getKey(keyAlias, null);
             resultData = getSignedData(privateKey, combineNonceOTPWithAuthToken);
         } catch (KeyStoreException | NoSuchAlgorithmException | UnrecoverableKeyException e) {
             Log.d("MoaLib", "[FingerprintAuthManager][getLoginSignature] Failed to get login signature data");
@@ -124,7 +124,7 @@ public class FingerprintAuthManger implements KeyStoreTEEManager {
     public PublicKey getPublicKey() {
         PublicKey publicKey;
         try {
-            final Certificate certificate = keyStore.getCertificate(keyAlias);
+            Certificate certificate = keyStore.getCertificate(keyAlias);
             if (certificate == null) {
                 Log.d("MoaLib", "[FingerprintAuthManager][getPublicKey] certificate not validate");
                 return null;
@@ -147,7 +147,7 @@ public class FingerprintAuthManger implements KeyStoreTEEManager {
     private byte[] getSignedData(PrivateKey privateKey, byte[] targetData) {
         byte[] resultData;
         try {
-            final Signature signature = Signature.getInstance(signAlgorithmSuite);
+            Signature signature = Signature.getInstance(signAlgorithmSuite);
             signature.initSign(privateKey);
             signature.update(targetData);
             resultData = signature.sign();

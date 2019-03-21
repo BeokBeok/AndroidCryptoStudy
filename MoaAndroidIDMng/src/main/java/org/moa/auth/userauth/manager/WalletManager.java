@@ -87,13 +87,13 @@ public class WalletManager implements KeyStoreTEEManager, SharedPreferencesManag
 
     @Override
     public void generateKey() {
-        final String keyAlgorithm = "RSA";
-        final Calendar startData = Calendar.getInstance();
-        final Calendar endData = Calendar.getInstance();
+        String keyAlgorithm = "RSA";
+        Calendar startData = Calendar.getInstance();
+        Calendar endData = Calendar.getInstance();
         endData.add(Calendar.YEAR, 25);
 
         try {
-            final KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance(keyAlgorithm, KeyStoreTEEManager.PROVIDER);
+            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance(keyAlgorithm, KeyStoreTEEManager.PROVIDER);
             keyPairGenerator.initialize(
                     new KeyPairGeneratorSpec.Builder(context)
                             .setAlias(keyAlias)
@@ -137,24 +137,24 @@ public class WalletManager implements KeyStoreTEEManager, SharedPreferencesManag
         if (walletKeyPair.length == 0)
             return;
         byte[] walletAddressCreatedPuk = generateAddressCreatedWithPublicKey(walletKeyPair[1]);
-        final byte[] salt = generateSalt();
-        final byte[][] pbeKeyPair = getEncryptPBEKeyPair(walletKeyPair, password, salt);
+        byte[] salt = generateSalt();
+        byte[][] pbeKeyPair = getEncryptPBEKeyPair(walletKeyPair, password, salt);
         if (pbeKeyPair.length == 0)
             return;
-        final String base64PbePrk = Base64.encodeToString(pbeKeyPair[0], Base64.NO_WRAP);
-        final byte[] rsaWithPbePrk = getEncryptRSAContent(base64PbePrk);
+        String base64PbePrk = Base64.encodeToString(pbeKeyPair[0], Base64.NO_WRAP);
+        byte[] rsaWithPbePrk = getEncryptRSAContent(base64PbePrk);
         if (rsaWithPbePrk == null)
             return;
 
-        final String versionInfo = String.valueOf(getValuesInPreference(SharedPreferencesManager.KEY_WALLET_VERSION_INFO));
-        final String osInfo = System.getProperty("os.name");
-        final String saltBase58 = MoaBase58.encode(salt);
-        final String iterationCount = String.valueOf(getValuesInPreference(SharedPreferencesManager.KEY_WALLET_ITERATION_COUNT));
-        final String rsaWithPbePrkBase58 = MoaBase58.encode(rsaWithPbePrk);
-        final String publicKeyBase58 = MoaBase58.encode(walletKeyPair[1]);
-        final String walletAddressCreatedPukBase58 = MoaBase58.encode(walletAddressCreatedPuk);
-        final String targetMacData = versionInfo + osInfo + saltBase58 + iterationCount + rsaWithPbePrkBase58 + publicKeyBase58 + walletAddressCreatedPukBase58;
-        final String macDataBase58 = generateMACData(saltBase58, password, targetMacData);
+        String versionInfo = String.valueOf(getValuesInPreference(SharedPreferencesManager.KEY_WALLET_VERSION_INFO));
+        String osInfo = System.getProperty("os.name");
+        String saltBase58 = MoaBase58.encode(salt);
+        String iterationCount = String.valueOf(getValuesInPreference(SharedPreferencesManager.KEY_WALLET_ITERATION_COUNT));
+        String rsaWithPbePrkBase58 = MoaBase58.encode(rsaWithPbePrk);
+        String publicKeyBase58 = MoaBase58.encode(walletKeyPair[1]);
+        String walletAddressCreatedPukBase58 = MoaBase58.encode(walletAddressCreatedPuk);
+        String targetMacData = versionInfo + osInfo + saltBase58 + iterationCount + rsaWithPbePrkBase58 + publicKeyBase58 + walletAddressCreatedPukBase58;
+        String macDataBase58 = generateMACData(saltBase58, password, targetMacData);
 
         setValuesInPreference(SharedPreferencesManager.KEY_WALLET_OS_INFO, osInfo);
         setValuesInPreference(SharedPreferencesManager.KEY_WALLET_SALT, saltBase58);
@@ -169,19 +169,19 @@ public class WalletManager implements KeyStoreTEEManager, SharedPreferencesManag
         if (!checkMACData(password))
             return signData;
 
-        final byte[] privateKeyBytes = getDecryptedPrivateKey(password);
+        byte[] privateKeyBytes = getDecryptedPrivateKey(password);
         if (privateKeyBytes == null)
             return signData;
         if (privateKeyBytes.length == 0)
             return signData;
 
-        final String signatureAlgorithm = getValuesInPreference(SharedPreferencesManager.KEY_WALLET_SIGNATURE_ALGIROTHM);
-        final String keyPairAlgorithm = getValuesInPreference(SharedPreferencesManager.KEY_WALLET_ECC_ALGORITHM);
+        String signatureAlgorithm = getValuesInPreference(SharedPreferencesManager.KEY_WALLET_SIGNATURE_ALGIROTHM);
+        String keyPairAlgorithm = getValuesInPreference(SharedPreferencesManager.KEY_WALLET_ECC_ALGORITHM);
         if (signatureAlgorithm.length() == 0 || keyPairAlgorithm.length() == 0)
             return signData;
         try {
-            final KeyFactory keyFactory = KeyFactory.getInstance(keyPairAlgorithm);
-            final PrivateKey privateKey = keyFactory.generatePrivate(new PKCS8EncodedKeySpec(privateKeyBytes));
+            KeyFactory keyFactory = KeyFactory.getInstance(keyPairAlgorithm);
+            PrivateKey privateKey = keyFactory.generatePrivate(new PKCS8EncodedKeySpec(privateKeyBytes));
             signData = generateSignedData(signatureAlgorithm, privateKey, transaction.getBytes());
         } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
             Log.d("MoaLib", "[WalletManager][generateSignedTransactionData] failed to get signed transaction data");
@@ -194,14 +194,14 @@ public class WalletManager implements KeyStoreTEEManager, SharedPreferencesManag
         if (!existPreference())
             return null;
 
-        final String walletPukBase58 = getValuesInPreference(SharedPreferencesManager.KEY_WALLET_PUBLIC_KEY);
-        final String keyPairAlgorithm = getValuesInPreference(SharedPreferencesManager.KEY_WALLET_ECC_ALGORITHM);
+        String walletPukBase58 = getValuesInPreference(SharedPreferencesManager.KEY_WALLET_PUBLIC_KEY);
+        String keyPairAlgorithm = getValuesInPreference(SharedPreferencesManager.KEY_WALLET_ECC_ALGORITHM);
         if (walletPukBase58.length() == 0 || keyPairAlgorithm.length() == 0)
             return null;
 
-        final byte[] publicKeyBytes = MoaBase58.decode(walletPukBase58);
+        byte[] publicKeyBytes = MoaBase58.decode(walletPukBase58);
         try {
-            final KeyFactory keyFactory = KeyFactory.getInstance(keyPairAlgorithm);
+            KeyFactory keyFactory = KeyFactory.getInstance(keyPairAlgorithm);
             return keyFactory.generatePublic(new X509EncodedKeySpec(publicKeyBytes));
         } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
             Log.d("MoaLib", "[WalletManager][getPublicKey] failed to get wallet public key");
@@ -230,16 +230,16 @@ public class WalletManager implements KeyStoreTEEManager, SharedPreferencesManag
     }
 
     private byte[][] generateKeyPair() {
-        final String keyPairAlgorithm = getValuesInPreference(SharedPreferencesManager.KEY_WALLET_ECC_ALGORITHM);
-        final String standardName = getValuesInPreference(SharedPreferencesManager.KEY_WALLET_ECC_CURVE);
+        String keyPairAlgorithm = getValuesInPreference(SharedPreferencesManager.KEY_WALLET_ECC_ALGORITHM);
+        String standardName = getValuesInPreference(SharedPreferencesManager.KEY_WALLET_ECC_CURVE);
         byte[][] walletKeyPair = new byte[2][];
         if (keyPairAlgorithm.length() == 0 || standardName.length() == 0)
             return walletKeyPair;
         try {
-            final KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance(keyPairAlgorithm);
-            final ECGenParameterSpec ecGenParameterSpec = new ECGenParameterSpec(standardName);
+            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance(keyPairAlgorithm);
+            ECGenParameterSpec ecGenParameterSpec = new ECGenParameterSpec(standardName);
             keyPairGenerator.initialize(ecGenParameterSpec);
-            final KeyPair keyPair = keyPairGenerator.generateKeyPair();
+            KeyPair keyPair = keyPairGenerator.generateKeyPair();
             walletKeyPair[0] = keyPair.getPrivate().getEncoded();
             walletKeyPair[1] = keyPair.getPublic().getEncoded();
         } catch (NoSuchAlgorithmException | InvalidAlgorithmParameterException e) {
@@ -250,17 +250,17 @@ public class WalletManager implements KeyStoreTEEManager, SharedPreferencesManag
     }
 
     private byte[][] getEncryptPBEKeyPair(byte[][] keyPair, String password, byte[] salt) {
-        final int iterationCount = Integer.parseInt(getValuesInPreference(SharedPreferencesManager.KEY_WALLET_ITERATION_COUNT));
-        final int keySize = Integer.parseInt(getValuesInPreference(SharedPreferencesManager.KEY_WALLET_SYMMETRIC_KEY_SIZE));
-        final String secretKeyAlgorithm = getValuesInPreference(SharedPreferencesManager.KEY_WALLET_SYMMETRIC_ALGORITHM);
+        int iterationCount = Integer.parseInt(getValuesInPreference(SharedPreferencesManager.KEY_WALLET_ITERATION_COUNT));
+        int keySize = Integer.parseInt(getValuesInPreference(SharedPreferencesManager.KEY_WALLET_SYMMETRIC_KEY_SIZE));
+        String secretKeyAlgorithm = getValuesInPreference(SharedPreferencesManager.KEY_WALLET_SYMMETRIC_ALGORITHM);
         byte[][] pbeKeyPair = new byte[2][];
         if (iterationCount == 0 || keySize == 0 || secretKeyAlgorithm.length() == 0)
             return pbeKeyPair;
         try {
-            final Cipher cipher = Cipher.getInstance(secretKeyAlgorithm);
-            final KeySpec keySpec = new PBEKeySpec(password.toCharArray(), salt, iterationCount, keySize);
-            final SecretKeyFactory secretKeyFactory = SecretKeyFactory.getInstance(secretKeyAlgorithm);
-            final SecretKey secretKey = secretKeyFactory.generateSecret(keySpec);
+            Cipher cipher = Cipher.getInstance(secretKeyAlgorithm);
+            KeySpec keySpec = new PBEKeySpec(password.toCharArray(), salt, iterationCount, keySize);
+            SecretKeyFactory secretKeyFactory = SecretKeyFactory.getInstance(secretKeyAlgorithm);
+            SecretKey secretKey = secretKeyFactory.generateSecret(keySpec);
 
             AlgorithmParameterSpec algorithmParameterSpec = new PBEParameterSpec(salt, iterationCount);
             cipher.init(Cipher.ENCRYPT_MODE, secretKey, algorithmParameterSpec);
@@ -276,7 +276,7 @@ public class WalletManager implements KeyStoreTEEManager, SharedPreferencesManag
 
     private byte[] generateAddressCreatedWithPublicKey(byte[] publicKey) {
         byte[] walletAddress = {0,};
-        final String hashAlgorithm = getValuesInPreference(SharedPreferencesManager.KEY_WALLET_HASH_ALGORITHM);
+        String hashAlgorithm = getValuesInPreference(SharedPreferencesManager.KEY_WALLET_HASH_ALGORITHM);
         if (hashAlgorithm == null)
             return walletAddress;
 
@@ -301,7 +301,7 @@ public class WalletManager implements KeyStoreTEEManager, SharedPreferencesManag
     @Deprecated
     private byte[] generateAddressCreatedWithPrivateKey(byte[] privateKey) {
         byte[] walletAddress = {0,};
-        final String hashAlgorithm = getValuesInPreference(SharedPreferencesManager.KEY_WALLET_HASH_ALGORITHM);
+        String hashAlgorithm = getValuesInPreference(SharedPreferencesManager.KEY_WALLET_HASH_ALGORITHM);
         if (hashAlgorithm == null)
             return walletAddress;
 
@@ -326,12 +326,12 @@ public class WalletManager implements KeyStoreTEEManager, SharedPreferencesManag
 
     private String generateMACData(String salt, String password, String targetMacData) {
         String macData = "";
-        final String hmacAlgorithm = getValuesInPreference(SharedPreferencesManager.KEY_WALLET_MAC_ALGORITHM);
-        final String hashAlgorithm = getValuesInPreference(SharedPreferencesManager.KEY_WALLET_HASH_ALGORITHM);
+        String hmacAlgorithm = getValuesInPreference(SharedPreferencesManager.KEY_WALLET_MAC_ALGORITHM);
+        String hashAlgorithm = getValuesInPreference(SharedPreferencesManager.KEY_WALLET_HASH_ALGORITHM);
         if (hmacAlgorithm == null || hashAlgorithm == null)
             return macData;
-        final byte[] saltPassword = getMergedByteArray(MoaBase58.decode(salt), password.getBytes());
-        final byte[] hmacKey = DigestAndroidCoreAPI.hashDigest(hashAlgorithm, saltPassword);
+        byte[] saltPassword = getMergedByteArray(MoaBase58.decode(salt), password.getBytes());
+        byte[] hmacKey = DigestAndroidCoreAPI.hashDigest(hashAlgorithm, saltPassword);
         byte[] macDataBytes = DigestAndroidCoreAPI.hmacDigest(hmacAlgorithm, targetMacData.getBytes(), hmacKey);
         return MoaBase58.encode(macDataBytes);
     }
@@ -370,26 +370,26 @@ public class WalletManager implements KeyStoreTEEManager, SharedPreferencesManag
         boolean checkWalletMacData;
         if (!existPreference())
             return false;
-        final int versionInfo = Integer.parseInt(getValuesInPreference(SharedPreferencesManager.KEY_WALLET_VERSION_INFO));
-        final String osName = getValuesInPreference(SharedPreferencesManager.KEY_WALLET_OS_INFO);
-        final String saltBase58 = getValuesInPreference(SharedPreferencesManager.KEY_WALLET_SALT);
-        final int iterationCount = Integer.parseInt(getValuesInPreference(SharedPreferencesManager.KEY_WALLET_ITERATION_COUNT));
-        final String rsaWithPbePrkBase58 = getValuesInPreference(SharedPreferencesManager.KEY_WALLET_CIPHERED_DATA);
-        final String walletPukBase58 = getValuesInPreference(SharedPreferencesManager.KEY_WALLET_PUBLIC_KEY);
-        final String walletAddrBase58 = getValuesInPreference(SharedPreferencesManager.KEY_WALLET_ADDRESS);
-        final String macDataBase58 = getValuesInPreference(SharedPreferencesManager.KEY_WALLET_MAC_DATA);
-        final String mergedWalletData = versionInfo + osName + saltBase58 + iterationCount + rsaWithPbePrkBase58 + walletPukBase58 + walletAddrBase58;
-        final byte[] salt = MoaBase58.decode(saltBase58);
-        final byte[] mergedSaltAndPassword = getMergedByteArray(salt, password.getBytes());
-        final String hashAlgorithm = getValuesInPreference(SharedPreferencesManager.KEY_WALLET_HASH_ALGORITHM);
+        int versionInfo = Integer.parseInt(getValuesInPreference(SharedPreferencesManager.KEY_WALLET_VERSION_INFO));
+        String osName = getValuesInPreference(SharedPreferencesManager.KEY_WALLET_OS_INFO);
+        String saltBase58 = getValuesInPreference(SharedPreferencesManager.KEY_WALLET_SALT);
+        int iterationCount = Integer.parseInt(getValuesInPreference(SharedPreferencesManager.KEY_WALLET_ITERATION_COUNT));
+        String rsaWithPbePrkBase58 = getValuesInPreference(SharedPreferencesManager.KEY_WALLET_CIPHERED_DATA);
+        String walletPukBase58 = getValuesInPreference(SharedPreferencesManager.KEY_WALLET_PUBLIC_KEY);
+        String walletAddrBase58 = getValuesInPreference(SharedPreferencesManager.KEY_WALLET_ADDRESS);
+        String macDataBase58 = getValuesInPreference(SharedPreferencesManager.KEY_WALLET_MAC_DATA);
+        String mergedWalletData = versionInfo + osName + saltBase58 + iterationCount + rsaWithPbePrkBase58 + walletPukBase58 + walletAddrBase58;
+        byte[] salt = MoaBase58.decode(saltBase58);
+        byte[] mergedSaltAndPassword = getMergedByteArray(salt, password.getBytes());
+        String hashAlgorithm = getValuesInPreference(SharedPreferencesManager.KEY_WALLET_HASH_ALGORITHM);
         if (hashAlgorithm == null)
             return false;
-        final byte[] hmacKey = DigestAndroidCoreAPI.hashDigest(hashAlgorithm, mergedSaltAndPassword);
-        final String macAlgorithm = getValuesInPreference(SharedPreferencesManager.KEY_WALLET_MAC_ALGORITHM);
+        byte[] hmacKey = DigestAndroidCoreAPI.hashDigest(hashAlgorithm, mergedSaltAndPassword);
+        String macAlgorithm = getValuesInPreference(SharedPreferencesManager.KEY_WALLET_MAC_ALGORITHM);
         if (macAlgorithm == null)
             return false;
-        final byte[] macData = DigestAndroidCoreAPI.hmacDigest(macAlgorithm, mergedWalletData.getBytes(), hmacKey);
-        final String newMacDataBase58 = MoaBase58.encode(macData);
+        byte[] macData = DigestAndroidCoreAPI.hmacDigest(macAlgorithm, mergedWalletData.getBytes(), hmacKey);
+        String newMacDataBase58 = MoaBase58.encode(macData);
         checkWalletMacData = macDataBase58.equals(newMacDataBase58);
 
         return checkWalletMacData;
@@ -397,13 +397,13 @@ public class WalletManager implements KeyStoreTEEManager, SharedPreferencesManag
 
     private byte[] getDecryptedPrivateKey(String password) {
         byte[] privateKey;
-        final String rsaWithPbePrkBase58 = getValuesInPreference(SharedPreferencesManager.KEY_WALLET_CIPHERED_DATA);
+        String rsaWithPbePrkBase58 = getValuesInPreference(SharedPreferencesManager.KEY_WALLET_CIPHERED_DATA);
         if (rsaWithPbePrkBase58.length() == 0)
             return null;
-        final byte[] rsaWithPbePrk = MoaBase58.decode(rsaWithPbePrkBase58);
+        byte[] rsaWithPbePrk = MoaBase58.decode(rsaWithPbePrkBase58);
         try {
-            final Cipher rsaCipher = getDecryptRSACipher();
-            final Cipher pbeCipher = getDecryptPBECipher(password);
+            Cipher rsaCipher = getDecryptRSACipher();
+            Cipher pbeCipher = getDecryptPBECipher(password);
             if (rsaCipher == null || pbeCipher == null)
                 return null;
             byte[] pbePrk = rsaCipher.doFinal(rsaWithPbePrk);
@@ -419,7 +419,7 @@ public class WalletManager implements KeyStoreTEEManager, SharedPreferencesManag
         Cipher cipher;
         try {
             cipher = Cipher.getInstance(transformation);
-            final PrivateKey privateKey = (PrivateKey) keyStore.getKey(keyAlias, null);
+            PrivateKey privateKey = (PrivateKey) keyStore.getKey(keyAlias, null);
             if (privateKey == null) {
                 Log.d("MoaLib", "[WalletManager][getDecryptRSACipher] private key is null");
                 return null;
@@ -434,10 +434,10 @@ public class WalletManager implements KeyStoreTEEManager, SharedPreferencesManag
     }
 
     private Cipher getDecryptPBECipher(String password) {
-        final int keySize = Integer.parseInt(getValuesInPreference(SharedPreferencesManager.KEY_WALLET_SYMMETRIC_KEY_SIZE));
-        final String secretKeyAlgorithm = getValuesInPreference(SharedPreferencesManager.KEY_WALLET_SYMMETRIC_ALGORITHM);
-        final int iterationCount = Integer.parseInt(getValuesInPreference(SharedPreferencesManager.KEY_WALLET_ITERATION_COUNT));
-        final String saltBase58 = getValuesInPreference(SharedPreferencesManager.KEY_WALLET_SALT);
+        int keySize = Integer.parseInt(getValuesInPreference(SharedPreferencesManager.KEY_WALLET_SYMMETRIC_KEY_SIZE));
+        String secretKeyAlgorithm = getValuesInPreference(SharedPreferencesManager.KEY_WALLET_SYMMETRIC_ALGORITHM);
+        int iterationCount = Integer.parseInt(getValuesInPreference(SharedPreferencesManager.KEY_WALLET_ITERATION_COUNT));
+        String saltBase58 = getValuesInPreference(SharedPreferencesManager.KEY_WALLET_SALT);
         if (keySize == 0 || secretKeyAlgorithm.length() == 0 || saltBase58.length() == 0 || iterationCount == 0)
             return null;
 
@@ -445,9 +445,9 @@ public class WalletManager implements KeyStoreTEEManager, SharedPreferencesManag
         try {
             pbeCipher = Cipher.getInstance(secretKeyAlgorithm);
             byte[] salt = MoaBase58.decode(saltBase58);
-            final KeySpec keySpec = new PBEKeySpec(password.toCharArray(), salt, iterationCount, keySize);
-            final SecretKeyFactory secretKeyFactory = SecretKeyFactory.getInstance(secretKeyAlgorithm);
-            final SecretKey secretKey = secretKeyFactory.generateSecret(keySpec);
+            KeySpec keySpec = new PBEKeySpec(password.toCharArray(), salt, iterationCount, keySize);
+            SecretKeyFactory secretKeyFactory = SecretKeyFactory.getInstance(secretKeyAlgorithm);
+            SecretKey secretKey = secretKeyFactory.generateSecret(keySpec);
 
             AlgorithmParameterSpec algorithmParameterSpec = new PBEParameterSpec(salt, iterationCount);
             pbeCipher.init(Cipher.DECRYPT_MODE, secretKey, algorithmParameterSpec);
@@ -461,7 +461,7 @@ public class WalletManager implements KeyStoreTEEManager, SharedPreferencesManag
     private byte[] generateSignedData(String algorithm, PrivateKey privateKey, byte[] targetData) {
         byte[] resultData;
         try {
-            final Signature signature = Signature.getInstance(algorithm);
+            Signature signature = Signature.getInstance(algorithm);
             signature.initSign(privateKey);
             signature.update(targetData);
             resultData = signature.sign();

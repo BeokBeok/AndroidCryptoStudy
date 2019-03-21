@@ -31,20 +31,20 @@ abstract class PINAuthManager implements SharedPreferencesManager {
     public String generateOrGetRegisterMessage(String id, String password) {
         byte[] idPswRegistMsgGen;
         try {
-            final String algorithmName = "SHA256";
-            final String hmacAlgorithmName = "HmacSHA256";
-            final String transformation = "AES/CBC/PKCS7Padding";
-            final byte[] idBytes = id.getBytes(FORMAT_ENCODE);
-            final byte[] passwordBytes = password.getBytes(FORMAT_ENCODE);
-            final byte[] ivBytes = Hex.decode("00FF0000FF00FF000000FFFF000000FF");
+            String algorithmName = "SHA256";
+            String hmacAlgorithmName = "HmacSHA256";
+            String transformation = "AES/CBC/PKCS7Padding";
+            byte[] idBytes = id.getBytes(FORMAT_ENCODE);
+            byte[] passwordBytes = password.getBytes(FORMAT_ENCODE);
+            byte[] ivBytes = Hex.decode("00FF0000FF00FF000000FFFF000000FF");
             byte[] keyBytes = new byte[ivBytes.length];
-            final byte[] idBytesDigestM = DigestAndroidCoreAPI.hashDigest(algorithmName, idBytes);
+            byte[] idBytesDigestM = DigestAndroidCoreAPI.hashDigest(algorithmName, idBytes);
 
             System.arraycopy(idBytesDigestM, 0, keyBytes, 0, ivBytes.length);
             SymmetricAndroidCoreAPI symmetricAndroidCoreAPI = new SymmetricAndroidCoreAPI(transformation, ivBytes, keyBytes);
-            final byte[] encPswBytes = symmetricAndroidCoreAPI.symmetricEncryptData(passwordBytes);
-            final byte[] pswDigestBytes = DigestAndroidCoreAPI.hashDigest(algorithmName, encPswBytes);
-            final byte[] idPswHmacDigestBytes = DigestAndroidCoreAPI.hmacDigest(hmacAlgorithmName, idBytes, pswDigestBytes);
+            byte[] encPswBytes = symmetricAndroidCoreAPI.symmetricEncryptData(passwordBytes);
+            byte[] pswDigestBytes = DigestAndroidCoreAPI.hashDigest(algorithmName, encPswBytes);
+            byte[] idPswHmacDigestBytes = DigestAndroidCoreAPI.hmacDigest(hmacAlgorithmName, idBytes, pswDigestBytes);
             idPswRegistMsgGen = MoaClientMsgPacketLib.IdPswRegistRequestMsgGen(idBytes.length, idBytes,
                     pswDigestBytes.length, pswDigestBytes, idPswHmacDigestBytes.length, idPswHmacDigestBytes);
         } catch (UnsupportedEncodingException e) {
@@ -57,21 +57,21 @@ abstract class PINAuthManager implements SharedPreferencesManager {
     public String generateOrGetLoginRequestMessage(String id, String password, String nonceOTP) {
         byte[] pinLoginRequestMsgGen;
         try {
-            final String algorithmName = "SHA256";
-            final String hmacAlgorithmName = "HmacSHA256";
-            final String transformation = "AES/CBC/PKCS7Padding";
-            final byte[] idBytes = id.getBytes(FORMAT_ENCODE);
-            final byte[] passwordBytes = password.getBytes(FORMAT_ENCODE);
-            final byte[] ivBytes = Hex.decode("00FF0000FF00FF000000FFFF000000FF");
+            String algorithmName = "SHA256";
+            String hmacAlgorithmName = "HmacSHA256";
+            String transformation = "AES/CBC/PKCS7Padding";
+            byte[] idBytes = id.getBytes(FORMAT_ENCODE);
+            byte[] passwordBytes = password.getBytes(FORMAT_ENCODE);
+            byte[] ivBytes = Hex.decode("00FF0000FF00FF000000FFFF000000FF");
             byte[] keyBytes = new byte[ivBytes.length];
-            final byte[] idBytesDigestM = DigestAndroidCoreAPI.hashDigest(algorithmName, idBytes);
+            byte[] idBytesDigestM = DigestAndroidCoreAPI.hashDigest(algorithmName, idBytes);
 
             System.arraycopy(idBytesDigestM, 0, keyBytes, 0, ivBytes.length);
             SymmetricAndroidCoreAPI symmetricAndroidCoreAPI = new SymmetricAndroidCoreAPI(transformation, ivBytes, keyBytes);
-            final byte[] encPswBytes = symmetricAndroidCoreAPI.symmetricEncryptData(passwordBytes);
-            final byte[] pswDigestBytes = DigestAndroidCoreAPI.hashDigest(algorithmName, encPswBytes);
-            final byte[] idPswHmacDigestBytes = DigestAndroidCoreAPI.hmacDigest(hmacAlgorithmName, idBytes, pswDigestBytes);
-            final byte[] nonceOTPBytes = Hex.decode(nonceOTP);
+            byte[] encPswBytes = symmetricAndroidCoreAPI.symmetricEncryptData(passwordBytes);
+            byte[] pswDigestBytes = DigestAndroidCoreAPI.hashDigest(algorithmName, encPswBytes);
+            byte[] idPswHmacDigestBytes = DigestAndroidCoreAPI.hmacDigest(hmacAlgorithmName, idBytes, pswDigestBytes);
+            byte[] nonceOTPBytes = Hex.decode(nonceOTP);
             pinLoginRequestMsgGen = MoaClientMsgPacketLib.PinLogInRequestMsgGen(idBytes.length, idBytes,
                     pswDigestBytes.length, pswDigestBytes, idPswHmacDigestBytes.length, idPswHmacDigestBytes,
                     nonceOTPBytes.length, nonceOTPBytes);

@@ -81,12 +81,12 @@ public class AutoLoginManager extends PINAuthManager implements KeyStoreTEEManag
 
     @Override
     public void generateKey() {
-        final String keyAlgorithm = "RSA";
-        final Calendar startData = Calendar.getInstance();
-        final Calendar endData = Calendar.getInstance();
+        String keyAlgorithm = "RSA";
+        Calendar startData = Calendar.getInstance();
+        Calendar endData = Calendar.getInstance();
         endData.add(Calendar.YEAR, 25);
         try {
-            final KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance(keyAlgorithm, KeyStoreTEEManager.PROVIDER);
+            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance(keyAlgorithm, KeyStoreTEEManager.PROVIDER);
             keyPairGenerator.initialize(
                     new KeyPairGeneratorSpec.Builder(context)
                             .setAlias(keyAlias)
@@ -151,12 +151,12 @@ public class AutoLoginManager extends PINAuthManager implements KeyStoreTEEManag
     private byte[] getEncryptPBEContent(String content) {
         byte[] encryptContent;
         try {
-            final Cipher cipher = Cipher.getInstance(secretKeyAlgorithm);
-            final byte[] salt = generateSalt();
-            final byte[] hashUniqueDeviceID = DigestAndroidCoreAPI.hashDigest("SHA-512", (uniqueDeviceID + String.valueOf(iterationCount)).getBytes());
-            final KeySpec keySpec = new PBEKeySpec(new String(hashUniqueDeviceID, FORMAT_ENCODE).toCharArray(), salt, iterationCount, keySize);
-            final SecretKeyFactory secretKeyFactory = SecretKeyFactory.getInstance(secretKeyAlgorithm);
-            final SecretKey secretKey = secretKeyFactory.generateSecret(keySpec);
+            Cipher cipher = Cipher.getInstance(secretKeyAlgorithm);
+            byte[] salt = generateSalt();
+            byte[] hashUniqueDeviceID = DigestAndroidCoreAPI.hashDigest("SHA-512", (uniqueDeviceID + String.valueOf(iterationCount)).getBytes());
+            KeySpec keySpec = new PBEKeySpec(new String(hashUniqueDeviceID, FORMAT_ENCODE).toCharArray(), salt, iterationCount, keySize);
+            SecretKeyFactory secretKeyFactory = SecretKeyFactory.getInstance(secretKeyAlgorithm);
+            SecretKey secretKey = secretKeyFactory.generateSecret(keySpec);
 
             AlgorithmParameterSpec algorithmParameterSpec = new PBEParameterSpec(salt, iterationCount);
             cipher.init(Cipher.ENCRYPT_MODE, secretKey, algorithmParameterSpec);
@@ -175,13 +175,13 @@ public class AutoLoginManager extends PINAuthManager implements KeyStoreTEEManag
     private byte[] getDecryptPBEContent(byte[] content) {
         byte[] result;
         try {
-            final Cipher pbeCipher = Cipher.getInstance(secretKeyAlgorithm);
-            final String base64Salt = getValuesInPreference(SharedPreferencesManager.KEY_AUTO_SALT);
-            final byte[] salt = Base64.decode(base64Salt, Base64.NO_WRAP);
-            final byte[] hashUniqueDeviceID = DigestAndroidCoreAPI.hashDigest("SHA-512", (uniqueDeviceID + String.valueOf(iterationCount)).getBytes());
-            final KeySpec keySpec = new PBEKeySpec(new String(hashUniqueDeviceID, FORMAT_ENCODE).toCharArray(), salt, iterationCount, keySize);
-            final SecretKeyFactory secretKeyFactory = SecretKeyFactory.getInstance(secretKeyAlgorithm);
-            final SecretKey secretKey = secretKeyFactory.generateSecret(keySpec);
+            Cipher pbeCipher = Cipher.getInstance(secretKeyAlgorithm);
+            String base64Salt = getValuesInPreference(SharedPreferencesManager.KEY_AUTO_SALT);
+            byte[] salt = Base64.decode(base64Salt, Base64.NO_WRAP);
+            byte[] hashUniqueDeviceID = DigestAndroidCoreAPI.hashDigest("SHA-512", (uniqueDeviceID + String.valueOf(iterationCount)).getBytes());
+            KeySpec keySpec = new PBEKeySpec(new String(hashUniqueDeviceID, FORMAT_ENCODE).toCharArray(), salt, iterationCount, keySize);
+            SecretKeyFactory secretKeyFactory = SecretKeyFactory.getInstance(secretKeyAlgorithm);
+            SecretKey secretKey = secretKeyFactory.generateSecret(keySpec);
 
             AlgorithmParameterSpec algorithmParameterSpec = new PBEParameterSpec(salt, iterationCount);
             pbeCipher.init(Cipher.DECRYPT_MODE, secretKey, algorithmParameterSpec);
@@ -218,7 +218,7 @@ public class AutoLoginManager extends PINAuthManager implements KeyStoreTEEManag
         byte[] result = {0,};
         try {
             Cipher cipher = Cipher.getInstance(transformationRSA);
-            final PrivateKey privateKey = (PrivateKey) keyStore.getKey(keyAlias, null);
+            PrivateKey privateKey = (PrivateKey) keyStore.getKey(keyAlias, null);
             if (privateKey == null) {
                 Log.d("MoaLib", "[AutoLoginManager][getDecryptRSAContent] private key is null");
                 return result;

@@ -70,7 +70,7 @@ public class AuthTokenManager implements KeyStoreTEEManager, SharedPreferencesMa
     @Override
     public void generateKey() {
         try {
-            final KeyGenerator keyGenerator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, KeyStoreTEEManager.PROVIDER);
+            KeyGenerator keyGenerator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, KeyStoreTEEManager.PROVIDER);
             keyGenerator.init(
                     new KeyGenParameterSpec.Builder(keyAlias, KeyProperties.PURPOSE_ENCRYPT | KeyProperties.PURPOSE_DECRYPT)
                             .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
@@ -110,7 +110,7 @@ public class AuthTokenManager implements KeyStoreTEEManager, SharedPreferencesMa
             if (!keyStore.containsAlias(keyAlias))
                 generateKey();
 
-            final KeyStore.SecretKeyEntry secretKeyEntry = ((KeyStore.SecretKeyEntry) keyStore.getEntry(keyAlias, null));
+            KeyStore.SecretKeyEntry secretKeyEntry = ((KeyStore.SecretKeyEntry) keyStore.getEntry(keyAlias, null));
             if (secretKeyEntry == null) {
                 Log.d("MoaLib", "[AuthTokenManager][getEncryptContent] secret key is null");
                 return null;
@@ -132,14 +132,14 @@ public class AuthTokenManager implements KeyStoreTEEManager, SharedPreferencesMa
         String result;
         try {
             Cipher cipher = Cipher.getInstance(transformation);
-            final KeyStore.SecretKeyEntry secretKeyEntry = (KeyStore.SecretKeyEntry) keyStore.getEntry(keyAlias, null);
+            KeyStore.SecretKeyEntry secretKeyEntry = (KeyStore.SecretKeyEntry) keyStore.getEntry(keyAlias, null);
             if (secretKeyEntry == null) {
                 Log.d("MoaLib", "[AuthTokenManager][getDecryptContent] secretKeyEntry is null");
                 return null;
             }
 
             cipher.init(Cipher.DECRYPT_MODE, secretKeyEntry.getSecretKey(), new GCMParameterSpec(128, getIV()));
-            final byte[] decryptData = cipher.doFinal(content);
+            byte[] decryptData = cipher.doFinal(content);
             result = new String(decryptData, FORMAT_ENCODE);
         } catch (NoSuchPaddingException | NoSuchAlgorithmException | InvalidAlgorithmParameterException | InvalidKeyException |
                 KeyStoreException | UnrecoverableEntryException | IllegalBlockSizeException | BadPaddingException |
