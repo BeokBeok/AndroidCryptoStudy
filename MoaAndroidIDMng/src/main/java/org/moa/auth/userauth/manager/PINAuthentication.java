@@ -12,7 +12,7 @@ import org.moa.auth.userauth.client.api.MoaClientMsgPacketLib;
 import java.io.UnsupportedEncodingException;
 import java.security.KeyStore;
 
-abstract class PINAuthManager implements SharedPreferencesManager {
+abstract class PINAuthentication implements SharedPreferences {
     final String FORMAT_ENCODE = "UTF-8";
     Context context;
     String uniqueDeviceID;
@@ -48,7 +48,7 @@ abstract class PINAuthManager implements SharedPreferencesManager {
             idPswRegistMsgGen = MoaClientMsgPacketLib.IdPswRegistRequestMsgGen(idBytes.length, idBytes,
                     pswDigestBytes.length, pswDigestBytes, idPswHmacDigestBytes.length, idPswHmacDigestBytes);
         } catch (UnsupportedEncodingException e) {
-            Log.d("MoaLib", "[PINAuthManager][generateOrGetRegisterMessage] failed to generate PIN register message");
+            Log.d("MoaLib", "[PINAuthentication][generateOrGetRegisterMessage] failed to generate PIN register message");
             throw new RuntimeException("Failed to generate PIN register message", e);
         }
         return Base64.encodeToString(idPswRegistMsgGen, Base64.NO_WRAP);
@@ -76,7 +76,7 @@ abstract class PINAuthManager implements SharedPreferencesManager {
                     pswDigestBytes.length, pswDigestBytes, idPswHmacDigestBytes.length, idPswHmacDigestBytes,
                     nonceOTPBytes.length, nonceOTPBytes);
         } catch (UnsupportedEncodingException e) {
-            Log.d("MoaLib", "[PINAuthManager][generateOrGetLoginRequestMessage] failed to generate PIN login request message");
+            Log.d("MoaLib", "[PINAuthentication][generateOrGetLoginRequestMessage] failed to generate PIN login request message");
             throw new RuntimeException("Failed to generate PIN login request message", e);
         }
         return Base64.encodeToString(pinLoginRequestMsgGen, Base64.NO_WRAP);

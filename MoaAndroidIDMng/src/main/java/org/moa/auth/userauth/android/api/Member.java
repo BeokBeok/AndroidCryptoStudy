@@ -1,6 +1,6 @@
 package org.moa.auth.userauth.android.api;
 
-public abstract class MemberInfo {
+public abstract class Member {
     public enum Get {
         MEMBER("0"),
         MEMBER_ID("1"),

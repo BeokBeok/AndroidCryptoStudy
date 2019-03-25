@@ -1,6 +1,6 @@
 package org.moa.auth.userauth.manager;
 
-public interface SharedPreferencesManager {
+public interface SharedPreferences {
     String PREFNAME_CONTROL_INFO = "androidIDManager";
     String KEY_CONTROL_INFO = "Control.Info";
     String KEY_AUTO_LOGIN = "Auto.Info";

@@ -24,18 +24,18 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.spec.ECGenParameterSpec;
 
-public class FingerprintAuthManger implements KeyStoreTEEManager {
-    private final String keyAlias = KeyStoreTEEManager.ALIAS_FINGERPRINT;
+public class FingerprintAuthentication implements KeyStoreTEE {
+    private final String keyAlias = KeyStoreTEE.ALIAS_FINGERPRINT;
     private String curve;
     private String signAlgorithmSuite;
     private KeyStore keyStore;
 
-    private FingerprintAuthManger() {
+    private FingerprintAuthentication() {
         initKeyStore();
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)
-    public static FingerprintAuthManger getInstance() {
+    public static FingerprintAuthentication getInstance() {
         return Singleton.instance;
     }
 
@@ -54,7 +54,7 @@ public class FingerprintAuthManger implements KeyStoreTEEManager {
     @Override
     public void initKeyStore() {
         try {
-            this.keyStore = KeyStore.getInstance(KeyStoreTEEManager.PROVIDER);
+            this.keyStore = KeyStore.getInstance(KeyStoreTEE.PROVIDER);
             this.keyStore.load(null);
         } catch (KeyStoreException | IOException | NoSuchAlgorithmException | CertificateException e) {
             Log.d("MoaLib", "[FingerprintAuthManager][initKeyStore] failed to init keystore");
@@ -66,7 +66,7 @@ public class FingerprintAuthManger implements KeyStoreTEEManager {
     @Override
     public void generateKey() {
         try {
-            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance(KeyProperties.KEY_ALGORITHM_EC, KeyStoreTEEManager.PROVIDER);
+            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance(KeyProperties.KEY_ALGORITHM_EC, KeyStoreTEE.PROVIDER);
             keyPairGenerator.initialize(
                     new KeyGenParameterSpec.Builder(keyAlias, KeyProperties.PURPOSE_SIGN)
                             .setDigests(KeyProperties.DIGEST_SHA256, KeyProperties.DIGEST_SHA512)
@@ -160,6 +160,6 @@ public class FingerprintAuthManger implements KeyStoreTEEManager {
 
     @RequiresApi(api = Build.VERSION_CODES.M)
     private static class Singleton {
-        private static final FingerprintAuthManger instance = new FingerprintAuthManger();
+        private static final FingerprintAuthentication instance = new FingerprintAuthentication();
     }
 }

@@ -3,12 +3,12 @@ package org.moa.auth.userauth.manager;
 import android.annotation.SuppressLint;
 import android.content.Context;
 
-public class BasePrimaryInfoManager extends ControlInfoManager {
-    private BasePrimaryInfoManager() {
+public class BasePrimary extends Control {
+    private BasePrimary() {
         super();
     }
 
-    public static BasePrimaryInfoManager getInstance() {
+    public static BasePrimary getInstance() {
         return Singleton.instance;
     }
 
@@ -28,15 +28,15 @@ public class BasePrimaryInfoManager extends ControlInfoManager {
     }
 
     public void setBasePrimaryInfo(String basePrimaryInfo) {
-        setValuesInPreference(SharedPreferencesManager.KEY_BASE_PRIMARY_INDEX, basePrimaryInfo);
+        setValuesInPreference(SharedPreferences.KEY_BASE_PRIMARY_INDEX, basePrimaryInfo);
     }
 
     public String getBasePrimaryInfo() {
-        return getValuesInPreference(SharedPreferencesManager.KEY_BASE_PRIMARY_INDEX);
+        return getValuesInPreference(SharedPreferences.KEY_BASE_PRIMARY_INDEX);
     }
 
     private static class Singleton {
         @SuppressLint("StaticFieldLeak")
-        private static final BasePrimaryInfoManager instance = new BasePrimaryInfoManager();
+        private static final BasePrimary instance = new BasePrimary();
     }
 }
