@@ -28,26 +28,26 @@ import javax.crypto.KeyGenerator;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.GCMParameterSpec;
 
-public class AuthTokenManager implements KeyStoreTEEManager, SharedPreferencesManager {
-    private final String keyAlias = KeyStoreTEEManager.ALIAS_AUTH_TOKEN;
+public class AuthToken implements MoaTEEKeyStore, MoaPreferences {
+    private final String keyAlias = MoaTEEKeyStore.ALIAS_AUTH_TOKEN;
     private final String FORMAT_ENCODE = "UTF-8";
     private final String transformation = "AES/GCM/NoPadding";
     private Context context;
     private KeyStore keyStore;
 
     @RequiresApi(api = Build.VERSION_CODES.M)
-    private AuthTokenManager() {
+    private AuthToken() {
         initKeyStore();
         try {
             if (!keyStore.containsAlias(keyAlias))
                 generateKey();
         } catch (KeyStoreException e) {
-            Log.d("MoaLib", "[AuthTokenManager] failed to check key alias");
+            Log.d("MoaLib", "[AuthToken] failed to check key alias");
         }
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)
-    public static AuthTokenManager getInstance() {
+    public static AuthToken getInstance() {
         return Singleton.instance;
     }
 
@@ -58,10 +58,10 @@ public class AuthTokenManager implements KeyStoreTEEManager, SharedPreferencesMa
     @Override
     public void initKeyStore() {
         try {
-            this.keyStore = KeyStore.getInstance(KeyStoreTEEManager.PROVIDER);
+            this.keyStore = KeyStore.getInstance(MoaTEEKeyStore.PROVIDER);
             this.keyStore.load(null);
         } catch (KeyStoreException | IOException | NoSuchAlgorithmException | CertificateException e) {
-            Log.d("MoaLib", "[AuthTokenManager][initKeyStore] failed to init keystore");
+            Log.d("MoaLib", "[AuthToken][initKeyStore] failed to init keystore");
             throw new RuntimeException("Failed to init keystore", e);
         }
     }
@@ -70,7 +70,7 @@ public class AuthTokenManager implements KeyStoreTEEManager, SharedPreferencesMa
     @Override
     public void generateKey() {
         try {
-            KeyGenerator keyGenerator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, KeyStoreTEEManager.PROVIDER);
+            KeyGenerator keyGenerator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, MoaTEEKeyStore.PROVIDER);
             keyGenerator.init(
                     new KeyGenParameterSpec.Builder(keyAlias, KeyProperties.PURPOSE_ENCRYPT | KeyProperties.PURPOSE_DECRYPT)
                             .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
@@ -81,7 +81,7 @@ public class AuthTokenManager implements KeyStoreTEEManager, SharedPreferencesMa
             );
             keyGenerator.generateKey();
         } catch (NoSuchAlgorithmException | NoSuchProviderException | InvalidAlgorithmParameterException e) {
-            Log.d("MoaLib", "[AuthTokenManager][generateKey] failed to generate key");
+            Log.d("MoaLib", "[AuthToken][generateKey] failed to generate key");
             throw new RuntimeException("Failed to generate key", e);
         }
     }
@@ -90,7 +90,7 @@ public class AuthTokenManager implements KeyStoreTEEManager, SharedPreferencesMa
     @Override
     public void setValuesInPreferences(String key, String value) {
         String encryptedData = getEncryptContent(value);
-        SharedPreferences pref = context.getSharedPreferences(SharedPreferencesManager.PREFNAME_AUTH_TOKEN, Context.MODE_PRIVATE);
+        SharedPreferences pref = context.getSharedPreferences(MoaPreferences.PREFNAME_AUTH_TOKEN, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = pref.edit();
         editor.putString(key, encryptedData);
         editor.apply();
@@ -98,7 +98,7 @@ public class AuthTokenManager implements KeyStoreTEEManager, SharedPreferencesMa
 
     @Override
     public String getValuesInPreferences(String key) {
-        SharedPreferences pref = context.getSharedPreferences(SharedPreferencesManager.PREFNAME_AUTH_TOKEN, Context.MODE_PRIVATE);
+        SharedPreferences pref = context.getSharedPreferences(MoaPreferences.PREFNAME_AUTH_TOKEN, Context.MODE_PRIVATE);
         byte[] encryptData = Base64.decode(pref.getString(key, ""), Base64.NO_WRAP);
         return getDecryptContent(encryptData);
     }
@@ -112,7 +112,7 @@ public class AuthTokenManager implements KeyStoreTEEManager, SharedPreferencesMa
 
             KeyStore.SecretKeyEntry secretKeyEntry = ((KeyStore.SecretKeyEntry) keyStore.getEntry(keyAlias, null));
             if (secretKeyEntry == null) {
-                Log.d("MoaLib", "[AuthTokenManager][getEncryptContent] secret key is null");
+                Log.d("MoaLib", "[AuthToken][getEncryptContent] secret key is null");
                 return null;
             }
             Cipher cipher = Cipher.getInstance(transformation);
@@ -122,7 +122,7 @@ public class AuthTokenManager implements KeyStoreTEEManager, SharedPreferencesMa
             setIV(cipher.getIV());
         } catch (InvalidKeyException | NoSuchAlgorithmException | KeyStoreException | UnrecoverableEntryException
                 | NoSuchPaddingException | BadPaddingException | UnsupportedEncodingException | IllegalBlockSizeException e) {
-            Log.d("MoaLib", "[AuthTokenManager][getEncryptContent] failed to get encrypted content");
+            Log.d("MoaLib", "[AuthToken][getEncryptContent] failed to get encrypted content");
             throw new RuntimeException("Failed to get encrypted content", e);
         }
         return resultData;
@@ -134,7 +134,7 @@ public class AuthTokenManager implements KeyStoreTEEManager, SharedPreferencesMa
             Cipher cipher = Cipher.getInstance(transformation);
             KeyStore.SecretKeyEntry secretKeyEntry = (KeyStore.SecretKeyEntry) keyStore.getEntry(keyAlias, null);
             if (secretKeyEntry == null) {
-                Log.d("MoaLib", "[AuthTokenManager][getDecryptContent] secretKeyEntry is null");
+                Log.d("MoaLib", "[AuthToken][getDecryptContent] secretKeyEntry is null");
                 return null;
             }
 
@@ -144,7 +144,7 @@ public class AuthTokenManager implements KeyStoreTEEManager, SharedPreferencesMa
         } catch (NoSuchPaddingException | NoSuchAlgorithmException | InvalidAlgorithmParameterException | InvalidKeyException |
                 KeyStoreException | UnrecoverableEntryException | IllegalBlockSizeException | BadPaddingException |
                 UnsupportedEncodingException e) {
-            Log.d("MoaLib", "[AuthTokenManager][getDecryptContent] failed to get decrypt content");
+            Log.d("MoaLib", "[AuthToken][getDecryptContent] failed to get decrypt content");
             throw new RuntimeException("Failed to get decrypt content", e);
         }
         return result;
@@ -165,7 +165,7 @@ public class AuthTokenManager implements KeyStoreTEEManager, SharedPreferencesMa
     @RequiresApi(api = Build.VERSION_CODES.M)
     private static class Singleton {
         @SuppressLint("StaticFieldLeak")
-        private static final AuthTokenManager instance = new AuthTokenManager();
+        private static final AuthToken instance = new AuthToken();
     }
 
 }

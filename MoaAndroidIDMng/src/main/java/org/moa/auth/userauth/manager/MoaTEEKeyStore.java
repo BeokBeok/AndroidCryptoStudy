@@ -1,6 +1,6 @@
 package org.moa.auth.userauth.manager;
 
-interface KeyStoreTEEManager {
+interface MoaTEEKeyStore {
     String PROVIDER = "AndroidKeyStore";
     String ALIAS_AUTO_INFO = "MoaAutoInfo";
     String ALIAS_FINGERPRINT = "MoaFingerKeyPair";

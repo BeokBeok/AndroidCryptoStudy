@@ -6,7 +6,7 @@ import android.content.SharedPreferences;
 import android.util.Base64;
 import android.util.Log;
 
-import org.moa.auth.userauth.android.api.MemberInfo;
+import org.moa.auth.userauth.android.api.MoaMember;
 
 import java.io.UnsupportedEncodingException;
 import java.security.InvalidAlgorithmParameterException;
@@ -23,12 +23,12 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
-public class ControlInfoManager extends PINAuthManager {
+public class UserControl extends PINAuth {
 
-    ControlInfoManager() {
+    UserControl() {
     }
 
-    public static ControlInfoManager getInstance() {
+    public static UserControl getInstance() {
         return Singleton.instance;
     }
 
@@ -36,13 +36,13 @@ public class ControlInfoManager extends PINAuthManager {
     public void init(Context context, String uniqueDeviceID) {
         super.init(context, uniqueDeviceID);
         if (uniqueDeviceID != null && uniqueDeviceID.length() > 0)
-            setValuesInPreferences(SharedPreferencesManager.KEY_UNIQUE_DEVICE_INFO, uniqueDeviceID);
+            setValuesInPreferences(MoaPreferences.KEY_UNIQUE_DEVICE_INFO, uniqueDeviceID);
     }
 
     @Override
     public void setValuesInPreferences(String key, String value) {
         String encryptedData = getEncryptContent(value);
-        SharedPreferences pref = context.getSharedPreferences(SharedPreferencesManager.PREFNAME_CONTROL_INFO, Context.MODE_PRIVATE);
+        SharedPreferences pref = context.getSharedPreferences(MoaPreferences.PREFNAME_CONTROL_INFO, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = pref.edit();
         editor.putString(key, encryptedData);
         editor.apply();
@@ -50,7 +50,7 @@ public class ControlInfoManager extends PINAuthManager {
 
     @Override
     public String getValuesInPreferences(String key) {
-        SharedPreferences pref = context.getSharedPreferences(SharedPreferencesManager.PREFNAME_CONTROL_INFO, Context.MODE_PRIVATE);
+        SharedPreferences pref = context.getSharedPreferences(MoaPreferences.PREFNAME_CONTROL_INFO, Context.MODE_PRIVATE);
         String value = pref.getString(key, "");
         if (value == null)
             return "";
@@ -58,8 +58,8 @@ public class ControlInfoManager extends PINAuthManager {
         return getDecryptContent(controlInfo);
     }
 
-    public boolean existPreference() {
-        String controlInfoData = getValuesInPreferences(SharedPreferencesManager.KEY_CONTROL_INFO);
+    public boolean existPreferences() {
+        String controlInfoData = getValuesInPreferences(MoaPreferences.KEY_CONTROL_INFO);
         return controlInfoData.length() > 0;
     }
 
@@ -73,21 +73,21 @@ public class ControlInfoManager extends PINAuthManager {
                     Base64.encodeToString(MEMBER_ID.getBytes(FORMAT_ENCODE), Base64.NO_WRAP) + "$" +
                     AUTH_TYPE + "$" +
                     COIN_STORE_TYPE;
-            if (MEMBER_TYPE.equals(MemberInfo.Type.NONMEMBER.getType())) {
+            if (MEMBER_TYPE.equals(MoaMember.Type.NONMEMBER.getType())) {
                 controlDataForm = MEMBER_TYPE + "$" +
                         MEMBER_ID + "$" +
                         AUTH_TYPE + "$" +
                         COIN_STORE_TYPE;
             }
-            setValuesInPreferences(SharedPreferencesManager.KEY_CONTROL_INFO, controlDataForm);
+            setValuesInPreferences(MoaPreferences.KEY_CONTROL_INFO, controlDataForm);
         } catch (UnsupportedEncodingException e) {
-            Log.d("MoaLib", "[ControlInfoManager][setMemberInfo] failed to set member info");
+            Log.d("MoaLib", "[UserControl][setMemberInfo] failed to set member info");
             throw new RuntimeException("Failed to set member info", e);
         }
     }
 
     public String getMemberInfo(String type) {
-        String idManagerContent = getValuesInPreferences(SharedPreferencesManager.KEY_CONTROL_INFO);
+        String idManagerContent = getValuesInPreferences(MoaPreferences.KEY_CONTROL_INFO);
         String result = "";
         if (!checkData(idManagerContent))
             return "";
@@ -97,28 +97,28 @@ public class ControlInfoManager extends PINAuthManager {
             String base64MemberID = stringTokenizer.nextToken();
             byte[] decodeBase64MemberID = Base64.decode(base64MemberID, Base64.NO_WRAP);
             String memberID = new String(decodeBase64MemberID, FORMAT_ENCODE);
-            if (memberType.equals(MemberInfo.Type.NONMEMBER.getType()))
+            if (memberType.equals(MoaMember.Type.NONMEMBER.getType()))
                 memberID = base64MemberID;
             String memberAuthType = stringTokenizer.nextToken();
             String memberCoinKeyMgrType = stringTokenizer.nextToken();
 
-            if (type.equals(MemberInfo.Get.MEMBER.getType()))
+            if (type.equals(MoaMember.Get.MEMBER.getType()))
                 result = memberType;
-            else if (type.equals(MemberInfo.Get.MEMBER_ID.getType()))
+            else if (type.equals(MoaMember.Get.MEMBER_ID.getType()))
                 result = memberID;
-            else if (type.equals(MemberInfo.Get.MEMBER_AUTH.getType()))
+            else if (type.equals(MoaMember.Get.MEMBER_AUTH.getType()))
                 result = memberAuthType;
-            else if (type.equals(MemberInfo.Get.MEMBER_COIN_KEY_MGR.getType()))
+            else if (type.equals(MoaMember.Get.MEMBER_COIN_KEY_MGR.getType()))
                 result = memberCoinKeyMgrType;
         } catch (UnsupportedEncodingException e) {
-            Log.d("MoaLib", "[ControlInfoManager][getMemberInfo] failed to get member info");
+            Log.d("MoaLib", "[UserControl][getMemberInfo] failed to get member info");
             throw new RuntimeException("Failed to get member info", e);
         }
         return result;
     }
 
     public String getUniqueDeviceInfo() {
-        return getValuesInPreferences(SharedPreferencesManager.KEY_UNIQUE_DEVICE_INFO);
+        return getValuesInPreferences(MoaPreferences.KEY_UNIQUE_DEVICE_INFO);
     }
 
     private boolean checkData(String data) {
@@ -128,7 +128,7 @@ public class ControlInfoManager extends PINAuthManager {
             controlInfoArray.add(stringTokenizer.nextToken());
         }
         if (controlInfoArray.size() != 4) {
-            Log.d("MoaLib", "[ControlInfoManager][checkData] Data not validate");
+            Log.d("MoaLib", "[UserControl][checkData] Data not validate");
             return false;
         }
         return true;
@@ -154,7 +154,7 @@ public class ControlInfoManager extends PINAuthManager {
                 return cipher;
             }
         } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidAlgorithmParameterException | InvalidKeyException e) {
-            Log.d("MoaLib", "[ControlInfoManager][getCipher] failed to get cipher");
+            Log.d("MoaLib", "[UserControl][getCipher] failed to get cipher");
             throw new RuntimeException("Failed to get cipher", e);
         }
         return null;
@@ -168,7 +168,7 @@ public class ControlInfoManager extends PINAuthManager {
             byte[] encryptContent = cipher.doFinal(content.getBytes(FORMAT_ENCODE));
             return Base64.encodeToString(encryptContent, Base64.NO_WRAP);
         } catch (BadPaddingException | IllegalBlockSizeException | UnsupportedEncodingException e) {
-            Log.d("MoaLib", "[ControlInfoManager][getEncryptContent] failed to get encrypt content");
+            Log.d("MoaLib", "[UserControl][getEncryptContent] failed to get encrypt content");
             throw new RuntimeException("Failed to get encrypt content", e);
         }
     }
@@ -183,13 +183,13 @@ public class ControlInfoManager extends PINAuthManager {
             byte[] decryptContent = cipher.doFinal(content);
             return new String(decryptContent, FORMAT_ENCODE);
         } catch (BadPaddingException | IllegalBlockSizeException | UnsupportedEncodingException e) {
-            Log.d("MoaLib", "[ControlInfoManager][getDecryptContent] failed to get decrypt content");
+            Log.d("MoaLib", "[UserControl][getDecryptContent] failed to get decrypt content");
             throw new RuntimeException("Failed to get decrypt content", e);
         }
     }
 
     private static class Singleton {
         @SuppressLint("StaticFieldLeak")
-        private static final ControlInfoManager instance = new ControlInfoManager();
+        private static final UserControl instance = new UserControl();
     }
 }

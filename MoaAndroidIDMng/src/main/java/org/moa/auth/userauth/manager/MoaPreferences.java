@@ -1,6 +1,6 @@
 package org.moa.auth.userauth.manager;
 
-public interface SharedPreferencesManager {
+public interface MoaPreferences {
     String PREFNAME_CONTROL_INFO = "androidIDManager";
     String KEY_CONTROL_INFO = "Control.Info";
     String KEY_UNIQUE_DEVICE_INFO = "UniqueDevice.Info";
