@@ -22,12 +22,12 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
-public class Control extends PINAuthentication {
+public class UserControl extends PINAuthentication {
 
-    Control() {
+    UserControl() {
     }
 
-    public static Control getInstance() {
+    public static UserControl getInstance() {
         return Singleton.instance;
     }
 
@@ -78,7 +78,7 @@ public class Control extends PINAuthentication {
             }
             setValuesInPreference(SharedPreferencesImpl.KEY_CONTROL_INFO, controlDataForm);
         } catch (UnsupportedEncodingException e) {
-            Log.d("MoaLib", "[Control][setMemberInfo] failed to set member info");
+            Log.d("MoaLib", "[UserControl][setMemberInfo] failed to set member info");
             throw new RuntimeException("Failed to set member info", e);
         }
     }
@@ -108,7 +108,7 @@ public class Control extends PINAuthentication {
             else if (type.equals(Member.Get.MEMBER_COIN_KEY_MGR.getType()))
                 result = memberCoinKeyMgrType;
         } catch (UnsupportedEncodingException e) {
-            Log.d("MoaLib", "[Control][getMemberInfo] failed to get member info");
+            Log.d("MoaLib", "[UserControl][getMemberInfo] failed to get member info");
             throw new RuntimeException("Failed to get member info", e);
         }
         return result;
@@ -121,7 +121,7 @@ public class Control extends PINAuthentication {
             controlInfoArray.add(stringTokenizer.nextToken());
         }
         if (controlInfoArray.size() != 4) {
-            Log.d("MoaLib", "[Control][checkData] Data not validate");
+            Log.d("MoaLib", "[UserControl][checkData] Data not validate");
             return false;
         }
         return true;
@@ -147,7 +147,7 @@ public class Control extends PINAuthentication {
                 return cipher;
             }
         } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidAlgorithmParameterException | InvalidKeyException e) {
-            Log.d("MoaLib", "[Control][getCipher] failed to get cipher");
+            Log.d("MoaLib", "[UserControl][getCipher] failed to get cipher");
             throw new RuntimeException("Failed to get cipher", e);
         }
         return null;
@@ -161,7 +161,7 @@ public class Control extends PINAuthentication {
             byte[] encryptContent = cipher.doFinal(content.getBytes(FORMAT_ENCODE));
             return Base64.encodeToString(encryptContent, Base64.NO_WRAP);
         } catch (BadPaddingException | IllegalBlockSizeException | UnsupportedEncodingException e) {
-            Log.d("MoaLib", "[Control][getEncryptContent] failed to get encrypt content");
+            Log.d("MoaLib", "[UserControl][getEncryptContent] failed to get encrypt content");
             throw new RuntimeException("Failed to get encrypt content", e);
         }
     }
@@ -176,13 +176,13 @@ public class Control extends PINAuthentication {
             byte[] decryptContent = cipher.doFinal(content);
             return new String(decryptContent, FORMAT_ENCODE);
         } catch (BadPaddingException | IllegalBlockSizeException | UnsupportedEncodingException e) {
-            Log.d("MoaLib", "[Control][getDecryptContent] failed to get decrypt content");
+            Log.d("MoaLib", "[UserControl][getDecryptContent] failed to get decrypt content");
             throw new RuntimeException("Failed to get decrypt content", e);
         }
     }
 
     private static class Singleton {
         @SuppressLint("StaticFieldLeak")
-        private static final Control instance = new Control();
+        private static final UserControl instance = new UserControl();
     }
 }

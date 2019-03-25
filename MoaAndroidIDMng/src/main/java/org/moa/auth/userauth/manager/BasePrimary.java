@@ -3,7 +3,7 @@ package org.moa.auth.userauth.manager;
 import android.annotation.SuppressLint;
 import android.content.Context;
 
-public class BasePrimary extends Control {
+public class BasePrimary extends UserControl {
     private BasePrimary() {
         super();
     }

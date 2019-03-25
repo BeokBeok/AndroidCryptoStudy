@@ -80,12 +80,11 @@ public class AutoLogin extends PINAuthentication implements KeyStoreTEEImpl {
 
     @Override
     public void generateKey() {
-        String keyAlgorithm = "RSA";
         Calendar startData = Calendar.getInstance();
         Calendar endData = Calendar.getInstance();
         endData.add(Calendar.YEAR, 25);
         try {
-            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance(keyAlgorithm, KeyStoreTEEImpl.PROVIDER);
+            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA", KeyStoreTEEImpl.PROVIDER);
             keyPairGenerator.initialize(
                     new KeyPairGeneratorSpec.Builder(context)
                             .setAlias(keyAlias)

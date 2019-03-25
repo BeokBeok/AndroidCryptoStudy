@@ -8,7 +8,7 @@ import android.util.Log;
 
 import org.moa.auth.userauth.manager.AuthToken;
 import org.moa.auth.userauth.manager.AutoLogin;
-import org.moa.auth.userauth.manager.Control;
+import org.moa.auth.userauth.manager.UserControl;
 import org.moa.auth.userauth.manager.FingerprintAuthentication;
 import org.moa.auth.userauth.manager.SharedPreferencesImpl;
 import org.moa.auth.userauth.manager.BasePrimary;
@@ -22,7 +22,7 @@ import java.util.StringTokenizer;
 public class AndroidIDMngProcess {
     private Context context;
     private String uniqueDeviceID;
-    private Control control;
+    private UserControl userControl;
     private AutoLogin autoLogin;
 
     private AndroidIDMngProcess() {
@@ -39,9 +39,9 @@ public class AndroidIDMngProcess {
             return;
         this.context = context;
         this.uniqueDeviceID = uniqueDeviceID;
-        control = Control.getInstance();
+        userControl = UserControl.getInstance();
         autoLogin = AutoLogin.getInstance();
-        control.init(context, uniqueDeviceID);
+        userControl.init(context, uniqueDeviceID);
         autoLogin.init(context, uniqueDeviceID);
     }
 
@@ -53,31 +53,31 @@ public class AndroidIDMngProcess {
         nonMemberInfo.add(uniqueDeviceID);
         nonMemberInfo.add(Member.AuthType.INACTIVE.getType());
         nonMemberInfo.add(Member.CoinKeyMgrType.INACTIVE.getType());
-        control.setMemberInfo(nonMemberInfo);
+        userControl.setMemberInfo(nonMemberInfo);
     }
 
     public boolean existControlInfo() {
         if (isNotValidUniqueDeviceID())
             return false;
-        return control.existPreference();
+        return userControl.existPreference();
     }
 
     public String getMemberInfo(String type) {
         if (isNotValidUniqueDeviceID())
             return "";
-        return control.getMemberInfo(type);
+        return userControl.getMemberInfo(type);
     }
 
     public String generatePINRegisterMessage(String id, String password) {
         if (isNotValidUniqueDeviceID())
             return "";
-        return control.generateOrGetRegisterMessage(id, password);
+        return userControl.generateOrGetRegisterMessage(id, password);
     }
 
     public String generatePINLoginRequestMessage(String id, String password, String nonceOTP) {
         if (isNotValidUniqueDeviceID())
             return "";
-        return control.generateOrGetLoginRequestMessage(id, password, nonceOTP);
+        return userControl.generateOrGetLoginRequestMessage(id, password, nonceOTP);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)
@@ -121,7 +121,7 @@ public class AndroidIDMngProcess {
     public void setControlInfoData(List<String> data) {
         if (isNotValidUniqueDeviceID())
             return;
-        control.setMemberInfo(data);
+        userControl.setMemberInfo(data);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)
