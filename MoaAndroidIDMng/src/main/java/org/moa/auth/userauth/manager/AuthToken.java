@@ -27,8 +27,8 @@ import javax.crypto.KeyGenerator;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.GCMParameterSpec;
 
-public class AuthToken implements KeyStoreTEE, SharedPreferences {
-    private final String keyAlias = KeyStoreTEE.ALIAS_AUTH_TOKEN;
+public class AuthToken implements KeyStoreTEEImpl, SharedPreferencesImpl {
+    private final String keyAlias = KeyStoreTEEImpl.ALIAS_AUTH_TOKEN;
     private final String FORMAT_ENCODE = "UTF-8";
     private final String transformation = "AES/GCM/NoPadding";
     private Context context;
@@ -57,7 +57,7 @@ public class AuthToken implements KeyStoreTEE, SharedPreferences {
     @Override
     public void initKeyStore() {
         try {
-            this.keyStore = KeyStore.getInstance(KeyStoreTEE.PROVIDER);
+            this.keyStore = KeyStore.getInstance(KeyStoreTEEImpl.PROVIDER);
             this.keyStore.load(null);
         } catch (KeyStoreException | IOException | NoSuchAlgorithmException | CertificateException e) {
             Log.d("MoaLib", "[AuthToken][initKeyStore] failed to init keystore");
@@ -69,7 +69,7 @@ public class AuthToken implements KeyStoreTEE, SharedPreferences {
     @Override
     public void generateKey() {
         try {
-            KeyGenerator keyGenerator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, KeyStoreTEE.PROVIDER);
+            KeyGenerator keyGenerator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, KeyStoreTEEImpl.PROVIDER);
             keyGenerator.init(
                     new KeyGenParameterSpec.Builder(keyAlias, KeyProperties.PURPOSE_ENCRYPT | KeyProperties.PURPOSE_DECRYPT)
                             .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
@@ -89,7 +89,7 @@ public class AuthToken implements KeyStoreTEE, SharedPreferences {
     @Override
     public void setValuesInPreference(String key, String value) {
         String encryptedData = getEncryptContent(value);
-        android.content.SharedPreferences pref = context.getSharedPreferences(SharedPreferences.PREFNAME_AUTH_TOKEN, Context.MODE_PRIVATE);
+        android.content.SharedPreferences pref = context.getSharedPreferences(SharedPreferencesImpl.PREFNAME_AUTH_TOKEN, Context.MODE_PRIVATE);
         android.content.SharedPreferences.Editor editor = pref.edit();
         editor.putString(key, encryptedData);
         editor.apply();
@@ -97,7 +97,7 @@ public class AuthToken implements KeyStoreTEE, SharedPreferences {
 
     @Override
     public String getValuesInPreference(String key) {
-        android.content.SharedPreferences pref = context.getSharedPreferences(SharedPreferences.PREFNAME_AUTH_TOKEN, Context.MODE_PRIVATE);
+        android.content.SharedPreferences pref = context.getSharedPreferences(SharedPreferencesImpl.PREFNAME_AUTH_TOKEN, Context.MODE_PRIVATE);
         byte[] encryptData = Base64.decode(pref.getString(key, ""), Base64.NO_WRAP);
         return getDecryptContent(encryptData);
     }

@@ -41,11 +41,11 @@ import javax.crypto.spec.PBEParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import javax.security.auth.x500.X500Principal;
 
-public class AutoLogin extends PINAuthentication implements KeyStoreTEE {
+public class AutoLogin extends PINAuthentication implements KeyStoreTEEImpl {
     private final int iterationCount = 8192;
     private final int keySize = 192;
     private final String secretKeyAlgorithm = "PBEwithSHAAND3-KEYTRIPLEDES-CBC";
-    private final String keyAlias = KeyStoreTEE.ALIAS_AUTO_INFO;
+    private final String keyAlias = KeyStoreTEEImpl.ALIAS_AUTO_INFO;
     private final String transformationRSA = "RSA/ECB/PKCS1Padding";
 
     private AutoLogin() {
@@ -70,7 +70,7 @@ public class AutoLogin extends PINAuthentication implements KeyStoreTEE {
     @Override
     public void initKeyStore() {
         try {
-            super.keyStore = KeyStore.getInstance(KeyStoreTEE.PROVIDER);
+            super.keyStore = KeyStore.getInstance(KeyStoreTEEImpl.PROVIDER);
             super.keyStore.load(null);
         } catch (KeyStoreException | IOException | NoSuchAlgorithmException | CertificateException e) {
             Log.d("MoaLib", "[AutoLogin][initKeyStore] failed to init keystore");
@@ -85,7 +85,7 @@ public class AutoLogin extends PINAuthentication implements KeyStoreTEE {
         Calendar endData = Calendar.getInstance();
         endData.add(Calendar.YEAR, 25);
         try {
-            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance(keyAlgorithm, KeyStoreTEE.PROVIDER);
+            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance(keyAlgorithm, KeyStoreTEEImpl.PROVIDER);
             keyPairGenerator.initialize(
                     new KeyPairGeneratorSpec.Builder(context)
                             .setAlias(keyAlias)
@@ -105,14 +105,14 @@ public class AutoLogin extends PINAuthentication implements KeyStoreTEE {
     @Override
     public void setValuesInPreference(String key, String value) {
         String encryptValue = "";
-        if (key.equals(SharedPreferences.KEY_AUTO_LOGIN))
+        if (key.equals(SharedPreferencesImpl.KEY_AUTO_LOGIN))
             encryptValue = getEncryptContent(value);
-        else if (key.equals(SharedPreferences.KEY_AUTO_SALT)) {
+        else if (key.equals(SharedPreferencesImpl.KEY_AUTO_SALT)) {
             byte[] decode = Base64.decode(value, Base64.NO_WRAP);
             byte[] encryptSalt = getEncryptTripleDESContent(decode);
             encryptValue = Base64.encodeToString(encryptSalt, Base64.NO_WRAP);
         }
-        android.content.SharedPreferences pref = context.getSharedPreferences(SharedPreferences.PREFNAME_CONTROL_INFO, Context.MODE_PRIVATE);
+        android.content.SharedPreferences pref = context.getSharedPreferences(SharedPreferencesImpl.PREFNAME_CONTROL_INFO, Context.MODE_PRIVATE);
         android.content.SharedPreferences.Editor editor = pref.edit();
         editor.putString(key, encryptValue);
         editor.apply();
@@ -120,11 +120,11 @@ public class AutoLogin extends PINAuthentication implements KeyStoreTEE {
 
     @Override
     public String getValuesInPreference(String key) {
-        android.content.SharedPreferences pref = context.getSharedPreferences(SharedPreferences.PREFNAME_CONTROL_INFO, Context.MODE_PRIVATE);
+        android.content.SharedPreferences pref = context.getSharedPreferences(SharedPreferencesImpl.PREFNAME_CONTROL_INFO, Context.MODE_PRIVATE);
         String value = pref.getString(key, "");
-        if (key.equals(SharedPreferences.KEY_AUTO_LOGIN))
+        if (key.equals(SharedPreferencesImpl.KEY_AUTO_LOGIN))
             return getDecryptContent(value);
-        else if (key.equals(SharedPreferences.KEY_AUTO_SALT)) {
+        else if (key.equals(SharedPreferencesImpl.KEY_AUTO_SALT)) {
             byte[] decode = Base64.decode(value, Base64.NO_WRAP);
             byte[] decrypt = getDecryptTripleDESContent(decode);
             return Base64.encodeToString(decrypt, Base64.NO_WRAP);
@@ -138,7 +138,7 @@ public class AutoLogin extends PINAuthentication implements KeyStoreTEE {
             password = "42009FFDDE80CA527DE3E1AB330481F7A4D76C35A3E7F9571BBA626927A25720B13E2C3F4EDE02DB5BA7B71151F8C7FFA5E4D559B7E7FED75DCCF636276B962B";
         }
         String content = Member.AutoLoginType.ACTIVE.getType() + "$" + password;
-        setValuesInPreference(SharedPreferences.KEY_AUTO_LOGIN, content);
+        setValuesInPreference(SharedPreferencesImpl.KEY_AUTO_LOGIN, content);
     }
 
     private byte[] generateSalt() {
@@ -162,7 +162,7 @@ public class AutoLogin extends PINAuthentication implements KeyStoreTEE {
             encryptContent = cipher.doFinal(content.getBytes(FORMAT_ENCODE));
 
             String base64Salt = Base64.encodeToString(salt, Base64.NO_WRAP);
-            setValuesInPreference(SharedPreferences.KEY_AUTO_SALT, base64Salt);
+            setValuesInPreference(SharedPreferencesImpl.KEY_AUTO_SALT, base64Salt);
         } catch (NoSuchAlgorithmException | InvalidKeySpecException | NoSuchPaddingException | InvalidKeyException |
                 InvalidAlgorithmParameterException | UnsupportedEncodingException | IllegalBlockSizeException | BadPaddingException e) {
             Log.d("MoaLib", "[AutoLogin][getEncryptPBEContent] Failed to get PBE encrypt content");
@@ -175,7 +175,7 @@ public class AutoLogin extends PINAuthentication implements KeyStoreTEE {
         byte[] result;
         try {
             Cipher pbeCipher = Cipher.getInstance(secretKeyAlgorithm);
-            String base64Salt = getValuesInPreference(SharedPreferences.KEY_AUTO_SALT);
+            String base64Salt = getValuesInPreference(SharedPreferencesImpl.KEY_AUTO_SALT);
             byte[] salt = Base64.decode(base64Salt, Base64.NO_WRAP);
             byte[] hashUniqueDeviceID = DigestAndroidCoreAPI.hashDigest("SHA-512", (uniqueDeviceID + String.valueOf(iterationCount)).getBytes());
             KeySpec keySpec = new PBEKeySpec(new String(hashUniqueDeviceID, FORMAT_ENCODE).toCharArray(), salt, iterationCount, keySize);

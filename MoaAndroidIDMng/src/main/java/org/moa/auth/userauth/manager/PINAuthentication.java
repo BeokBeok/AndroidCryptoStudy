@@ -12,7 +12,7 @@ import org.moa.auth.userauth.client.api.MoaClientMsgPacketLib;
 import java.io.UnsupportedEncodingException;
 import java.security.KeyStore;
 
-abstract class PINAuthentication implements SharedPreferences {
+abstract class PINAuthentication implements SharedPreferencesImpl {
     final String FORMAT_ENCODE = "UTF-8";
     Context context;
     String uniqueDeviceID;

@@ -24,8 +24,8 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.spec.ECGenParameterSpec;
 
-public class FingerprintAuthentication implements KeyStoreTEE {
-    private final String keyAlias = KeyStoreTEE.ALIAS_FINGERPRINT;
+public class FingerprintAuthentication implements KeyStoreTEEImpl {
+    private final String keyAlias = KeyStoreTEEImpl.ALIAS_FINGERPRINT;
     private String curve;
     private String signAlgorithmSuite;
     private KeyStore keyStore;
@@ -54,7 +54,7 @@ public class FingerprintAuthentication implements KeyStoreTEE {
     @Override
     public void initKeyStore() {
         try {
-            this.keyStore = KeyStore.getInstance(KeyStoreTEE.PROVIDER);
+            this.keyStore = KeyStore.getInstance(KeyStoreTEEImpl.PROVIDER);
             this.keyStore.load(null);
         } catch (KeyStoreException | IOException | NoSuchAlgorithmException | CertificateException e) {
             Log.d("MoaLib", "[FingerprintAuthManager][initKeyStore] failed to init keystore");
@@ -66,7 +66,7 @@ public class FingerprintAuthentication implements KeyStoreTEE {
     @Override
     public void generateKey() {
         try {
-            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance(KeyProperties.KEY_ALGORITHM_EC, KeyStoreTEE.PROVIDER);
+            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance(KeyProperties.KEY_ALGORITHM_EC, KeyStoreTEEImpl.PROVIDER);
             keyPairGenerator.initialize(
                     new KeyGenParameterSpec.Builder(keyAlias, KeyProperties.PURPOSE_SIGN)
                             .setDigests(KeyProperties.DIGEST_SHA256, KeyProperties.DIGEST_SHA512)

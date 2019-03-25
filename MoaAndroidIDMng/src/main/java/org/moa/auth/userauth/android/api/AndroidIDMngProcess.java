@@ -10,7 +10,7 @@ import org.moa.auth.userauth.manager.AuthToken;
 import org.moa.auth.userauth.manager.AutoLogin;
 import org.moa.auth.userauth.manager.Control;
 import org.moa.auth.userauth.manager.FingerprintAuthentication;
-import org.moa.auth.userauth.manager.SharedPreferences;
+import org.moa.auth.userauth.manager.SharedPreferencesImpl;
 import org.moa.auth.userauth.manager.BasePrimary;
 import org.moa.auth.userauth.manager.Wallet;
 
@@ -89,7 +89,7 @@ public class AndroidIDMngProcess {
         String AUTH_TOKEN = fingerprintRegisterData.get(2);
         AuthToken authToken = AuthToken.getInstance();
         authToken.init(context);
-        authToken.setValuesInPreference(SharedPreferences.KEY_AUTH_TOKEN, AUTH_TOKEN);
+        authToken.setValuesInPreference(SharedPreferencesImpl.KEY_AUTH_TOKEN, AUTH_TOKEN);
 
         FingerprintAuthentication fingerprintAuthentication = FingerprintAuthentication.getInstance();
         fingerprintAuthentication.init(ECDSA_CURVE, ECDSA_SUITE);
@@ -115,7 +115,7 @@ public class AndroidIDMngProcess {
             return "";
         AuthToken authToken = AuthToken.getInstance();
         authToken.init(context);
-        return authToken.getValuesInPreference(SharedPreferences.KEY_AUTH_TOKEN);
+        return authToken.getValuesInPreference(SharedPreferencesImpl.KEY_AUTH_TOKEN);
     }
 
     public void setControlInfoData(List<String> data) {
@@ -170,14 +170,14 @@ public class AndroidIDMngProcess {
             return "";
         Wallet walletManager = Wallet.getInstance();
         walletManager.init(context);
-        String versionInfo = walletManager.getValuesInPreference(SharedPreferences.KEY_WALLET_VERSION_INFO);
-        String osInfo = walletManager.getValuesInPreference(SharedPreferences.KEY_WALLET_OS_INFO);
-        String salt = walletManager.getValuesInPreference(SharedPreferences.KEY_WALLET_SALT);
-        String iterationCount = walletManager.getValuesInPreference(SharedPreferences.KEY_WALLET_ITERATION_COUNT);
-        String cipheredData = walletManager.getValuesInPreference(SharedPreferences.KEY_WALLET_CIPHERED_DATA);
-        String walletPuk = walletManager.getValuesInPreference(SharedPreferences.KEY_WALLET_PUBLIC_KEY);
-        String walletAddr = walletManager.getValuesInPreference(SharedPreferences.KEY_WALLET_ADDRESS);
-        String macData = walletManager.getValuesInPreference(SharedPreferences.KEY_WALLET_MAC_DATA);
+        String versionInfo = walletManager.getValuesInPreference(SharedPreferencesImpl.KEY_WALLET_VERSION_INFO);
+        String osInfo = walletManager.getValuesInPreference(SharedPreferencesImpl.KEY_WALLET_OS_INFO);
+        String salt = walletManager.getValuesInPreference(SharedPreferencesImpl.KEY_WALLET_SALT);
+        String iterationCount = walletManager.getValuesInPreference(SharedPreferencesImpl.KEY_WALLET_ITERATION_COUNT);
+        String cipheredData = walletManager.getValuesInPreference(SharedPreferencesImpl.KEY_WALLET_CIPHERED_DATA);
+        String walletPuk = walletManager.getValuesInPreference(SharedPreferencesImpl.KEY_WALLET_PUBLIC_KEY);
+        String walletAddr = walletManager.getValuesInPreference(SharedPreferencesImpl.KEY_WALLET_ADDRESS);
+        String macData = walletManager.getValuesInPreference(SharedPreferencesImpl.KEY_WALLET_MAC_DATA);
         String walletInfo = "Version.Info=" + versionInfo + "\n" +
                 "OS.Info=" + osInfo + "\n" +
                 "Salt.Value=" + salt + "\n" +
@@ -198,7 +198,7 @@ public class AndroidIDMngProcess {
     public String getAutoLoginInfo() {
         if (isNotValidUniqueDeviceID())
             return "";
-        String content = autoLogin.getValuesInPreference(SharedPreferences.KEY_AUTO_LOGIN);
+        String content = autoLogin.getValuesInPreference(SharedPreferencesImpl.KEY_AUTO_LOGIN);
         StringTokenizer stringTokenizer = new StringTokenizer(content, "$");
         String type = stringTokenizer.nextToken();
         String info = stringTokenizer.nextToken();

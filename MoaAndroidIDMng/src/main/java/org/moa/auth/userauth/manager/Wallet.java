@@ -48,8 +48,8 @@ import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.PBEParameterSpec;
 import javax.security.auth.x500.X500Principal;
 
-public class Wallet implements KeyStoreTEE, SharedPreferences {
-    private final String keyAlias = KeyStoreTEE.ALIAS_WALLET;
+public class Wallet implements KeyStoreTEEImpl, SharedPreferencesImpl {
+    private final String keyAlias = KeyStoreTEEImpl.ALIAS_WALLET;
     private final String transformation = "RSA/ECB/PKCS1Padding";
     private Context context;
     private KeyStore keyStore;
@@ -76,7 +76,7 @@ public class Wallet implements KeyStoreTEE, SharedPreferences {
     @Override
     public void initKeyStore() {
         try {
-            this.keyStore = KeyStore.getInstance(KeyStoreTEE.PROVIDER);
+            this.keyStore = KeyStore.getInstance(KeyStoreTEEImpl.PROVIDER);
             this.keyStore.load(null);
         } catch (KeyStoreException | IOException | NoSuchAlgorithmException | CertificateException e) {
             Log.d("MoaLib", "[Wallet][initKeyStore] failed to init keystore");
@@ -92,7 +92,7 @@ public class Wallet implements KeyStoreTEE, SharedPreferences {
         endData.add(Calendar.YEAR, 25);
 
         try {
-            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance(keyAlgorithm, KeyStoreTEE.PROVIDER);
+            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance(keyAlgorithm, KeyStoreTEEImpl.PROVIDER);
             keyPairGenerator.initialize(
                     new KeyPairGeneratorSpec.Builder(context)
                             .setAlias(keyAlias)
@@ -111,7 +111,7 @@ public class Wallet implements KeyStoreTEE, SharedPreferences {
 
     @Override
     public void setValuesInPreference(String key, String value) {
-        android.content.SharedPreferences pref = context.getSharedPreferences(SharedPreferences.PREFNAME_WALLET, Context.MODE_PRIVATE);
+        android.content.SharedPreferences pref = context.getSharedPreferences(SharedPreferencesImpl.PREFNAME_WALLET, Context.MODE_PRIVATE);
         android.content.SharedPreferences.Editor editor = pref.edit();
         editor.putString(key, value);
         editor.apply();
@@ -119,7 +119,7 @@ public class Wallet implements KeyStoreTEE, SharedPreferences {
 
     @Override
     public String getValuesInPreference(String key) {
-        android.content.SharedPreferences pref = context.getSharedPreferences(SharedPreferences.PREFNAME_WALLET, Context.MODE_PRIVATE);
+        android.content.SharedPreferences pref = context.getSharedPreferences(SharedPreferencesImpl.PREFNAME_WALLET, Context.MODE_PRIVATE);
         String value = pref.getString(key, "");
         if (value == null)
             value = "";
@@ -127,7 +127,7 @@ public class Wallet implements KeyStoreTEE, SharedPreferences {
     }
 
     public boolean existPreference() {
-        String walletAddress = getValuesInPreference(SharedPreferences.KEY_WALLET_ADDRESS);
+        String walletAddress = getValuesInPreference(SharedPreferencesImpl.KEY_WALLET_ADDRESS);
         return walletAddress.length() > 0;
     }
 
@@ -145,22 +145,22 @@ public class Wallet implements KeyStoreTEE, SharedPreferences {
         if (rsaWithPbePrk == null)
             return;
 
-        String versionInfo = String.valueOf(getValuesInPreference(SharedPreferences.KEY_WALLET_VERSION_INFO));
+        String versionInfo = String.valueOf(getValuesInPreference(SharedPreferencesImpl.KEY_WALLET_VERSION_INFO));
         String osInfo = System.getProperty("os.name");
         String saltBase58 = MoaBase58.encode(salt);
-        String iterationCount = String.valueOf(getValuesInPreference(SharedPreferences.KEY_WALLET_ITERATION_COUNT));
+        String iterationCount = String.valueOf(getValuesInPreference(SharedPreferencesImpl.KEY_WALLET_ITERATION_COUNT));
         String rsaWithPbePrkBase58 = MoaBase58.encode(rsaWithPbePrk);
         String publicKeyBase58 = MoaBase58.encode(walletKeyPair[1]);
         String walletAddressCreatedPukBase58 = MoaBase58.encode(walletAddressCreatedPuk);
         String targetMacData = versionInfo + osInfo + saltBase58 + iterationCount + rsaWithPbePrkBase58 + publicKeyBase58 + walletAddressCreatedPukBase58;
         String macDataBase58 = generateMACData(saltBase58, password, targetMacData);
 
-        setValuesInPreference(SharedPreferences.KEY_WALLET_OS_INFO, osInfo);
-        setValuesInPreference(SharedPreferences.KEY_WALLET_SALT, saltBase58);
-        setValuesInPreference(SharedPreferences.KEY_WALLET_CIPHERED_DATA, rsaWithPbePrkBase58);
-        setValuesInPreference(SharedPreferences.KEY_WALLET_PUBLIC_KEY, publicKeyBase58);
-        setValuesInPreference(SharedPreferences.KEY_WALLET_ADDRESS, walletAddressCreatedPukBase58);
-        setValuesInPreference(SharedPreferences.KEY_WALLET_MAC_DATA, macDataBase58);
+        setValuesInPreference(SharedPreferencesImpl.KEY_WALLET_OS_INFO, osInfo);
+        setValuesInPreference(SharedPreferencesImpl.KEY_WALLET_SALT, saltBase58);
+        setValuesInPreference(SharedPreferencesImpl.KEY_WALLET_CIPHERED_DATA, rsaWithPbePrkBase58);
+        setValuesInPreference(SharedPreferencesImpl.KEY_WALLET_PUBLIC_KEY, publicKeyBase58);
+        setValuesInPreference(SharedPreferencesImpl.KEY_WALLET_ADDRESS, walletAddressCreatedPukBase58);
+        setValuesInPreference(SharedPreferencesImpl.KEY_WALLET_MAC_DATA, macDataBase58);
     }
 
     public byte[] generateSignedTransactionData(String transaction, String password) {
@@ -174,8 +174,8 @@ public class Wallet implements KeyStoreTEE, SharedPreferences {
         if (privateKeyBytes.length == 0)
             return signData;
 
-        String signatureAlgorithm = getValuesInPreference(SharedPreferences.KEY_WALLET_SIGNATURE_ALGIROTHM);
-        String keyPairAlgorithm = getValuesInPreference(SharedPreferences.KEY_WALLET_ECC_ALGORITHM);
+        String signatureAlgorithm = getValuesInPreference(SharedPreferencesImpl.KEY_WALLET_SIGNATURE_ALGIROTHM);
+        String keyPairAlgorithm = getValuesInPreference(SharedPreferencesImpl.KEY_WALLET_ECC_ALGORITHM);
         if (signatureAlgorithm.length() == 0 || keyPairAlgorithm.length() == 0)
             return signData;
         try {
@@ -193,8 +193,8 @@ public class Wallet implements KeyStoreTEE, SharedPreferences {
         if (!existPreference())
             return null;
 
-        String walletPukBase58 = getValuesInPreference(SharedPreferences.KEY_WALLET_PUBLIC_KEY);
-        String keyPairAlgorithm = getValuesInPreference(SharedPreferences.KEY_WALLET_ECC_ALGORITHM);
+        String walletPukBase58 = getValuesInPreference(SharedPreferencesImpl.KEY_WALLET_PUBLIC_KEY);
+        String keyPairAlgorithm = getValuesInPreference(SharedPreferencesImpl.KEY_WALLET_ECC_ALGORITHM);
         if (walletPukBase58.length() == 0 || keyPairAlgorithm.length() == 0)
             return null;
 
@@ -209,17 +209,17 @@ public class Wallet implements KeyStoreTEE, SharedPreferences {
     }
 
     private void initProperties() {
-        if (getValuesInPreference(SharedPreferences.KEY_WALLET_VERSION_INFO).length() > 0)
+        if (getValuesInPreference(SharedPreferencesImpl.KEY_WALLET_VERSION_INFO).length() > 0)
             return;
-        setValuesInPreference(SharedPreferences.KEY_WALLET_VERSION_INFO, "1");
-        setValuesInPreference(SharedPreferences.KEY_WALLET_SYMMETRIC_ALGORITHM, "PBEwithSHAAND3-KEYTRIPLEDES-CBC");
-        setValuesInPreference(SharedPreferences.KEY_WALLET_SYMMETRIC_KEY_SIZE, "192");
-        setValuesInPreference(SharedPreferences.KEY_WALLET_HASH_ALGORITHM, "SHA256");
-        setValuesInPreference(SharedPreferences.KEY_WALLET_SIGNATURE_ALGIROTHM, "SHA256withECDSA");
-        setValuesInPreference(SharedPreferences.KEY_WALLET_ECC_ALGORITHM, "EC");
-        setValuesInPreference(SharedPreferences.KEY_WALLET_ECC_CURVE, "secp256r1");
-        setValuesInPreference(SharedPreferences.KEY_WALLET_MAC_ALGORITHM, "HmacSHA256");
-        setValuesInPreference(SharedPreferences.KEY_WALLET_ITERATION_COUNT, "8192");
+        setValuesInPreference(SharedPreferencesImpl.KEY_WALLET_VERSION_INFO, "1");
+        setValuesInPreference(SharedPreferencesImpl.KEY_WALLET_SYMMETRIC_ALGORITHM, "PBEwithSHAAND3-KEYTRIPLEDES-CBC");
+        setValuesInPreference(SharedPreferencesImpl.KEY_WALLET_SYMMETRIC_KEY_SIZE, "192");
+        setValuesInPreference(SharedPreferencesImpl.KEY_WALLET_HASH_ALGORITHM, "SHA256");
+        setValuesInPreference(SharedPreferencesImpl.KEY_WALLET_SIGNATURE_ALGIROTHM, "SHA256withECDSA");
+        setValuesInPreference(SharedPreferencesImpl.KEY_WALLET_ECC_ALGORITHM, "EC");
+        setValuesInPreference(SharedPreferencesImpl.KEY_WALLET_ECC_CURVE, "secp256r1");
+        setValuesInPreference(SharedPreferencesImpl.KEY_WALLET_MAC_ALGORITHM, "HmacSHA256");
+        setValuesInPreference(SharedPreferencesImpl.KEY_WALLET_ITERATION_COUNT, "8192");
     }
 
     private byte[] generateSalt() {
@@ -229,8 +229,8 @@ public class Wallet implements KeyStoreTEE, SharedPreferences {
     }
 
     private byte[][] generateKeyPair() {
-        String keyPairAlgorithm = getValuesInPreference(SharedPreferences.KEY_WALLET_ECC_ALGORITHM);
-        String standardName = getValuesInPreference(SharedPreferences.KEY_WALLET_ECC_CURVE);
+        String keyPairAlgorithm = getValuesInPreference(SharedPreferencesImpl.KEY_WALLET_ECC_ALGORITHM);
+        String standardName = getValuesInPreference(SharedPreferencesImpl.KEY_WALLET_ECC_CURVE);
         byte[][] walletKeyPair = new byte[2][];
         if (keyPairAlgorithm.length() == 0 || standardName.length() == 0)
             return walletKeyPair;
@@ -249,9 +249,9 @@ public class Wallet implements KeyStoreTEE, SharedPreferences {
     }
 
     private byte[][] getEncryptPBEKeyPair(byte[][] keyPair, String password, byte[] salt) {
-        int iterationCount = Integer.parseInt(getValuesInPreference(SharedPreferences.KEY_WALLET_ITERATION_COUNT));
-        int keySize = Integer.parseInt(getValuesInPreference(SharedPreferences.KEY_WALLET_SYMMETRIC_KEY_SIZE));
-        String secretKeyAlgorithm = getValuesInPreference(SharedPreferences.KEY_WALLET_SYMMETRIC_ALGORITHM);
+        int iterationCount = Integer.parseInt(getValuesInPreference(SharedPreferencesImpl.KEY_WALLET_ITERATION_COUNT));
+        int keySize = Integer.parseInt(getValuesInPreference(SharedPreferencesImpl.KEY_WALLET_SYMMETRIC_KEY_SIZE));
+        String secretKeyAlgorithm = getValuesInPreference(SharedPreferencesImpl.KEY_WALLET_SYMMETRIC_ALGORITHM);
         byte[][] pbeKeyPair = new byte[2][];
         if (iterationCount == 0 || keySize == 0 || secretKeyAlgorithm.length() == 0)
             return pbeKeyPair;
@@ -275,7 +275,7 @@ public class Wallet implements KeyStoreTEE, SharedPreferences {
 
     private byte[] generateAddressCreatedWithPublicKey(byte[] publicKey) {
         byte[] walletAddress = {0,};
-        String hashAlgorithm = getValuesInPreference(SharedPreferences.KEY_WALLET_HASH_ALGORITHM);
+        String hashAlgorithm = getValuesInPreference(SharedPreferencesImpl.KEY_WALLET_HASH_ALGORITHM);
         if (hashAlgorithm == null)
             return walletAddress;
 
@@ -300,7 +300,7 @@ public class Wallet implements KeyStoreTEE, SharedPreferences {
     @Deprecated
     private byte[] generateAddressCreatedWithPrivateKey(byte[] privateKey) {
         byte[] walletAddress = {0,};
-        String hashAlgorithm = getValuesInPreference(SharedPreferences.KEY_WALLET_HASH_ALGORITHM);
+        String hashAlgorithm = getValuesInPreference(SharedPreferencesImpl.KEY_WALLET_HASH_ALGORITHM);
         if (hashAlgorithm == null)
             return walletAddress;
 
@@ -325,8 +325,8 @@ public class Wallet implements KeyStoreTEE, SharedPreferences {
 
     private String generateMACData(String salt, String password, String targetMacData) {
         String macData = "";
-        String hmacAlgorithm = getValuesInPreference(SharedPreferences.KEY_WALLET_MAC_ALGORITHM);
-        String hashAlgorithm = getValuesInPreference(SharedPreferences.KEY_WALLET_HASH_ALGORITHM);
+        String hmacAlgorithm = getValuesInPreference(SharedPreferencesImpl.KEY_WALLET_MAC_ALGORITHM);
+        String hashAlgorithm = getValuesInPreference(SharedPreferencesImpl.KEY_WALLET_HASH_ALGORITHM);
         if (hmacAlgorithm == null || hashAlgorithm == null)
             return macData;
         byte[] saltPassword = getMergedByteArray(MoaBase58.decode(salt), password.getBytes());
@@ -369,22 +369,22 @@ public class Wallet implements KeyStoreTEE, SharedPreferences {
         boolean checkWalletMacData;
         if (!existPreference())
             return false;
-        int versionInfo = Integer.parseInt(getValuesInPreference(SharedPreferences.KEY_WALLET_VERSION_INFO));
-        String osName = getValuesInPreference(SharedPreferences.KEY_WALLET_OS_INFO);
-        String saltBase58 = getValuesInPreference(SharedPreferences.KEY_WALLET_SALT);
-        int iterationCount = Integer.parseInt(getValuesInPreference(SharedPreferences.KEY_WALLET_ITERATION_COUNT));
-        String rsaWithPbePrkBase58 = getValuesInPreference(SharedPreferences.KEY_WALLET_CIPHERED_DATA);
-        String walletPukBase58 = getValuesInPreference(SharedPreferences.KEY_WALLET_PUBLIC_KEY);
-        String walletAddrBase58 = getValuesInPreference(SharedPreferences.KEY_WALLET_ADDRESS);
-        String macDataBase58 = getValuesInPreference(SharedPreferences.KEY_WALLET_MAC_DATA);
+        int versionInfo = Integer.parseInt(getValuesInPreference(SharedPreferencesImpl.KEY_WALLET_VERSION_INFO));
+        String osName = getValuesInPreference(SharedPreferencesImpl.KEY_WALLET_OS_INFO);
+        String saltBase58 = getValuesInPreference(SharedPreferencesImpl.KEY_WALLET_SALT);
+        int iterationCount = Integer.parseInt(getValuesInPreference(SharedPreferencesImpl.KEY_WALLET_ITERATION_COUNT));
+        String rsaWithPbePrkBase58 = getValuesInPreference(SharedPreferencesImpl.KEY_WALLET_CIPHERED_DATA);
+        String walletPukBase58 = getValuesInPreference(SharedPreferencesImpl.KEY_WALLET_PUBLIC_KEY);
+        String walletAddrBase58 = getValuesInPreference(SharedPreferencesImpl.KEY_WALLET_ADDRESS);
+        String macDataBase58 = getValuesInPreference(SharedPreferencesImpl.KEY_WALLET_MAC_DATA);
         String mergedWalletData = versionInfo + osName + saltBase58 + iterationCount + rsaWithPbePrkBase58 + walletPukBase58 + walletAddrBase58;
         byte[] salt = MoaBase58.decode(saltBase58);
         byte[] mergedSaltAndPassword = getMergedByteArray(salt, password.getBytes());
-        String hashAlgorithm = getValuesInPreference(SharedPreferences.KEY_WALLET_HASH_ALGORITHM);
+        String hashAlgorithm = getValuesInPreference(SharedPreferencesImpl.KEY_WALLET_HASH_ALGORITHM);
         if (hashAlgorithm == null)
             return false;
         byte[] hmacKey = DigestAndroidCoreAPI.hashDigest(hashAlgorithm, mergedSaltAndPassword);
-        String macAlgorithm = getValuesInPreference(SharedPreferences.KEY_WALLET_MAC_ALGORITHM);
+        String macAlgorithm = getValuesInPreference(SharedPreferencesImpl.KEY_WALLET_MAC_ALGORITHM);
         if (macAlgorithm == null)
             return false;
         byte[] macData = DigestAndroidCoreAPI.hmacDigest(macAlgorithm, mergedWalletData.getBytes(), hmacKey);
@@ -396,7 +396,7 @@ public class Wallet implements KeyStoreTEE, SharedPreferences {
 
     private byte[] getDecryptedPrivateKey(String password) {
         byte[] privateKey;
-        String rsaWithPbePrkBase58 = getValuesInPreference(SharedPreferences.KEY_WALLET_CIPHERED_DATA);
+        String rsaWithPbePrkBase58 = getValuesInPreference(SharedPreferencesImpl.KEY_WALLET_CIPHERED_DATA);
         if (rsaWithPbePrkBase58.length() == 0)
             return null;
         byte[] rsaWithPbePrk = MoaBase58.decode(rsaWithPbePrkBase58);
@@ -433,10 +433,10 @@ public class Wallet implements KeyStoreTEE, SharedPreferences {
     }
 
     private Cipher getDecryptPBECipher(String password) {
-        int keySize = Integer.parseInt(getValuesInPreference(SharedPreferences.KEY_WALLET_SYMMETRIC_KEY_SIZE));
-        String secretKeyAlgorithm = getValuesInPreference(SharedPreferences.KEY_WALLET_SYMMETRIC_ALGORITHM);
-        int iterationCount = Integer.parseInt(getValuesInPreference(SharedPreferences.KEY_WALLET_ITERATION_COUNT));
-        String saltBase58 = getValuesInPreference(SharedPreferences.KEY_WALLET_SALT);
+        int keySize = Integer.parseInt(getValuesInPreference(SharedPreferencesImpl.KEY_WALLET_SYMMETRIC_KEY_SIZE));
+        String secretKeyAlgorithm = getValuesInPreference(SharedPreferencesImpl.KEY_WALLET_SYMMETRIC_ALGORITHM);
+        int iterationCount = Integer.parseInt(getValuesInPreference(SharedPreferencesImpl.KEY_WALLET_ITERATION_COUNT));
+        String saltBase58 = getValuesInPreference(SharedPreferencesImpl.KEY_WALLET_SALT);
         if (keySize == 0 || secretKeyAlgorithm.length() == 0 || saltBase58.length() == 0 || iterationCount == 0)
             return null;
 

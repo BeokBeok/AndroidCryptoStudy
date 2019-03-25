@@ -28,11 +28,11 @@ public class BasePrimary extends Control {
     }
 
     public void setBasePrimaryInfo(String basePrimaryInfo) {
-        setValuesInPreference(SharedPreferences.KEY_BASE_PRIMARY_INDEX, basePrimaryInfo);
+        setValuesInPreference(SharedPreferencesImpl.KEY_BASE_PRIMARY_INDEX, basePrimaryInfo);
     }
 
     public String getBasePrimaryInfo() {
-        return getValuesInPreference(SharedPreferences.KEY_BASE_PRIMARY_INDEX);
+        return getValuesInPreference(SharedPreferencesImpl.KEY_BASE_PRIMARY_INDEX);
     }
 
     private static class Singleton {

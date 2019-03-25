@@ -39,7 +39,7 @@ public class Control extends PINAuthentication {
     @Override
     public void setValuesInPreference(String key, String value) {
         String encryptedData = getEncryptContent(value);
-        android.content.SharedPreferences pref = context.getSharedPreferences(SharedPreferences.PREFNAME_CONTROL_INFO, Context.MODE_PRIVATE);
+        android.content.SharedPreferences pref = context.getSharedPreferences(SharedPreferencesImpl.PREFNAME_CONTROL_INFO, Context.MODE_PRIVATE);
         android.content.SharedPreferences.Editor editor = pref.edit();
         editor.putString(key, encryptedData);
         editor.apply();
@@ -47,7 +47,7 @@ public class Control extends PINAuthentication {
 
     @Override
     public String getValuesInPreference(String key) {
-        android.content.SharedPreferences pref = context.getSharedPreferences(SharedPreferences.PREFNAME_CONTROL_INFO, Context.MODE_PRIVATE);
+        android.content.SharedPreferences pref = context.getSharedPreferences(SharedPreferencesImpl.PREFNAME_CONTROL_INFO, Context.MODE_PRIVATE);
         String value = pref.getString(key, "");
         if (value == null)
             return "";
@@ -56,7 +56,7 @@ public class Control extends PINAuthentication {
     }
 
     public boolean existPreference() {
-        String controlInfoData = getValuesInPreference(SharedPreferences.KEY_CONTROL_INFO);
+        String controlInfoData = getValuesInPreference(SharedPreferencesImpl.KEY_CONTROL_INFO);
         return controlInfoData.length() > 0;
     }
 
@@ -76,7 +76,7 @@ public class Control extends PINAuthentication {
                         AUTH_TYPE + "$" +
                         COIN_STORE_TYPE;
             }
-            setValuesInPreference(SharedPreferences.KEY_CONTROL_INFO, controlDataForm);
+            setValuesInPreference(SharedPreferencesImpl.KEY_CONTROL_INFO, controlDataForm);
         } catch (UnsupportedEncodingException e) {
             Log.d("MoaLib", "[Control][setMemberInfo] failed to set member info");
             throw new RuntimeException("Failed to set member info", e);
@@ -84,7 +84,7 @@ public class Control extends PINAuthentication {
     }
 
     public String getMemberInfo(String type) {
-        String idManagerContent = getValuesInPreference(SharedPreferences.KEY_CONTROL_INFO);
+        String idManagerContent = getValuesInPreference(SharedPreferencesImpl.KEY_CONTROL_INFO);
         String result = "";
         if (!checkData(idManagerContent))
             return "";
