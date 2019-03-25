@@ -18,21 +18,21 @@ public class BasePrimaryInfoManager extends ControlInfoManager {
     }
 
     @Override
-    public void setValuesInPreference(String key, String value) {
-        super.setValuesInPreference(key, value);
+    public void setValuesInPreferences(String key, String value) {
+        super.setValuesInPreferences(key, value);
     }
 
     @Override
-    public String getValuesInPreference(String key) {
-        return super.getValuesInPreference(key);
+    public String getValuesInPreferences(String key) {
+        return super.getValuesInPreferences(key);
     }
 
     public void setBasePrimaryInfo(String basePrimaryInfo) {
-        setValuesInPreference(SharedPreferencesManager.KEY_BASE_PRIMARY_INDEX, basePrimaryInfo);
+        setValuesInPreferences(SharedPreferencesManager.KEY_BASE_PRIMARY_INDEX, basePrimaryInfo);
     }
 
     public String getBasePrimaryInfo() {
-        return getValuesInPreference(SharedPreferencesManager.KEY_BASE_PRIMARY_INDEX);
+        return getValuesInPreferences(SharedPreferencesManager.KEY_BASE_PRIMARY_INDEX);
     }
 
     private static class Singleton {

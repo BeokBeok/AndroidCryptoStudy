@@ -104,7 +104,7 @@ public class AutoLoginManager extends PINAuthManager implements KeyStoreTEEManag
     }
 
     @Override
-    public void setValuesInPreference(String key, String value) {
+    public void setValuesInPreferences(String key, String value) {
         String encryptValue = "";
         if (key.equals(SharedPreferencesManager.KEY_AUTO_LOGIN))
             encryptValue = getEncryptContent(value);
@@ -120,7 +120,7 @@ public class AutoLoginManager extends PINAuthManager implements KeyStoreTEEManag
     }
 
     @Override
-    public String getValuesInPreference(String key) {
+    public String getValuesInPreferences(String key) {
         SharedPreferences pref = context.getSharedPreferences(SharedPreferencesManager.PREFNAME_CONTROL_INFO, Context.MODE_PRIVATE);
         String value = pref.getString(key, "");
         if (key.equals(SharedPreferencesManager.KEY_AUTO_LOGIN))
@@ -139,7 +139,7 @@ public class AutoLoginManager extends PINAuthManager implements KeyStoreTEEManag
             password = "42009FFDDE80CA527DE3E1AB330481F7A4D76C35A3E7F9571BBA626927A25720B13E2C3F4EDE02DB5BA7B71151F8C7FFA5E4D559B7E7FED75DCCF636276B962B";
         }
         String content = MemberInfo.AutoLoginType.ACTIVE.getType() + "$" + password;
-        setValuesInPreference(SharedPreferencesManager.KEY_AUTO_LOGIN, content);
+        setValuesInPreferences(SharedPreferencesManager.KEY_AUTO_LOGIN, content);
     }
 
     private byte[] generateSalt() {
@@ -163,7 +163,7 @@ public class AutoLoginManager extends PINAuthManager implements KeyStoreTEEManag
             encryptContent = cipher.doFinal(content.getBytes(FORMAT_ENCODE));
 
             String base64Salt = Base64.encodeToString(salt, Base64.NO_WRAP);
-            setValuesInPreference(SharedPreferencesManager.KEY_AUTO_SALT, base64Salt);
+            setValuesInPreferences(SharedPreferencesManager.KEY_AUTO_SALT, base64Salt);
         } catch (NoSuchAlgorithmException | InvalidKeySpecException | NoSuchPaddingException | InvalidKeyException |
                 InvalidAlgorithmParameterException | UnsupportedEncodingException | IllegalBlockSizeException | BadPaddingException e) {
             Log.d("MoaLib", "[AutoLoginManager][getEncryptPBEContent] Failed to get PBE encrypt content");
@@ -176,7 +176,7 @@ public class AutoLoginManager extends PINAuthManager implements KeyStoreTEEManag
         byte[] result;
         try {
             Cipher pbeCipher = Cipher.getInstance(secretKeyAlgorithm);
-            String base64Salt = getValuesInPreference(SharedPreferencesManager.KEY_AUTO_SALT);
+            String base64Salt = getValuesInPreferences(SharedPreferencesManager.KEY_AUTO_SALT);
             byte[] salt = Base64.decode(base64Salt, Base64.NO_WRAP);
             byte[] hashUniqueDeviceID = DigestAndroidCoreAPI.hashDigest("SHA-512", (uniqueDeviceID + String.valueOf(iterationCount)).getBytes());
             KeySpec keySpec = new PBEKeySpec(new String(hashUniqueDeviceID, FORMAT_ENCODE).toCharArray(), salt, iterationCount, keySize);

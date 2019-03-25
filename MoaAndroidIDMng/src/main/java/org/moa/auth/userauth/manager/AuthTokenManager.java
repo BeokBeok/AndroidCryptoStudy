@@ -88,7 +88,7 @@ public class AuthTokenManager implements KeyStoreTEEManager, SharedPreferencesMa
 
     @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
-    public void setValuesInPreference(String key, String value) {
+    public void setValuesInPreferences(String key, String value) {
         String encryptedData = getEncryptContent(value);
         SharedPreferences pref = context.getSharedPreferences(SharedPreferencesManager.PREFNAME_AUTH_TOKEN, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = pref.edit();
@@ -97,7 +97,7 @@ public class AuthTokenManager implements KeyStoreTEEManager, SharedPreferencesMa
     }
 
     @Override
-    public String getValuesInPreference(String key) {
+    public String getValuesInPreferences(String key) {
         SharedPreferences pref = context.getSharedPreferences(SharedPreferencesManager.PREFNAME_AUTH_TOKEN, Context.MODE_PRIVATE);
         byte[] encryptData = Base64.decode(pref.getString(key, ""), Base64.NO_WRAP);
         return getDecryptContent(encryptData);

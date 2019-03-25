@@ -35,10 +35,12 @@ public class ControlInfoManager extends PINAuthManager {
     @Override
     public void init(Context context, String uniqueDeviceID) {
         super.init(context, uniqueDeviceID);
+        if (uniqueDeviceID != null && uniqueDeviceID.length() > 0)
+            setValuesInPreferences(SharedPreferencesManager.KEY_UNIQUE_DEVICE_INFO, uniqueDeviceID);
     }
 
     @Override
-    public void setValuesInPreference(String key, String value) {
+    public void setValuesInPreferences(String key, String value) {
         String encryptedData = getEncryptContent(value);
         SharedPreferences pref = context.getSharedPreferences(SharedPreferencesManager.PREFNAME_CONTROL_INFO, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = pref.edit();
@@ -47,7 +49,7 @@ public class ControlInfoManager extends PINAuthManager {
     }
 
     @Override
-    public String getValuesInPreference(String key) {
+    public String getValuesInPreferences(String key) {
         SharedPreferences pref = context.getSharedPreferences(SharedPreferencesManager.PREFNAME_CONTROL_INFO, Context.MODE_PRIVATE);
         String value = pref.getString(key, "");
         if (value == null)
@@ -57,7 +59,7 @@ public class ControlInfoManager extends PINAuthManager {
     }
 
     public boolean existPreference() {
-        String controlInfoData = getValuesInPreference(SharedPreferencesManager.KEY_CONTROL_INFO);
+        String controlInfoData = getValuesInPreferences(SharedPreferencesManager.KEY_CONTROL_INFO);
         return controlInfoData.length() > 0;
     }
 
@@ -77,7 +79,7 @@ public class ControlInfoManager extends PINAuthManager {
                         AUTH_TYPE + "$" +
                         COIN_STORE_TYPE;
             }
-            setValuesInPreference(SharedPreferencesManager.KEY_CONTROL_INFO, controlDataForm);
+            setValuesInPreferences(SharedPreferencesManager.KEY_CONTROL_INFO, controlDataForm);
         } catch (UnsupportedEncodingException e) {
             Log.d("MoaLib", "[ControlInfoManager][setMemberInfo] failed to set member info");
             throw new RuntimeException("Failed to set member info", e);
@@ -85,7 +87,7 @@ public class ControlInfoManager extends PINAuthManager {
     }
 
     public String getMemberInfo(String type) {
-        String idManagerContent = getValuesInPreference(SharedPreferencesManager.KEY_CONTROL_INFO);
+        String idManagerContent = getValuesInPreferences(SharedPreferencesManager.KEY_CONTROL_INFO);
         String result = "";
         if (!checkData(idManagerContent))
             return "";
@@ -113,6 +115,10 @@ public class ControlInfoManager extends PINAuthManager {
             throw new RuntimeException("Failed to get member info", e);
         }
         return result;
+    }
+
+    public String getUniqueDeviceInfo() {
+        return getValuesInPreferences(SharedPreferencesManager.KEY_UNIQUE_DEVICE_INFO);
     }
 
     private boolean checkData(String data) {

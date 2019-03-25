@@ -89,7 +89,7 @@ public class AndroidIDMngProcess {
         String AUTH_TOKEN = fingerprintRegisterData.get(2);
         AuthTokenManager authTokenManager = AuthTokenManager.getInstance();
         authTokenManager.init(context);
-        authTokenManager.setValuesInPreference(SharedPreferencesManager.KEY_AUTH_TOKEN, AUTH_TOKEN);
+        authTokenManager.setValuesInPreferences(SharedPreferencesManager.KEY_AUTH_TOKEN, AUTH_TOKEN);
 
         FingerprintAuthManger fingerprintAuthManger = FingerprintAuthManger.getInstance();
         fingerprintAuthManger.init(ECDSA_CURVE, ECDSA_SUITE);
@@ -115,7 +115,7 @@ public class AndroidIDMngProcess {
             return "";
         AuthTokenManager authTokenManager = AuthTokenManager.getInstance();
         authTokenManager.init(context);
-        return authTokenManager.getValuesInPreference(SharedPreferencesManager.KEY_AUTH_TOKEN);
+        return authTokenManager.getValuesInPreferences(SharedPreferencesManager.KEY_AUTH_TOKEN);
     }
 
     public void setControlInfoData(List<String> data) {
@@ -170,14 +170,14 @@ public class AndroidIDMngProcess {
             return "";
         WalletManager walletManager = WalletManager.getInstance();
         walletManager.init(context);
-        String versionInfo = walletManager.getValuesInPreference(SharedPreferencesManager.KEY_WALLET_VERSION_INFO);
-        String osInfo = walletManager.getValuesInPreference(SharedPreferencesManager.KEY_WALLET_OS_INFO);
-        String salt = walletManager.getValuesInPreference(SharedPreferencesManager.KEY_WALLET_SALT);
-        String iterationCount = walletManager.getValuesInPreference(SharedPreferencesManager.KEY_WALLET_ITERATION_COUNT);
-        String cipheredData = walletManager.getValuesInPreference(SharedPreferencesManager.KEY_WALLET_CIPHERED_DATA);
-        String walletPuk = walletManager.getValuesInPreference(SharedPreferencesManager.KEY_WALLET_PUBLIC_KEY);
-        String walletAddr = walletManager.getValuesInPreference(SharedPreferencesManager.KEY_WALLET_ADDRESS);
-        String macData = walletManager.getValuesInPreference(SharedPreferencesManager.KEY_WALLET_MAC_DATA);
+        String versionInfo = walletManager.getValuesInPreferences(SharedPreferencesManager.KEY_WALLET_VERSION_INFO);
+        String osInfo = walletManager.getValuesInPreferences(SharedPreferencesManager.KEY_WALLET_OS_INFO);
+        String salt = walletManager.getValuesInPreferences(SharedPreferencesManager.KEY_WALLET_SALT);
+        String iterationCount = walletManager.getValuesInPreferences(SharedPreferencesManager.KEY_WALLET_ITERATION_COUNT);
+        String cipheredData = walletManager.getValuesInPreferences(SharedPreferencesManager.KEY_WALLET_CIPHERED_DATA);
+        String walletPuk = walletManager.getValuesInPreferences(SharedPreferencesManager.KEY_WALLET_PUBLIC_KEY);
+        String walletAddr = walletManager.getValuesInPreferences(SharedPreferencesManager.KEY_WALLET_ADDRESS);
+        String macData = walletManager.getValuesInPreferences(SharedPreferencesManager.KEY_WALLET_MAC_DATA);
         String walletInfo = "Version.Info=" + versionInfo + "\n" +
                 "OS.Info=" + osInfo + "\n" +
                 "Salt.Value=" + salt + "\n" +
@@ -198,7 +198,7 @@ public class AndroidIDMngProcess {
     public String getAutoLoginInfo() {
         if (isNotValidUniqueDeviceID())
             return "";
-        String content = autoLoginManager.getValuesInPreference(SharedPreferencesManager.KEY_AUTO_LOGIN);
+        String content = autoLoginManager.getValuesInPreferences(SharedPreferencesManager.KEY_AUTO_LOGIN);
         StringTokenizer stringTokenizer = new StringTokenizer(content, "$");
         String type = stringTokenizer.nextToken();
         String info = stringTokenizer.nextToken();
@@ -217,6 +217,10 @@ public class AndroidIDMngProcess {
         BasePrimaryInfoManager basePrimaryInfoManager = BasePrimaryInfoManager.getInstance();
         basePrimaryInfoManager.init(context, uniqueDeviceID);
         return basePrimaryInfoManager.getBasePrimaryInfo();
+    }
+
+    public String getUniqueDeviceInfo() {
+        return controlInfoManager.getUniqueDeviceInfo();
     }
 
     private boolean isNotValidUniqueDeviceID() {

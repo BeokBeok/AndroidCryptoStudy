@@ -3,6 +3,7 @@ package org.moa.auth.userauth.manager;
 public interface SharedPreferencesManager {
     String PREFNAME_CONTROL_INFO = "androidIDManager";
     String KEY_CONTROL_INFO = "Control.Info";
+    String KEY_UNIQUE_DEVICE_INFO = "UniqueDevice.Info";
     String KEY_AUTO_LOGIN = "Auto.Info";
     String KEY_AUTO_SALT = "Salt.Info";
     String KEY_BASE_PRIMARY_INDEX = "BasePrimary.Info";
@@ -27,7 +28,7 @@ public interface SharedPreferencesManager {
     String KEY_WALLET_ADDRESS = "Wallet.Addr";
     String KEY_WALLET_MAC_DATA = "MAC.Data";
 
-    void setValuesInPreference(String key, String value);
+    void setValuesInPreferences(String key, String value);
 
-    String getValuesInPreference(String key);
+    String getValuesInPreferences(String key);
 }
