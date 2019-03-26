@@ -8,7 +8,6 @@ import android.util.Log;
 
 import org.moa.auth.userauth.manager.AuthToken;
 import org.moa.auth.userauth.manager.AutoLogin;
-import org.moa.auth.userauth.manager.BasePrimary;
 import org.moa.auth.userauth.manager.FingerprintAuth;
 import org.moa.auth.userauth.manager.MoaPreferences;
 import org.moa.auth.userauth.manager.UserControl;
@@ -207,15 +206,11 @@ public class AndroidIDMngProcess {
     }
 
     public String getBasePrimaryInfo() {
-        BasePrimary basePrimary = BasePrimary.getInstance();
-        basePrimary.init(context, uniqueDeviceID);
-        return basePrimary.getBasePrimaryInfo();
+        return userControl.getValuesInPreferences(MoaPreferences.KEY_BASE_PRIMARY_INDEX);
     }
 
     public void setBasePrimaryInfo(String userSequenceIndex) {
-        BasePrimary basePrimary = BasePrimary.getInstance();
-        basePrimary.init(context, uniqueDeviceID);
-        basePrimary.setBasePrimaryInfo(userSequenceIndex);
+        userControl.setValuesInPreferences(MoaPreferences.KEY_BASE_PRIMARY_INDEX, userSequenceIndex);
     }
 
     public String getUniqueDeviceInfo() {
