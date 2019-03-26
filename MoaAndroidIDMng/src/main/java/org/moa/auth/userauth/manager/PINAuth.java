@@ -14,13 +14,12 @@ import java.security.KeyStore;
 
 abstract class PINAuth implements MoaPreferences {
     private final String transformation = "AES/CBC/PKCS7Padding";
-    private final String iv = "00FF0000FF00FF000000FFFF000000FF";
     final String FORMAT_ENCODE = "UTF-8";
     Context context;
     String uniqueDeviceID;
     KeyStore keyStore;
 
-    void init(Context context, String uniqueDeviceID) {
+    public void init(Context context, String uniqueDeviceID) {
         boolean isContext = (this.context != null);
         boolean isUniqueDeviceID = (this.uniqueDeviceID != null && this.uniqueDeviceID.length() > 0);
         if (isContext && isUniqueDeviceID)
@@ -35,7 +34,7 @@ abstract class PINAuth implements MoaPreferences {
         try {
             byte[] idBytes = id.getBytes(FORMAT_ENCODE);
             byte[] passwordBytes = password.getBytes(FORMAT_ENCODE);
-            byte[] ivBytes = Hex.decode(iv);
+            byte[] ivBytes = Hex.decode("00FF0000FF00FF000000FFFF000000FF");
             byte[] keyBytes = new byte[ivBytes.length];
             byte[] idBytesDigestM = DigestAndroidCoreAPI.hashDigest("SHA256", idBytes);
 
@@ -58,7 +57,7 @@ abstract class PINAuth implements MoaPreferences {
         try {
             byte[] idBytes = id.getBytes(FORMAT_ENCODE);
             byte[] passwordBytes = password.getBytes(FORMAT_ENCODE);
-            byte[] ivBytes = Hex.decode(iv);
+            byte[] ivBytes = Hex.decode("00FF0000FF00FF000000FFFF000000FF");
             byte[] keyBytes = new byte[ivBytes.length];
             byte[] idBytesDigestM = DigestAndroidCoreAPI.hashDigest("SHA256", idBytes);
 
