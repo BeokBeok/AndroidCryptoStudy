@@ -206,10 +206,14 @@ public class AndroidIDMngProcess {
     }
 
     public String getBasePrimaryInfo() {
+        if (isNotValidUniqueDeviceID())
+            return "";
         return userControl.getValuesInPreferences(MoaPreferences.KEY_BASE_PRIMARY_INDEX);
     }
 
     public void setBasePrimaryInfo(String userSequenceIndex) {
+        if (isNotValidUniqueDeviceID())
+            return;
         userControl.setValuesInPreferences(MoaPreferences.KEY_BASE_PRIMARY_INDEX, userSequenceIndex);
     }
 
