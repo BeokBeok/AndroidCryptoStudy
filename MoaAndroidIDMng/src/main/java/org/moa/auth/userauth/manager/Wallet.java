@@ -208,6 +208,19 @@ public class Wallet implements MoaTEEKeyStore, MoaPreferences {
         }
     }
 
+    public boolean verifySignedData(String plainText, byte[] signedData) {
+        try {
+            String algorithm = getValuesInPreferences(MoaPreferences.KEY_WALLET_SIGNATURE_ALGIROTHM);
+            Signature signature = Signature.getInstance(algorithm);
+            signature.initVerify(getPublicKey());
+            signature.update(plainText.getBytes());
+            return signature.verify(signedData);
+        } catch (NoSuchAlgorithmException | InvalidKeyException | SignatureException e) {
+            Log.d("MoaLib", "[Wallet][verifySignedData] Failed to verify sign data");
+            throw new RuntimeException("Failed to verify sign data", e);
+        }
+    }
+
     private void initProperties() {
         if (getValuesInPreferences(MoaPreferences.KEY_WALLET_VERSION_INFO).length() > 0)
             return;

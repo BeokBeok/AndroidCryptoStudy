@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
+import android.util.Base64;
 import android.util.Log;
 
 import org.moa.auth.userauth.manager.AuthToken;
@@ -153,6 +154,12 @@ public class AndroidIDMngProcess {
         Wallet wallet = Wallet.getInstance();
         wallet.init(context);
         return wallet.getPublicKey();
+    }
+
+    public boolean verifySignedTransactionData(String plainText, String transactionData) {
+        Wallet wallet = Wallet.getInstance();
+        wallet.init(context);
+        return wallet.verifySignedData(plainText, Base64.decode(transactionData, Base64.NO_WRAP));
     }
 
     public boolean existWallet() {
