@@ -12,18 +12,18 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
-public class SymmetricAndroidCoreAPI {
-    private Cipher cipher = null;
-    private IvParameterSpec ivSpec = null;
-    private SecretKeySpec keySpec = null;
-    private String modeType = "";
+public class SymmetricCrypto {
+    private Cipher cipher;
+    private IvParameterSpec ivSpec;
+    private SecretKeySpec keySpec;
+    private String modeType;
 
-    public SymmetricAndroidCoreAPI(String CryptonameModePadType, byte[] ivBytes, byte[] keyBytes) {
+    public SymmetricCrypto(String CryptoNameModePadType, byte[] ivBytes, byte[] keyBytes) {
         try {
-            final StringTokenizer stringTokenizer = new StringTokenizer(CryptonameModePadType, "/");
-            final String cryptoAlgName = stringTokenizer.nextToken();
+            StringTokenizer stringTokenizer = new StringTokenizer(CryptoNameModePadType, "/");
+            String cryptoAlgName = stringTokenizer.nextToken();
             modeType = stringTokenizer.nextToken();
-            cipher = Cipher.getInstance(CryptonameModePadType);
+            cipher = Cipher.getInstance(CryptoNameModePadType);
             int blockSize = cipher.getBlockSize();
             int keySize = keyBytes.length;
 
@@ -39,7 +39,7 @@ public class SymmetricAndroidCoreAPI {
         }
     }
 
-    public synchronized byte[] symmetricEncryptData(byte[] data) {
+    public byte[] encryptData(byte[] data) {
         try {
             if (modeType.equals("ECB"))
                 cipher.init(Cipher.ENCRYPT_MODE, keySpec);
@@ -51,7 +51,7 @@ public class SymmetricAndroidCoreAPI {
         }
     }
 
-    public synchronized byte[] symmetricDecryptData(byte[] data) {
+    public byte[] decryptData(byte[] data) {
         try {
             if (modeType.equals("ECB"))
                 cipher.init(Cipher.DECRYPT_MODE, keySpec);
