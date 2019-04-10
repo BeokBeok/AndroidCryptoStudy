@@ -1,4 +1,4 @@
-package org.moa.auth.userauth.manager;
+package org.moa.auth.userauth.android.api;
 
 public interface MoaPreferences {
     String PREFNAME_CONTROL_INFO = "androidIDManager";

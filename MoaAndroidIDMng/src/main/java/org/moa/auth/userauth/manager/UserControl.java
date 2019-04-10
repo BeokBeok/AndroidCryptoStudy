@@ -6,7 +6,9 @@ import android.content.SharedPreferences;
 import android.util.Base64;
 import android.util.Log;
 
+import org.moa.auth.userauth.android.api.MoaCommonFunc;
 import org.moa.auth.userauth.android.api.MoaMember;
+import org.moa.auth.userauth.android.api.MoaPreferences;
 
 import java.io.UnsupportedEncodingException;
 import java.security.InvalidAlgorithmParameterException;
@@ -70,7 +72,7 @@ public class UserControl extends PINAuth {
             String AUTH_TYPE = data.get(2);
             String COIN_STORE_TYPE = data.get(3);
             String controlDataForm = MEMBER_TYPE + "$" +
-                    Base64.encodeToString(MEMBER_ID.getBytes(FORMAT_ENCODE), Base64.NO_WRAP) + "$" +
+                    Base64.encodeToString(MEMBER_ID.getBytes(MoaCommonFunc.FORMAT_ENCODE), Base64.NO_WRAP) + "$" +
                     AUTH_TYPE + "$" +
                     COIN_STORE_TYPE;
             if (MEMBER_TYPE.equals(MoaMember.Type.NONMEMBER.getType())) {
@@ -96,7 +98,7 @@ public class UserControl extends PINAuth {
             String memberType = stringTokenizer.nextToken();
             String base64MemberID = stringTokenizer.nextToken();
             byte[] decodeBase64MemberID = Base64.decode(base64MemberID, Base64.NO_WRAP);
-            String memberID = new String(decodeBase64MemberID, FORMAT_ENCODE);
+            String memberID = new String(decodeBase64MemberID, MoaCommonFunc.FORMAT_ENCODE);
             if (memberType.equals(MoaMember.Type.NONMEMBER.getType()))
                 memberID = base64MemberID;
             String memberAuthType = stringTokenizer.nextToken();
@@ -165,7 +167,7 @@ public class UserControl extends PINAuth {
         if (cipher == null)
             return "";
         try {
-            byte[] encryptContent = cipher.doFinal(content.getBytes(FORMAT_ENCODE));
+            byte[] encryptContent = cipher.doFinal(content.getBytes(MoaCommonFunc.FORMAT_ENCODE));
             return Base64.encodeToString(encryptContent, Base64.NO_WRAP);
         } catch (BadPaddingException | IllegalBlockSizeException | UnsupportedEncodingException e) {
             Log.d("MoaLib", "[UserControl][getEncryptContent] failed to get encrypt content");
@@ -181,7 +183,7 @@ public class UserControl extends PINAuth {
             return "";
         try {
             byte[] decryptContent = cipher.doFinal(content);
-            return new String(decryptContent, FORMAT_ENCODE);
+            return new String(decryptContent, MoaCommonFunc.FORMAT_ENCODE);
         } catch (BadPaddingException | IllegalBlockSizeException | UnsupportedEncodingException e) {
             Log.d("MoaLib", "[UserControl][getDecryptContent] failed to get decrypt content");
             throw new RuntimeException("Failed to get decrypt content", e);

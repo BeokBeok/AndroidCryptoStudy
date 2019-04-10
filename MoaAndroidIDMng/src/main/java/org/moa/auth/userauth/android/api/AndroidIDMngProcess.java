@@ -10,7 +10,6 @@ import android.util.Log;
 import org.moa.auth.userauth.manager.AuthToken;
 import org.moa.auth.userauth.manager.AutoLogin;
 import org.moa.auth.userauth.manager.FingerprintAuth;
-import org.moa.auth.userauth.manager.MoaPreferences;
 import org.moa.auth.userauth.manager.UserControl;
 import org.moa.auth.userauth.manager.Wallet;
 
@@ -19,7 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
 
-public class AndroidIDMngProcess {
+public class AndroidIDMngProcess implements MoaCommonFunc{
     private Context context;
     private String uniqueDeviceID;
     private UserControl userControl;
@@ -71,13 +70,13 @@ public class AndroidIDMngProcess {
     public String generatePINRegisterMessage(String id, String password) {
         if (isNotValidUniqueDeviceID())
             return "";
-        return userControl.generateRegisterMessage(id, password);
+        return generateRegisterMessage(id, password);
     }
 
     public String generatePINLoginRequestMessage(String id, String password, String nonceOTP) {
         if (isNotValidUniqueDeviceID())
             return "";
-        return userControl.generateLoginRequestMessage(id, password, nonceOTP);
+        return generateLoginRequestMessage(id, password, nonceOTP);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)

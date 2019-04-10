@@ -7,9 +7,11 @@ import android.security.KeyPairGeneratorSpec;
 import android.util.Base64;
 import android.util.Log;
 
-import org.moa.android.crypto.coreapi.DigestAndroidCoreAPI;
 import org.moa.android.crypto.coreapi.MoaBase58;
 import org.moa.android.crypto.coreapi.RIPEMD160;
+import org.moa.auth.userauth.android.api.MoaCommonFunc;
+import org.moa.auth.userauth.android.api.MoaPreferences;
+import org.moa.auth.userauth.android.api.MoaTEEKeyStore;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -49,7 +51,7 @@ import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.PBEParameterSpec;
 import javax.security.auth.x500.X500Principal;
 
-public class Wallet implements MoaTEEKeyStore, MoaPreferences {
+public class Wallet implements MoaTEEKeyStore, MoaPreferences, MoaCommonFunc {
     private final String keyAlias = MoaTEEKeyStore.ALIAS_WALLET;
     private final String transformation = "RSA/ECB/PKCS1Padding";
     private Context context;
@@ -293,7 +295,7 @@ public class Wallet implements MoaTEEKeyStore, MoaPreferences {
             return walletAddress;
 
         int prefixSize = 1;
-        byte[] hashPuk = DigestAndroidCoreAPI.hashDigest(hashAlgorithm, publicKey);
+        byte[] hashPuk = hashDigest(hashAlgorithm, publicKey);
         byte[] ripemd160 = RIPEMD160.getHash(hashPuk);
         byte[] checksum = new byte[4];
         System.arraycopy(hashPuk, 0, checksum, 0, checksum.length);
@@ -318,8 +320,8 @@ public class Wallet implements MoaTEEKeyStore, MoaPreferences {
             return walletAddress;
 
         int prefixSize = 1;
-        byte[] hashPrk = DigestAndroidCoreAPI.hashDigest(hashAlgorithm, privateKey);
-        byte[] dualHashPrk = DigestAndroidCoreAPI.hashDigest(hashAlgorithm, hashPrk);
+        byte[] hashPrk = hashDigest(hashAlgorithm, privateKey);
+        byte[] dualHashPrk = hashDigest(hashAlgorithm, hashPrk);
         byte[] checksum = new byte[4];
         System.arraycopy(dualHashPrk, 0, checksum, 0, checksum.length);
 
@@ -343,8 +345,8 @@ public class Wallet implements MoaTEEKeyStore, MoaPreferences {
         if (hmacAlgorithm == null || hashAlgorithm == null)
             return macData;
         byte[] saltPassword = getMergedByteArray(MoaBase58.decode(salt), password.getBytes());
-        byte[] hmacKey = DigestAndroidCoreAPI.hashDigest(hashAlgorithm, saltPassword);
-        byte[] macDataBytes = DigestAndroidCoreAPI.hmacDigest(hmacAlgorithm, targetMacData.getBytes(), hmacKey);
+        byte[] hmacKey = hashDigest(hashAlgorithm, saltPassword);
+        byte[] macDataBytes = hmacDigest(hmacAlgorithm, targetMacData.getBytes(), hmacKey);
         return MoaBase58.encode(macDataBytes);
     }
 
@@ -396,11 +398,11 @@ public class Wallet implements MoaTEEKeyStore, MoaPreferences {
         String hashAlgorithm = getValuesInPreferences(MoaPreferences.KEY_WALLET_HASH_ALGORITHM);
         if (hashAlgorithm == null)
             return false;
-        byte[] hmacKey = DigestAndroidCoreAPI.hashDigest(hashAlgorithm, mergedSaltAndPassword);
+        byte[] hmacKey = hashDigest(hashAlgorithm, mergedSaltAndPassword);
         String macAlgorithm = getValuesInPreferences(MoaPreferences.KEY_WALLET_MAC_ALGORITHM);
         if (macAlgorithm == null)
             return false;
-        byte[] macData = DigestAndroidCoreAPI.hmacDigest(macAlgorithm, mergedWalletData.getBytes(), hmacKey);
+        byte[] macData = hmacDigest(macAlgorithm, mergedWalletData.getBytes(), hmacKey);
         String newMacDataBase58 = MoaBase58.encode(macData);
         checkWalletMacData = macDataBase58.equals(newMacDataBase58);
 

@@ -10,6 +10,10 @@ import android.support.annotation.RequiresApi;
 import android.util.Base64;
 import android.util.Log;
 
+import org.moa.auth.userauth.android.api.MoaCommonFunc;
+import org.moa.auth.userauth.android.api.MoaPreferences;
+import org.moa.auth.userauth.android.api.MoaTEEKeyStore;
+
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.security.InvalidAlgorithmParameterException;
@@ -30,7 +34,6 @@ import javax.crypto.spec.GCMParameterSpec;
 
 public class AuthToken implements MoaTEEKeyStore, MoaPreferences {
     private final String keyAlias = MoaTEEKeyStore.ALIAS_AUTH_TOKEN;
-    private final String FORMAT_ENCODE = "UTF-8";
     private final String transformation = "AES/GCM/NoPadding";
     private Context context;
     private KeyStore keyStore;
@@ -117,7 +120,7 @@ public class AuthToken implements MoaTEEKeyStore, MoaPreferences {
             }
             Cipher cipher = Cipher.getInstance(transformation);
             cipher.init(Cipher.ENCRYPT_MODE, secretKeyEntry.getSecretKey());
-            resultData = Base64.encodeToString(cipher.doFinal(content.getBytes(FORMAT_ENCODE)), Base64.NO_WRAP);
+            resultData = Base64.encodeToString(cipher.doFinal(content.getBytes(MoaCommonFunc.FORMAT_ENCODE)), Base64.NO_WRAP);
 
             setIV(cipher.getIV());
         } catch (InvalidKeyException | NoSuchAlgorithmException | KeyStoreException | UnrecoverableEntryException
@@ -140,7 +143,7 @@ public class AuthToken implements MoaTEEKeyStore, MoaPreferences {
 
             cipher.init(Cipher.DECRYPT_MODE, secretKeyEntry.getSecretKey(), new GCMParameterSpec(128, getIV()));
             byte[] decryptData = cipher.doFinal(content);
-            result = new String(decryptData, FORMAT_ENCODE);
+            result = new String(decryptData, MoaCommonFunc.FORMAT_ENCODE);
         } catch (NoSuchPaddingException | NoSuchAlgorithmException | InvalidAlgorithmParameterException | InvalidKeyException |
                 KeyStoreException | UnrecoverableEntryException | IllegalBlockSizeException | BadPaddingException |
                 UnsupportedEncodingException e) {

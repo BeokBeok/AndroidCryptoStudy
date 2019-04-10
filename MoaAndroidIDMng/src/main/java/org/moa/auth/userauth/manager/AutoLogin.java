@@ -7,8 +7,10 @@ import android.security.KeyPairGeneratorSpec;
 import android.util.Base64;
 import android.util.Log;
 
-import org.moa.android.crypto.coreapi.DigestAndroidCoreAPI;
+import org.moa.auth.userauth.android.api.MoaCommonFunc;
 import org.moa.auth.userauth.android.api.MoaMember;
+import org.moa.auth.userauth.android.api.MoaPreferences;
+import org.moa.auth.userauth.android.api.MoaTEEKeyStore;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -42,7 +44,7 @@ import javax.crypto.spec.PBEParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import javax.security.auth.x500.X500Principal;
 
-public class AutoLogin extends PINAuth implements MoaTEEKeyStore {
+public class AutoLogin extends PINAuth implements MoaTEEKeyStore, MoaCommonFunc {
     private final int iterationCount = 8192;
     private final int keySize = 192;
     private final String secretKeyAlgorithm = "PBEwithSHAAND3-KEYTRIPLEDES-CBC";
@@ -152,14 +154,14 @@ public class AutoLogin extends PINAuth implements MoaTEEKeyStore {
         try {
             Cipher cipher = Cipher.getInstance(secretKeyAlgorithm);
             byte[] salt = generateSalt();
-            byte[] hashUniqueDeviceID = DigestAndroidCoreAPI.hashDigest("SHA-512", (uniqueDeviceID + String.valueOf(iterationCount)).getBytes());
-            KeySpec keySpec = new PBEKeySpec(new String(hashUniqueDeviceID, FORMAT_ENCODE).toCharArray(), salt, iterationCount, keySize);
+            byte[] hashUniqueDeviceID = hashDigest("SHA-512", (uniqueDeviceID + String.valueOf(iterationCount)).getBytes());
+            KeySpec keySpec = new PBEKeySpec(new String(hashUniqueDeviceID, MoaCommonFunc.FORMAT_ENCODE).toCharArray(), salt, iterationCount, keySize);
             SecretKeyFactory secretKeyFactory = SecretKeyFactory.getInstance(secretKeyAlgorithm);
             SecretKey secretKey = secretKeyFactory.generateSecret(keySpec);
 
             AlgorithmParameterSpec algorithmParameterSpec = new PBEParameterSpec(salt, iterationCount);
             cipher.init(Cipher.ENCRYPT_MODE, secretKey, algorithmParameterSpec);
-            encryptContent = cipher.doFinal(content.getBytes(FORMAT_ENCODE));
+            encryptContent = cipher.doFinal(content.getBytes(MoaCommonFunc.FORMAT_ENCODE));
 
             String base64Salt = Base64.encodeToString(salt, Base64.NO_WRAP);
             setValuesInPreferences(MoaPreferences.KEY_AUTO_SALT, base64Salt);
@@ -177,8 +179,8 @@ public class AutoLogin extends PINAuth implements MoaTEEKeyStore {
             Cipher pbeCipher = Cipher.getInstance(secretKeyAlgorithm);
             String base64Salt = getValuesInPreferences(MoaPreferences.KEY_AUTO_SALT);
             byte[] salt = Base64.decode(base64Salt, Base64.NO_WRAP);
-            byte[] hashUniqueDeviceID = DigestAndroidCoreAPI.hashDigest("SHA-512", (uniqueDeviceID + String.valueOf(iterationCount)).getBytes());
-            KeySpec keySpec = new PBEKeySpec(new String(hashUniqueDeviceID, FORMAT_ENCODE).toCharArray(), salt, iterationCount, keySize);
+            byte[] hashUniqueDeviceID = hashDigest("SHA-512", (uniqueDeviceID + String.valueOf(iterationCount)).getBytes());
+            KeySpec keySpec = new PBEKeySpec(new String(hashUniqueDeviceID, MoaCommonFunc.FORMAT_ENCODE).toCharArray(), salt, iterationCount, keySize);
             SecretKeyFactory secretKeyFactory = SecretKeyFactory.getInstance(secretKeyAlgorithm);
             SecretKey secretKey = secretKeyFactory.generateSecret(keySpec);
 
@@ -244,7 +246,7 @@ public class AutoLogin extends PINAuth implements MoaTEEKeyStore {
         byte[] lastDecrypt = getDecryptPBEContent(firstDecrypt);
         String original;
         try {
-            original = new String(lastDecrypt, FORMAT_ENCODE);
+            original = new String(lastDecrypt, MoaCommonFunc.FORMAT_ENCODE);
         } catch (UnsupportedEncodingException e) {
             Log.d("MoaLib", "[AutoLogin][getDecryptContent] failed to decrypt content");
             throw new RuntimeException("Failed to decrypt content", e);

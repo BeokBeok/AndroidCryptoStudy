@@ -7,6 +7,8 @@ import android.support.annotation.RequiresApi;
 import android.util.Base64;
 import android.util.Log;
 
+import org.moa.auth.userauth.android.api.MoaTEEKeyStore;
+
 import java.io.IOException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
