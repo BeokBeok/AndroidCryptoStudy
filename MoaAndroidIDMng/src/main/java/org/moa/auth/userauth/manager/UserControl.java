@@ -27,7 +27,7 @@ import javax.crypto.spec.SecretKeySpec;
 
 public class UserControl extends PINAuth {
 
-    UserControl() {
+    private UserControl() {
     }
 
     public static UserControl getInstance() {
