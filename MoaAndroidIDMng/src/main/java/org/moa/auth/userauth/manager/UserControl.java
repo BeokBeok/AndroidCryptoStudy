@@ -11,21 +11,13 @@ import org.moa.auth.userauth.android.api.MoaMember;
 import org.moa.auth.userauth.android.api.MoaPreferences;
 
 import java.io.UnsupportedEncodingException;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
 
-import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-import javax.crypto.spec.IvParameterSpec;
-import javax.crypto.spec.SecretKeySpec;
 
-public class UserControl extends PINAuth {
+public class UserControl extends PINAuth implements MoaCommonFunc {
 
     private UserControl() {
     }
@@ -43,10 +35,20 @@ public class UserControl extends PINAuth {
 
     @Override
     public void setValuesInPreferences(String key, String value) {
-        String encryptedData = getEncryptContent(value);
+        String encodedBase64Encryption = "";
+        try {
+            byte[] encodedUtf8Content = value.getBytes(MoaCommonFunc.FORMAT_ENCODE);
+            byte[] keyAndIv = Base64.decode(uniqueDeviceID, Base64.NO_WRAP);
+            byte[] encryption = getSymmetricData(Cipher.ENCRYPT_MODE, keyAndIv, encodedUtf8Content);
+            encodedBase64Encryption = Base64.encodeToString(encryption, Base64.NO_WRAP);
+        } catch (UnsupportedEncodingException e) {
+            Log.d("MoaLib", "[UserControl][setValuesInPreferences] failed to encode utf8");
+        }
+        if (encodedBase64Encryption.length() == 0)
+            return;
         SharedPreferences pref = context.getSharedPreferences(MoaPreferences.PREFNAME_CONTROL_INFO, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = pref.edit();
-        editor.putString(key, encryptedData);
+        editor.putString(key, encodedBase64Encryption);
         editor.apply();
     }
 
@@ -54,10 +56,18 @@ public class UserControl extends PINAuth {
     public String getValuesInPreferences(String key) {
         SharedPreferences pref = context.getSharedPreferences(MoaPreferences.PREFNAME_CONTROL_INFO, Context.MODE_PRIVATE);
         String value = pref.getString(key, "");
-        if (value == null)
+        if (value == null || value.length() == 0)
             return "";
-        byte[] controlInfo = Base64.decode(value, Base64.NO_WRAP);
-        return getDecryptContent(controlInfo);
+        byte[] keyAndIv = Base64.decode(uniqueDeviceID, Base64.NO_WRAP);
+        byte[] decodedBase64Value = Base64.decode(value, Base64.NO_WRAP);
+        byte[] decryption = getSymmetricData(Cipher.DECRYPT_MODE, keyAndIv, decodedBase64Value);
+        String encodedUtf8Value = "";
+        try {
+            encodedUtf8Value = new String(decryption, MoaCommonFunc.FORMAT_ENCODE);
+        } catch (UnsupportedEncodingException e) {
+            Log.d("MoaLib", "[UserControl][getValuesInPreferences] failed to encode utf8");
+        }
+        return encodedUtf8Value;
     }
 
     public boolean existPreferences() {
@@ -134,60 +144,6 @@ public class UserControl extends PINAuth {
             return false;
         }
         return true;
-    }
-
-    private Cipher getCipher(int mode) {
-        String transformation = "DESede/CBC/PKCS5Padding";
-        byte[] originUniqueDeviceID = Base64.decode(uniqueDeviceID, Base64.NO_WRAP);
-        byte[] keyBytes = new byte[24];
-        System.arraycopy(originUniqueDeviceID, 0, keyBytes, 0, keyBytes.length);
-        try {
-            Cipher cipher = Cipher.getInstance(transformation);
-            SecretKeySpec secretKeySpec = new SecretKeySpec(keyBytes, "DESede");
-            byte[] iv = new byte[cipher.getBlockSize()];
-            System.arraycopy(originUniqueDeviceID, keyBytes.length - 1, iv, 0, iv.length);
-            IvParameterSpec ivParameterSpec = new IvParameterSpec(iv);
-            if (mode == Cipher.ENCRYPT_MODE) {
-                cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec, ivParameterSpec);
-                return cipher;
-            }
-            if (mode == Cipher.DECRYPT_MODE) {
-                cipher.init(Cipher.DECRYPT_MODE, secretKeySpec, ivParameterSpec);
-                return cipher;
-            }
-        } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidAlgorithmParameterException | InvalidKeyException e) {
-            Log.d("MoaLib", "[UserControl][getCipher] failed to get cipher");
-            throw new RuntimeException("Failed to get cipher", e);
-        }
-        return null;
-    }
-
-    private String getEncryptContent(String content) {
-        Cipher cipher = getCipher(Cipher.ENCRYPT_MODE);
-        if (cipher == null)
-            return "";
-        try {
-            byte[] encryptContent = cipher.doFinal(content.getBytes(MoaCommonFunc.FORMAT_ENCODE));
-            return Base64.encodeToString(encryptContent, Base64.NO_WRAP);
-        } catch (BadPaddingException | IllegalBlockSizeException | UnsupportedEncodingException e) {
-            Log.d("MoaLib", "[UserControl][getEncryptContent] failed to get encrypt content");
-            throw new RuntimeException("Failed to get encrypt content", e);
-        }
-    }
-
-    private String getDecryptContent(byte[] content) {
-        if (content.length == 0)
-            return "";
-        Cipher cipher = getCipher(Cipher.DECRYPT_MODE);
-        if (cipher == null)
-            return "";
-        try {
-            byte[] decryptContent = cipher.doFinal(content);
-            return new String(decryptContent, MoaCommonFunc.FORMAT_ENCODE);
-        } catch (BadPaddingException | IllegalBlockSizeException | UnsupportedEncodingException e) {
-            Log.d("MoaLib", "[UserControl][getDecryptContent] failed to get decrypt content");
-            throw new RuntimeException("Failed to get decrypt content", e);
-        }
     }
 
     private static class Singleton {

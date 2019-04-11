@@ -12,6 +12,7 @@ import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
+import javax.crypto.Cipher;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 
@@ -92,5 +93,23 @@ public interface MoaCommonFunc {
             throw new RuntimeException("Failed to generate PIN login request message", e);
         }
         return Base64.encodeToString(pinLoginRequestMsgGen, Base64.NO_WRAP);
+    }
+
+    default byte[] getSymmetricData(int mode, byte[] keyAndIv, byte[] content) {
+        byte[] result = {0,};
+        if (content == null || content.length == 0 || keyAndIv.length != 48)
+            return result;
+        String transformation = "AES/CBC/PKCS5Padding";
+        byte[] key = new byte[32];
+        System.arraycopy(keyAndIv, 0, key, 0, key.length);
+        byte[] iv = new byte[16];
+        System.arraycopy(keyAndIv, key.length - 1, iv, 0, iv.length);
+
+        SymmetricCrypto symmetricCrypto = new SymmetricCrypto(transformation, iv, key);
+        if (mode == Cipher.ENCRYPT_MODE)
+            result = symmetricCrypto.encryptData(content);
+        else if (mode == Cipher.DECRYPT_MODE)
+            result = symmetricCrypto.decryptData(content);
+        return result;
     }
 }

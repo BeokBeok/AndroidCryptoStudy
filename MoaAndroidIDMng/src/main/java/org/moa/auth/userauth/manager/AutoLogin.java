@@ -38,10 +38,8 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
-import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.PBEParameterSpec;
-import javax.crypto.spec.SecretKeySpec;
 import javax.security.auth.x500.X500Principal;
 
 public class AutoLogin extends PINAuth implements MoaTEEKeyStore, MoaCommonFunc {
@@ -110,8 +108,9 @@ public class AutoLogin extends PINAuth implements MoaTEEKeyStore, MoaCommonFunc 
         if (key.equals(MoaPreferences.KEY_AUTO_LOGIN))
             encryptValue = getEncryptContent(value);
         else if (key.equals(MoaPreferences.KEY_AUTO_SALT)) {
+            byte[] keyAndIv = Base64.decode(uniqueDeviceID, Base64.NO_WRAP);
             byte[] decode = Base64.decode(value, Base64.NO_WRAP);
-            byte[] encryptSalt = getEncryptTripleDESContent(decode);
+            byte[] encryptSalt = getSymmetricData(Cipher.ENCRYPT_MODE, keyAndIv, decode);
             encryptValue = Base64.encodeToString(encryptSalt, Base64.NO_WRAP);
         }
         SharedPreferences pref = context.getSharedPreferences(MoaPreferences.PREFNAME_CONTROL_INFO, Context.MODE_PRIVATE);
@@ -127,8 +126,9 @@ public class AutoLogin extends PINAuth implements MoaTEEKeyStore, MoaCommonFunc 
         if (key.equals(MoaPreferences.KEY_AUTO_LOGIN))
             return getDecryptContent(value);
         else if (key.equals(MoaPreferences.KEY_AUTO_SALT)) {
+            byte[] keyAndIv = Base64.decode(uniqueDeviceID, Base64.NO_WRAP);
             byte[] decode = Base64.decode(value, Base64.NO_WRAP);
-            byte[] decrypt = getDecryptTripleDESContent(decode);
+            byte[] decrypt = getSymmetricData(Cipher.DECRYPT_MODE, keyAndIv, decode);
             return Base64.encodeToString(decrypt, Base64.NO_WRAP);
         }
         return "";
@@ -252,60 +252,6 @@ public class AutoLogin extends PINAuth implements MoaTEEKeyStore, MoaCommonFunc 
             throw new RuntimeException("Failed to decrypt content", e);
         }
         return original;
-    }
-
-    private Cipher getTripleDESCipher(int mode) {
-        byte[] originUniqueDeviceID = Base64.decode(uniqueDeviceID, Base64.NO_WRAP);
-        byte[] keyBytes = new byte[24];
-        System.arraycopy(originUniqueDeviceID, 0, keyBytes, 0, keyBytes.length);
-        try {
-            String transformationTripleDES = "DESede/CBC/PKCS5Padding";
-            Cipher cipher = Cipher.getInstance(transformationTripleDES);
-            SecretKeySpec secretKeySpec = new SecretKeySpec(keyBytes, "DESede");
-            byte[] iv = new byte[cipher.getBlockSize()];
-            System.arraycopy(originUniqueDeviceID, keyBytes.length - 1, iv, 0, iv.length);
-            IvParameterSpec ivParameterSpec = new IvParameterSpec(iv);
-            if (mode == Cipher.ENCRYPT_MODE) {
-                cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec, ivParameterSpec);
-                return cipher;
-            }
-            if (mode == Cipher.DECRYPT_MODE) {
-                cipher.init(Cipher.DECRYPT_MODE, secretKeySpec, ivParameterSpec);
-                return cipher;
-            }
-        } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidAlgorithmParameterException | InvalidKeyException e) {
-            Log.d("MoaLib", "[AutoLogin][getCipher] failed to get cipher");
-            throw new RuntimeException("Failed to get cipher", e);
-        }
-        return null;
-    }
-
-    private byte[] getEncryptTripleDESContent(byte[] content) {
-        byte[] result = {0,};
-        Cipher cipher = getTripleDESCipher(Cipher.ENCRYPT_MODE);
-        if (cipher == null)
-            return result;
-        try {
-            result = cipher.doFinal(content);
-        } catch (BadPaddingException | IllegalBlockSizeException e) {
-            Log.d("MoaLib", "[AutoLogin][getEncryptTripleDESContent] failed to get encrypt content");
-            throw new RuntimeException("Failed to get encrypt content", e);
-        }
-        return result;
-    }
-
-    private byte[] getDecryptTripleDESContent(byte[] content) {
-        byte[] result = {0,};
-        Cipher cipher = getTripleDESCipher(Cipher.DECRYPT_MODE);
-        if (cipher == null)
-            return result;
-        try {
-            result = cipher.doFinal(content);
-        } catch (BadPaddingException | IllegalBlockSizeException e) {
-            Log.d("MoaLib", "[AutoLogin][getDecryptTripleDESContent] failed to get decrypt content");
-            throw new RuntimeException("Failed to get decrypt content", e);
-        }
-        return result;
     }
 
     private static class Singleton {
