@@ -16,7 +16,6 @@ import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 
 public interface MoaCommonFunc {
-    String transformation = "AES/CBC/PKCS7Padding";
     String FORMAT_ENCODE = "UTF-8";
 
     default byte[] hashDigest(String algorithmName, byte[] targetData) {
@@ -42,19 +41,22 @@ public interface MoaCommonFunc {
     }
 
     default String generateRegisterMessage(String id, String password) {
+        String transformation = "AES/CBC/PKCS7Padding";
+        String hashAlg = "SHA256";
+        String hmacAlg = "HmacSHA256";
         byte[] idPswRegistMsgGen;
         try {
             byte[] idBytes = id.getBytes(FORMAT_ENCODE);
             byte[] passwordBytes = password.getBytes(FORMAT_ENCODE);
             byte[] ivBytes = Hex.decode("00FF0000FF00FF000000FFFF000000FF");
             byte[] keyBytes = new byte[ivBytes.length];
-            byte[] idBytesDigestM = hashDigest("SHA256", idBytes);
+            byte[] idBytesDigestM = hashDigest(hashAlg, idBytes);
 
             System.arraycopy(idBytesDigestM, 0, keyBytes, 0, ivBytes.length);
             SymmetricCrypto symmetricCrypto = new SymmetricCrypto(transformation, ivBytes, keyBytes);
             byte[] encPswBytes = symmetricCrypto.encryptData(passwordBytes);
-            byte[] pswDigestBytes = hashDigest("SHA256", encPswBytes);
-            byte[] idPswHmacDigestBytes = hmacDigest("HmacSHA256", idBytes, pswDigestBytes);
+            byte[] pswDigestBytes = hashDigest(hashAlg, encPswBytes);
+            byte[] idPswHmacDigestBytes = hmacDigest(hmacAlg, idBytes, pswDigestBytes);
             idPswRegistMsgGen = MoaClientMsgPacketLib.IdPswRegistRequestMsgGen(idBytes.length, idBytes,
                     pswDigestBytes.length, pswDigestBytes, idPswHmacDigestBytes.length, idPswHmacDigestBytes);
         } catch (UnsupportedEncodingException e) {
@@ -65,19 +67,22 @@ public interface MoaCommonFunc {
     }
 
     default String generateLoginRequestMessage(String id, String password, String nonceOTP) {
+        String transformation = "AES/CBC/PKCS7Padding";
+        String hashAlg = "SHA256";
+        String hmacAlg = "HmacSHA256";
         byte[] pinLoginRequestMsgGen;
         try {
             byte[] idBytes = id.getBytes(FORMAT_ENCODE);
             byte[] passwordBytes = password.getBytes(FORMAT_ENCODE);
             byte[] ivBytes = Hex.decode("00FF0000FF00FF000000FFFF000000FF");
             byte[] keyBytes = new byte[ivBytes.length];
-            byte[] idBytesDigestM = hashDigest("SHA256", idBytes);
+            byte[] idBytesDigestM = hashDigest(hashAlg, idBytes);
 
             System.arraycopy(idBytesDigestM, 0, keyBytes, 0, ivBytes.length);
             SymmetricCrypto symmetricCrypto = new SymmetricCrypto(transformation, ivBytes, keyBytes);
             byte[] encPswBytes = symmetricCrypto.encryptData(passwordBytes);
-            byte[] pswDigestBytes = hashDigest("SHA256", encPswBytes);
-            byte[] idPswHmacDigestBytes = hmacDigest("HmacSHA256", idBytes, pswDigestBytes);
+            byte[] pswDigestBytes = hashDigest(hashAlg, encPswBytes);
+            byte[] idPswHmacDigestBytes = hmacDigest(hmacAlg, idBytes, pswDigestBytes);
             byte[] nonceOTPBytes = Hex.decode(nonceOTP);
             pinLoginRequestMsgGen = MoaClientMsgPacketLib.PinLogInRequestMsgGen(idBytes.length, idBytes,
                     pswDigestBytes.length, pswDigestBytes, idPswHmacDigestBytes.length, idPswHmacDigestBytes,
