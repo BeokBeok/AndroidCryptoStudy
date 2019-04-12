@@ -40,12 +40,16 @@ public class SymmetricCrypto {
     }
 
     public byte[] getSymmetricData(int mode, byte[] data) {
+        byte[] result = {0, };
+        if (data.length == 0)
+            return result;
         try {
             if (modeType.equals("ECB"))
                 cipher.init(mode, keySpec);
 
             cipher.init(mode, keySpec, ivSpec);
-            return cipher.doFinal(data);
+            result = cipher.doFinal(data);
+            return result;
         } catch (InvalidKeyException | InvalidAlgorithmParameterException | BadPaddingException | IllegalBlockSizeException e) {
             throw new RuntimeException("[*] --- Error message : " + e.getMessage());
         }
