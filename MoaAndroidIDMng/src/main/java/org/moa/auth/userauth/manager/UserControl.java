@@ -38,8 +38,7 @@ public class UserControl extends PINAuth implements MoaCommonFunc {
         String encodedBase64Encryption = "";
         try {
             byte[] encodedUtf8Content = value.getBytes(MoaCommonFunc.FORMAT_ENCODE);
-            byte[] keyAndIv = Base64.decode(uniqueDeviceID, Base64.NO_WRAP);
-            byte[] encryption = getSymmetricData(Cipher.ENCRYPT_MODE, keyAndIv, encodedUtf8Content);
+            byte[] encryption = symmetricCrypto.getSymmetricData(Cipher.ENCRYPT_MODE, encodedUtf8Content);
             encodedBase64Encryption = Base64.encodeToString(encryption, Base64.NO_WRAP);
         } catch (UnsupportedEncodingException e) {
             Log.d("MoaLib", "[UserControl][setValuesInPreferences] failed to encode utf8");
@@ -58,9 +57,8 @@ public class UserControl extends PINAuth implements MoaCommonFunc {
         String value = pref.getString(key, "");
         if (value == null || value.length() == 0)
             return "";
-        byte[] keyAndIv = Base64.decode(uniqueDeviceID, Base64.NO_WRAP);
         byte[] decodedBase64Value = Base64.decode(value, Base64.NO_WRAP);
-        byte[] decryption = getSymmetricData(Cipher.DECRYPT_MODE, keyAndIv, decodedBase64Value);
+        byte[] decryption = symmetricCrypto.getSymmetricData(Cipher.DECRYPT_MODE, decodedBase64Value);
         String encodedUtf8Value = "";
         try {
             encodedUtf8Value = new String(decryption, MoaCommonFunc.FORMAT_ENCODE);

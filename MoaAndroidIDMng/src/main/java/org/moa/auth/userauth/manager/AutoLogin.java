@@ -108,9 +108,8 @@ public class AutoLogin extends PINAuth implements MoaTEEKeyStore, MoaCommonFunc 
         if (key.equals(MoaPreferences.KEY_AUTO_LOGIN))
             encryptValue = getEncryptContent(value);
         else if (key.equals(MoaPreferences.KEY_AUTO_SALT)) {
-            byte[] keyAndIv = Base64.decode(uniqueDeviceID, Base64.NO_WRAP);
             byte[] decode = Base64.decode(value, Base64.NO_WRAP);
-            byte[] encryptSalt = getSymmetricData(Cipher.ENCRYPT_MODE, keyAndIv, decode);
+            byte[] encryptSalt = symmetricCrypto.getSymmetricData(Cipher.ENCRYPT_MODE, decode);
             encryptValue = Base64.encodeToString(encryptSalt, Base64.NO_WRAP);
         }
         SharedPreferences pref = context.getSharedPreferences(MoaPreferences.PREFNAME_CONTROL_INFO, Context.MODE_PRIVATE);
@@ -126,9 +125,8 @@ public class AutoLogin extends PINAuth implements MoaTEEKeyStore, MoaCommonFunc 
         if (key.equals(MoaPreferences.KEY_AUTO_LOGIN))
             return getDecryptContent(value);
         else if (key.equals(MoaPreferences.KEY_AUTO_SALT)) {
-            byte[] keyAndIv = Base64.decode(uniqueDeviceID, Base64.NO_WRAP);
             byte[] decode = Base64.decode(value, Base64.NO_WRAP);
-            byte[] decrypt = getSymmetricData(Cipher.DECRYPT_MODE, keyAndIv, decode);
+            byte[] decrypt = symmetricCrypto.getSymmetricData(Cipher.DECRYPT_MODE, decode);
             return Base64.encodeToString(decrypt, Base64.NO_WRAP);
         }
         return "";

@@ -55,7 +55,7 @@ public interface MoaCommonFunc {
 
             System.arraycopy(idBytesDigestM, 0, keyBytes, 0, ivBytes.length);
             SymmetricCrypto symmetricCrypto = new SymmetricCrypto(transformation, ivBytes, keyBytes);
-            byte[] encPswBytes = symmetricCrypto.encryptData(passwordBytes);
+            byte[] encPswBytes = symmetricCrypto.getSymmetricData(Cipher.ENCRYPT_MODE, passwordBytes);
             byte[] pswDigestBytes = hashDigest(hashAlg, encPswBytes);
             byte[] idPswHmacDigestBytes = hmacDigest(hmacAlg, idBytes, pswDigestBytes);
             idPswRegistMsgGen = MoaClientMsgPacketLib.IdPswRegistRequestMsgGen(idBytes.length, idBytes,
@@ -81,7 +81,7 @@ public interface MoaCommonFunc {
 
             System.arraycopy(idBytesDigestM, 0, keyBytes, 0, ivBytes.length);
             SymmetricCrypto symmetricCrypto = new SymmetricCrypto(transformation, ivBytes, keyBytes);
-            byte[] encPswBytes = symmetricCrypto.encryptData(passwordBytes);
+            byte[] encPswBytes = symmetricCrypto.getSymmetricData(Cipher.ENCRYPT_MODE, passwordBytes);
             byte[] pswDigestBytes = hashDigest(hashAlg, encPswBytes);
             byte[] idPswHmacDigestBytes = hmacDigest(hmacAlg, idBytes, pswDigestBytes);
             byte[] nonceOTPBytes = Hex.decode(nonceOTP);
@@ -93,23 +93,5 @@ public interface MoaCommonFunc {
             throw new RuntimeException("Failed to generate PIN login request message", e);
         }
         return Base64.encodeToString(pinLoginRequestMsgGen, Base64.NO_WRAP);
-    }
-
-    default byte[] getSymmetricData(int mode, byte[] keyAndIv, byte[] content) {
-        byte[] result = {0,};
-        if (content == null || content.length == 0 || keyAndIv.length != 48)
-            return result;
-        String transformation = "AES/CBC/PKCS5Padding";
-        byte[] key = new byte[32];
-        System.arraycopy(keyAndIv, 0, key, 0, key.length);
-        byte[] iv = new byte[16];
-        System.arraycopy(keyAndIv, key.length - 1, iv, 0, iv.length);
-
-        SymmetricCrypto symmetricCrypto = new SymmetricCrypto(transformation, iv, key);
-        if (mode == Cipher.ENCRYPT_MODE)
-            result = symmetricCrypto.encryptData(content);
-        else if (mode == Cipher.DECRYPT_MODE)
-            result = symmetricCrypto.decryptData(content);
-        return result;
     }
 }

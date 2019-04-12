@@ -39,24 +39,12 @@ public class SymmetricCrypto {
         }
     }
 
-    public byte[] encryptData(byte[] data) {
+    public byte[] getSymmetricData(int mode, byte[] data) {
         try {
             if (modeType.equals("ECB"))
-                cipher.init(Cipher.ENCRYPT_MODE, keySpec);
+                cipher.init(mode, keySpec);
 
-            cipher.init(Cipher.ENCRYPT_MODE, keySpec, ivSpec);
-            return cipher.doFinal(data);
-        } catch (InvalidKeyException | InvalidAlgorithmParameterException | BadPaddingException | IllegalBlockSizeException e) {
-            throw new RuntimeException("[*] --- Error message : " + e.getMessage());
-        }
-    }
-
-    public byte[] decryptData(byte[] data) {
-        try {
-            if (modeType.equals("ECB"))
-                cipher.init(Cipher.DECRYPT_MODE, keySpec);
-
-            cipher.init(Cipher.DECRYPT_MODE, keySpec, ivSpec);
+            cipher.init(mode, keySpec, ivSpec);
             return cipher.doFinal(data);
         } catch (InvalidKeyException | InvalidAlgorithmParameterException | BadPaddingException | IllegalBlockSizeException e) {
             throw new RuntimeException("[*] --- Error message : " + e.getMessage());
