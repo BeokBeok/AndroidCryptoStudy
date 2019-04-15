@@ -39,9 +39,11 @@ import javax.security.auth.x500.X500Principal;
 
 public class AutoLogin extends PINAuth implements MoaTEEKeyStore, MoaCommonFunc {
     private final String keyAlias = MoaTEEKeyStore.ALIAS_AUTO_INFO;
+    private PBKDF2 pbkdf2;
 
     private AutoLogin() {
         initKeyStore();
+        pbkdf2 = new PBKDF2("SHA384");
     }
 
     public static AutoLogin getInstance() {
@@ -162,12 +164,11 @@ public class AutoLogin extends PINAuth implements MoaTEEKeyStore, MoaCommonFunc 
     }
 
     private byte[] generateDerivedKey() {
-        String hashAlg = "SHA384";
         int iterationCount = 8192;
         int keySize = 48;
         byte[] salt = getSalt();
         byte[] pw = Base64.decode(uniqueDeviceID, Base64.NO_WRAP);
-        return PBKDF2.kdfGen(hashAlg, pw, salt, iterationCount, keySize);
+        return pbkdf2.kdfGen(pw, salt, iterationCount, keySize);
     }
 
     private byte[] getRSAData(int encOrDecMode, byte[] data) {

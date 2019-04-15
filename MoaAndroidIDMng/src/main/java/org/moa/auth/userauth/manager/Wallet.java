@@ -52,6 +52,7 @@ public class Wallet implements MoaTEEKeyStore, MoaPreferences, MoaCommonFunc {
     private final String keyAlias = MoaTEEKeyStore.ALIAS_WALLET;
     private Context context;
     private KeyStore keyStore;
+    private PBKDF2 pbkdf2;
 
     private Wallet() {
         initKeyStore();
@@ -64,6 +65,7 @@ public class Wallet implements MoaTEEKeyStore, MoaPreferences, MoaCommonFunc {
     public void init(Context context) {
         this.context = context;
         initProperties();
+        pbkdf2 = new PBKDF2(getValuesInPreferences(MoaPreferences.KEY_WALLET_HASH_ALGORITHM));
         try {
             if (!keyStore.containsAlias(keyAlias))
                 generateKey();
@@ -260,12 +262,11 @@ public class Wallet implements MoaTEEKeyStore, MoaPreferences, MoaCommonFunc {
     }
 
     private byte[] generateDerivedKey(String psw) {
-        String hashAlg = getValuesInPreferences(MoaPreferences.KEY_WALLET_HASH_ALGORITHM);
         int iterationCount = Integer.parseInt(getValuesInPreferences(MoaPreferences.KEY_WALLET_ITERATION_COUNT));
         int keySize = 48;
         byte[] salt = getSalt();
         byte[] pw = psw.getBytes();
-        return PBKDF2.kdfGen(hashAlg, pw, salt, iterationCount, keySize);
+        return pbkdf2.kdfGen(pw, salt, iterationCount, keySize);
     }
 
     private byte[] getPBKDF2Data(int encOrDecMode, String psw, byte[] data) {
