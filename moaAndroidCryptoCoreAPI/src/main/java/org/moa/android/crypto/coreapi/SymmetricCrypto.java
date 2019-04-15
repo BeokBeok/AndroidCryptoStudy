@@ -39,15 +39,15 @@ public class SymmetricCrypto {
         }
     }
 
-    public byte[] getSymmetricData(int mode, byte[] data) {
+    public byte[] getSymmetricData(int encOrDecMode, byte[] data) {
         byte[] result = {0, };
         if (data.length == 0)
             return result;
         try {
             if (modeType.equals("ECB"))
-                cipher.init(mode, keySpec);
+                cipher.init(encOrDecMode, keySpec);
 
-            cipher.init(mode, keySpec, ivSpec);
+            cipher.init(encOrDecMode, keySpec, ivSpec);
             result = cipher.doFinal(data);
             return result;
         } catch (InvalidKeyException | InvalidAlgorithmParameterException | BadPaddingException | IllegalBlockSizeException e) {
