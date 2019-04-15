@@ -28,7 +28,7 @@ abstract class PINAuth implements MoaPreferences {
     private void setSymmetricCryptoInstance() {
         if (symmetricCrypto != null)
             return;
-        String transformation = "AES/CBC/PKCS5Padding";
+        String transformation = "AES/CBC/PKCS7Padding";
         byte[] src = Base64.decode(uniqueDeviceID, Base64.NO_WRAP);
         byte[] key = new byte[32];
         System.arraycopy(src, 0, key, 0, key.length);
