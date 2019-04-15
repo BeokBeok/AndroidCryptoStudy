@@ -1,8 +1,11 @@
 package org.moa.android.crypto.coreapi;
 
-import static java.lang.Integer.rotateLeft; 
-import java.util.Arrays; 
-import java.util.Objects; 
+import android.annotation.SuppressLint;
+
+import java.util.Arrays;
+import java.util.Objects;
+
+import static java.lang.Integer.rotateLeft;
  
  
 
@@ -98,7 +101,8 @@ public final class RIPEMD160 {
  		} 
 	} 
 
-	private static int f(int i, int x, int y, int z) { 
+	@SuppressLint("Assert")
+	private static int f(int i, int x, int y, int z) {
 
 		assert 0 <= i && i < 80; 
  		if (i < 16) return x ^ y ^ z; 
