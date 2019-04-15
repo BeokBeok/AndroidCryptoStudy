@@ -7,8 +7,9 @@ import android.security.KeyPairGeneratorSpec;
 import android.util.Base64;
 import android.util.Log;
 
-import org.moa.android.crypto.coreapi.MoaBase58;
+import org.moa.android.crypto.coreapi.PBKDF2;
 import org.moa.android.crypto.coreapi.RIPEMD160;
+import org.moa.android.crypto.coreapi.SymmetricCrypto;
 import org.moa.auth.userauth.android.api.MoaCommonFunc;
 import org.moa.auth.userauth.android.api.MoaPreferences;
 import org.moa.auth.userauth.android.api.MoaTEEKeyStore;
@@ -33,27 +34,22 @@ import java.security.Signature;
 import java.security.SignatureException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
-import java.security.spec.AlgorithmParameterSpec;
 import java.security.spec.ECGenParameterSpec;
 import java.security.spec.InvalidKeySpecException;
-import java.security.spec.KeySpec;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
-import javax.crypto.SecretKey;
-import javax.crypto.SecretKeyFactory;
-import javax.crypto.spec.PBEKeySpec;
-import javax.crypto.spec.PBEParameterSpec;
 import javax.security.auth.x500.X500Principal;
 
 public class Wallet implements MoaTEEKeyStore, MoaPreferences, MoaCommonFunc {
     private final String keyAlias = MoaTEEKeyStore.ALIAS_WALLET;
-    private final String transformation = "RSA/ECB/PKCS1Padding";
     private Context context;
     private KeyStore keyStore;
 
@@ -123,7 +119,7 @@ public class Wallet implements MoaTEEKeyStore, MoaPreferences, MoaCommonFunc {
     public String getValuesInPreferences(String key) {
         SharedPreferences pref = context.getSharedPreferences(MoaPreferences.PREFNAME_WALLET, Context.MODE_PRIVATE);
         String value = pref.getString(key, "");
-        if (value == null)
+        if (value == null || value.length() == 0)
             value = "";
         return value;
     }
@@ -133,36 +129,32 @@ public class Wallet implements MoaTEEKeyStore, MoaPreferences, MoaCommonFunc {
         return walletAddress.length() > 0;
     }
 
-    public void generateInfo(String password) {
+    public void generateInfo(String psw) {
         byte[][] walletKeyPair = generateKeyPair();
         if (walletKeyPair.length == 0)
             return;
+        String base64Puk = Base64.encodeToString(walletKeyPair[1], Base64.NO_WRAP);
+
         byte[] walletAddressCreatedPuk = generateAddressCreatedWithPublicKey(walletKeyPair[1]);
-        byte[] salt = generateSalt();
-        byte[][] pbeKeyPair = getEncryptPBEKeyPair(walletKeyPair, password, salt);
-        if (pbeKeyPair.length == 0)
+        if (walletAddressCreatedPuk.length == 0)
             return;
-        String base64PbePrk = Base64.encodeToString(pbeKeyPair[0], Base64.NO_WRAP);
-        byte[] rsaWithPbePrk = getEncryptRSAContent(base64PbePrk);
-        if (rsaWithPbePrk == null)
+        String base64Address = Base64.encodeToString(walletAddressCreatedPuk, Base64.NO_WRAP);
+
+        int cipherMode = Cipher.ENCRYPT_MODE;
+        byte[] firstEncryptedPrk = getPBKDF2Data(cipherMode, psw, walletKeyPair[0]);
+        if (firstEncryptedPrk.length == 0)
             return;
+        byte[] lastEncryptedPrk = getRSAData(cipherMode, firstEncryptedPrk);
+        if (lastEncryptedPrk.length == 0)
+            return;
+        String base64CipheredPrk = Base64.encodeToString(lastEncryptedPrk, Base64.NO_WRAP);
 
-        String versionInfo = String.valueOf(getValuesInPreferences(MoaPreferences.KEY_WALLET_VERSION_INFO));
-        String osInfo = System.getProperty("os.name");
-        String saltBase58 = MoaBase58.encode(salt);
-        String iterationCount = String.valueOf(getValuesInPreferences(MoaPreferences.KEY_WALLET_ITERATION_COUNT));
-        String rsaWithPbePrkBase58 = MoaBase58.encode(rsaWithPbePrk);
-        String publicKeyBase58 = MoaBase58.encode(walletKeyPair[1]);
-        String walletAddressCreatedPukBase58 = MoaBase58.encode(walletAddressCreatedPuk);
-        String targetMacData = versionInfo + osInfo + saltBase58 + iterationCount + rsaWithPbePrkBase58 + publicKeyBase58 + walletAddressCreatedPukBase58;
-        String macDataBase58 = generateMACData(saltBase58, password, targetMacData);
-
-        setValuesInPreferences(MoaPreferences.KEY_WALLET_OS_INFO, osInfo);
-        setValuesInPreferences(MoaPreferences.KEY_WALLET_SALT, saltBase58);
-        setValuesInPreferences(MoaPreferences.KEY_WALLET_CIPHERED_DATA, rsaWithPbePrkBase58);
-        setValuesInPreferences(MoaPreferences.KEY_WALLET_PUBLIC_KEY, publicKeyBase58);
-        setValuesInPreferences(MoaPreferences.KEY_WALLET_ADDRESS, walletAddressCreatedPukBase58);
-        setValuesInPreferences(MoaPreferences.KEY_WALLET_MAC_DATA, macDataBase58);
+        List<String> requiredDataForMAC = new ArrayList<>();
+        requiredDataForMAC.add(base64CipheredPrk);
+        requiredDataForMAC.add(base64Puk);
+        requiredDataForMAC.add(base64Address);
+        requiredDataForMAC.add(psw);
+        setWalletPref(requiredDataForMAC);
     }
 
     public byte[] generateSignedTransactionData(String transaction, String password) {
@@ -195,19 +187,19 @@ public class Wallet implements MoaTEEKeyStore, MoaPreferences, MoaCommonFunc {
         if (!existPreferences())
             return null;
 
-        String walletPukBase58 = getValuesInPreferences(MoaPreferences.KEY_WALLET_PUBLIC_KEY);
+        String base64WalletPuk = getValuesInPreferences(MoaPreferences.KEY_WALLET_PUBLIC_KEY);
         String keyPairAlgorithm = getValuesInPreferences(MoaPreferences.KEY_WALLET_ECC_ALGORITHM);
-        if (walletPukBase58.length() == 0 || keyPairAlgorithm.length() == 0)
+        if (base64WalletPuk.length() == 0 || keyPairAlgorithm.length() == 0)
             return null;
 
-        byte[] publicKeyBytes = MoaBase58.decode(walletPukBase58);
+        byte[] puk = Base64.decode(base64WalletPuk, Base64.NO_WRAP);
         try {
             KeyFactory keyFactory = KeyFactory.getInstance(keyPairAlgorithm);
-            return keyFactory.generatePublic(new X509EncodedKeySpec(publicKeyBytes));
+            return keyFactory.generatePublic(new X509EncodedKeySpec(puk));
         } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
             Log.d("MoaLib", "[Wallet][getPublicKey] failed to get wallet public key");
-            throw new RuntimeException("Failed to get wallet public key", e);
         }
+        return null;
     }
 
     public boolean verifySignedData(String plainText, byte[] signedData) {
@@ -227,9 +219,9 @@ public class Wallet implements MoaTEEKeyStore, MoaPreferences, MoaCommonFunc {
         if (getValuesInPreferences(MoaPreferences.KEY_WALLET_VERSION_INFO).length() > 0)
             return;
         setValuesInPreferences(MoaPreferences.KEY_WALLET_VERSION_INFO, "1");
-        setValuesInPreferences(MoaPreferences.KEY_WALLET_SYMMETRIC_ALGORITHM, "PBEwithSHAAND3-KEYTRIPLEDES-CBC");
-        setValuesInPreferences(MoaPreferences.KEY_WALLET_SYMMETRIC_KEY_SIZE, "192");
-        setValuesInPreferences(MoaPreferences.KEY_WALLET_HASH_ALGORITHM, "SHA256");
+        setValuesInPreferences(MoaPreferences.KEY_WALLET_SYMMETRIC_ALGORITHM, "AES/CBC/PKCS7Padding");
+        setValuesInPreferences(MoaPreferences.KEY_WALLET_SYMMETRIC_KEY_SIZE, "256");
+        setValuesInPreferences(MoaPreferences.KEY_WALLET_HASH_ALGORITHM, "SHA384");
         setValuesInPreferences(MoaPreferences.KEY_WALLET_SIGNATURE_ALGIROTHM, "SHA256withECDSA");
         setValuesInPreferences(MoaPreferences.KEY_WALLET_ECC_ALGORITHM, "EC");
         setValuesInPreferences(MoaPreferences.KEY_WALLET_ECC_CURVE, "secp256r1");
@@ -237,10 +229,15 @@ public class Wallet implements MoaTEEKeyStore, MoaPreferences, MoaCommonFunc {
         setValuesInPreferences(MoaPreferences.KEY_WALLET_ITERATION_COUNT, "8192");
     }
 
-    private byte[] generateSalt() {
-        byte[] salt = new byte[64];
-        new SecureRandom().nextBytes(salt);
-        return salt;
+    private byte[] getSalt() {
+        String base64Salt = getValuesInPreferences(MoaPreferences.KEY_WALLET_SALT);
+        if (base64Salt == null || base64Salt.length() == 0) {
+            byte[] salt = new byte[64];
+            new SecureRandom().nextBytes(salt);
+            setValuesInPreferences(MoaPreferences.KEY_WALLET_SALT, Base64.encodeToString(salt, Base64.NO_WRAP));
+            return salt;
+        } else
+            return Base64.decode(base64Salt, Base64.NO_WRAP);
     }
 
     private byte[][] generateKeyPair() {
@@ -258,34 +255,34 @@ public class Wallet implements MoaTEEKeyStore, MoaPreferences, MoaCommonFunc {
             walletKeyPair[1] = keyPair.getPublic().getEncoded();
         } catch (NoSuchAlgorithmException | InvalidAlgorithmParameterException e) {
             Log.d("MoaLib", "[Wallet][generateKeyPair] Failed to get wallet key pair");
-            throw new RuntimeException("Failed to get wallet key pair", e);
         }
         return walletKeyPair;
     }
 
-    private byte[][] getEncryptPBEKeyPair(byte[][] keyPair, String password, byte[] salt) {
+    private byte[] generateDerivedKey(String psw) {
+        String hashAlg = getValuesInPreferences(MoaPreferences.KEY_WALLET_HASH_ALGORITHM);
         int iterationCount = Integer.parseInt(getValuesInPreferences(MoaPreferences.KEY_WALLET_ITERATION_COUNT));
-        int keySize = Integer.parseInt(getValuesInPreferences(MoaPreferences.KEY_WALLET_SYMMETRIC_KEY_SIZE));
-        String secretKeyAlgorithm = getValuesInPreferences(MoaPreferences.KEY_WALLET_SYMMETRIC_ALGORITHM);
-        byte[][] pbeKeyPair = new byte[2][];
-        if (iterationCount == 0 || keySize == 0 || secretKeyAlgorithm.length() == 0)
-            return pbeKeyPair;
-        try {
-            Cipher cipher = Cipher.getInstance(secretKeyAlgorithm);
-            KeySpec keySpec = new PBEKeySpec(password.toCharArray(), salt, iterationCount, keySize);
-            SecretKeyFactory secretKeyFactory = SecretKeyFactory.getInstance(secretKeyAlgorithm);
-            SecretKey secretKey = secretKeyFactory.generateSecret(keySpec);
+        int keySize = 48;
+        byte[] salt = getSalt();
+        byte[] pw = psw.getBytes();
+        return PBKDF2.kdfGen(hashAlg, pw, salt, iterationCount, keySize);
+    }
 
-            AlgorithmParameterSpec algorithmParameterSpec = new PBEParameterSpec(salt, iterationCount);
-            cipher.init(Cipher.ENCRYPT_MODE, secretKey, algorithmParameterSpec);
-            pbeKeyPair[0] = cipher.doFinal(keyPair[0]);
-            pbeKeyPair[1] = cipher.doFinal(keyPair[1]);
-        } catch (NoSuchAlgorithmException | InvalidKeySpecException | NoSuchPaddingException | InvalidKeyException |
-                InvalidAlgorithmParameterException | IllegalBlockSizeException | BadPaddingException e) {
-            Log.d("MoaLib", "[Wallet][getEncryptPBEKeyPair] Failed to get PBE wallet key pair");
-            throw new RuntimeException("Failed to get PBE wallet key pair", e);
-        }
-        return pbeKeyPair;
+    private byte[] getPBKDF2Data(int encOrDecMode, String psw, byte[] data) {
+        byte[] resultData = {0,};
+        byte[] derivedKey = generateDerivedKey(psw);
+        if (derivedKey.length != 48)
+            return resultData;
+
+        String transformationAES = "AES/CBC/PKCS7Padding";
+        int keySize = Integer.parseInt(getValuesInPreferences(MoaPreferences.KEY_WALLET_SYMMETRIC_KEY_SIZE)) / 8;
+        byte[] key = new byte[keySize];
+        System.arraycopy(derivedKey, 0, key, 0, key.length);
+        byte[] iv = new byte[16];
+        System.arraycopy(derivedKey, key.length, iv, 0, iv.length);
+        SymmetricCrypto symmetricCrypto = new SymmetricCrypto(transformationAES, iv, key);
+        resultData = symmetricCrypto.getSymmetricData(encOrDecMode, data);
+        return resultData;
     }
 
     private byte[] generateAddressCreatedWithPublicKey(byte[] publicKey) {
@@ -338,16 +335,16 @@ public class Wallet implements MoaTEEKeyStore, MoaPreferences, MoaCommonFunc {
         return walletAddress;
     }
 
-    private String generateMACData(String salt, String password, String targetMacData) {
+    private String generateMACData(String base64Salt, String psw, String targetMacData) {
         String macData = "";
-        String hmacAlgorithm = getValuesInPreferences(MoaPreferences.KEY_WALLET_MAC_ALGORITHM);
-        String hashAlgorithm = getValuesInPreferences(MoaPreferences.KEY_WALLET_HASH_ALGORITHM);
-        if (hmacAlgorithm == null || hashAlgorithm == null)
+        String hmacAlg = getValuesInPreferences(MoaPreferences.KEY_WALLET_MAC_ALGORITHM);
+        String hashAlg = getValuesInPreferences(MoaPreferences.KEY_WALLET_HASH_ALGORITHM);
+        if (hmacAlg.length() == 0 || hashAlg.length() == 0)
             return macData;
-        byte[] saltPassword = getMergedByteArray(MoaBase58.decode(salt), password.getBytes());
-        byte[] hmacKey = hashDigest(hashAlgorithm, saltPassword);
-        byte[] macDataBytes = hmacDigest(hmacAlgorithm, targetMacData.getBytes(), hmacKey);
-        return MoaBase58.encode(macDataBytes);
+        byte[] saltPassword = getMergedByteArray(Base64.decode(base64Salt, Base64.NO_WRAP), psw.getBytes());
+        byte[] hmacKey = hashDigest(hashAlg, saltPassword);
+        byte[] macDataBytes = hmacDigest(hmacAlg, targetMacData.getBytes(), hmacKey);
+        return Base64.encodeToString(macDataBytes, Base64.NO_WRAP);
     }
 
     private byte[] getMergedByteArray(byte[] first, byte[] second) {
@@ -357,119 +354,98 @@ public class Wallet implements MoaTEEKeyStore, MoaPreferences, MoaCommonFunc {
         return targetByteArr;
     }
 
-    private byte[] getEncryptRSAContent(String content) {
-        byte[] resultData;
+    private byte[] getRSAData(int encOrDecMode, byte[] data) {
+        byte[] resultData = {0,};
         try {
             if (!keyStore.containsAlias(keyAlias))
                 generateKey();
-
-            PublicKey publicKey = keyStore.getCertificate(keyAlias).getPublicKey();
-            if (publicKey == null) {
-                Log.d("MoaLib", "[Wallet][getEncryptRSACipher] publicKey key is null");
-                return null;
+            String transformationRSA = "RSA/ECB/PKCS1Padding";
+            Cipher cipher = Cipher.getInstance(transformationRSA);
+            if (encOrDecMode == Cipher.ENCRYPT_MODE) {
+                PublicKey publicKey = keyStore.getCertificate(keyAlias).getPublicKey();
+                if (publicKey == null) {
+                    Log.d("MoaLib", "[Wallet][getRSAData] public key is null");
+                    return resultData;
+                }
+                cipher.init(encOrDecMode, publicKey);
+            } else if (encOrDecMode == Cipher.DECRYPT_MODE) {
+                PrivateKey privateKey = (PrivateKey) keyStore.getKey(keyAlias, null);
+                if (privateKey == null) {
+                    Log.d("MoaLib", "[Wallet][getRSAData] private key is null");
+                    return resultData;
+                }
+                cipher.init(encOrDecMode, privateKey);
             }
-            Cipher cipher = Cipher.getInstance(transformation);
-            cipher.init(Cipher.ENCRYPT_MODE, publicKey);
-            byte[] targetByte = Base64.decode(content, Base64.NO_WRAP);
-            resultData = cipher.doFinal(targetByte);
-        } catch (BadPaddingException | IllegalBlockSizeException | KeyStoreException | NoSuchAlgorithmException |
-                NoSuchPaddingException | InvalidKeyException e) {
-            Log.d("MoaLib", "[Wallet][getEncryptRSAContent] Failed to get encrypted content");
-            throw new RuntimeException("Failed to get encrypted content", e);
+            resultData = cipher.doFinal(data);
+        } catch (KeyStoreException | NoSuchAlgorithmException | NoSuchPaddingException |
+                InvalidKeyException | BadPaddingException | IllegalBlockSizeException | UnrecoverableKeyException e) {
+            Log.d("MoaLib", "[Wallet][getRSAData] failed to get RSA data");
         }
         return resultData;
     }
 
-    private boolean checkMACData(String password) {
-        boolean checkWalletMacData;
+    private void setWalletPref(List<String> requiredDataForMAC) {
+        String base64CipheredPrk = requiredDataForMAC.get(0);
+        String base64Puk = requiredDataForMAC.get(1);
+        String base64Address = requiredDataForMAC.get(2);
+        setValuesInPreferences(MoaPreferences.KEY_WALLET_CIPHERED_DATA, base64CipheredPrk);
+        setValuesInPreferences(MoaPreferences.KEY_WALLET_PUBLIC_KEY, base64Puk);
+        setValuesInPreferences(MoaPreferences.KEY_WALLET_ADDRESS, base64Address);
+
+        String osInfo = System.getProperty("os.name");
+        setValuesInPreferences(MoaPreferences.KEY_WALLET_OS_INFO, osInfo);
+
+        String versionInfo = String.valueOf(getValuesInPreferences(MoaPreferences.KEY_WALLET_VERSION_INFO));
+        String iterationCount = String.valueOf(getValuesInPreferences(MoaPreferences.KEY_WALLET_ITERATION_COUNT));
+        String base64Salt = getValuesInPreferences(MoaPreferences.KEY_WALLET_SALT);
+        String targetMacData = versionInfo + osInfo + base64Salt + iterationCount + base64CipheredPrk + base64Puk + base64Address;
+        String macDataBase58 = generateMACData(base64Salt, requiredDataForMAC.get(3), targetMacData);
+        setValuesInPreferences(MoaPreferences.KEY_WALLET_MAC_DATA, macDataBase58);
+    }
+
+    private boolean checkMACData(String psw) {
         if (!existPreferences())
             return false;
+
         int versionInfo = Integer.parseInt(getValuesInPreferences(MoaPreferences.KEY_WALLET_VERSION_INFO));
         String osName = getValuesInPreferences(MoaPreferences.KEY_WALLET_OS_INFO);
-        String saltBase58 = getValuesInPreferences(MoaPreferences.KEY_WALLET_SALT);
+        String base64Salt = getValuesInPreferences(MoaPreferences.KEY_WALLET_SALT);
         int iterationCount = Integer.parseInt(getValuesInPreferences(MoaPreferences.KEY_WALLET_ITERATION_COUNT));
-        String rsaWithPbePrkBase58 = getValuesInPreferences(MoaPreferences.KEY_WALLET_CIPHERED_DATA);
-        String walletPukBase58 = getValuesInPreferences(MoaPreferences.KEY_WALLET_PUBLIC_KEY);
-        String walletAddrBase58 = getValuesInPreferences(MoaPreferences.KEY_WALLET_ADDRESS);
-        String macDataBase58 = getValuesInPreferences(MoaPreferences.KEY_WALLET_MAC_DATA);
-        String mergedWalletData = versionInfo + osName + saltBase58 + iterationCount + rsaWithPbePrkBase58 + walletPukBase58 + walletAddrBase58;
-        byte[] salt = MoaBase58.decode(saltBase58);
-        byte[] mergedSaltAndPassword = getMergedByteArray(salt, password.getBytes());
-        String hashAlgorithm = getValuesInPreferences(MoaPreferences.KEY_WALLET_HASH_ALGORITHM);
-        if (hashAlgorithm == null)
+        String base64CipheredPrk = getValuesInPreferences(MoaPreferences.KEY_WALLET_CIPHERED_DATA);
+        String base64Puk = getValuesInPreferences(MoaPreferences.KEY_WALLET_PUBLIC_KEY);
+        String base64Address = getValuesInPreferences(MoaPreferences.KEY_WALLET_ADDRESS);
+        String base64MAC = getValuesInPreferences(MoaPreferences.KEY_WALLET_MAC_DATA);
+        if (osName.length() == 0 || base64Salt.length() == 0 || base64CipheredPrk.length() == 0
+            || base64Puk.length() == 0 || base64Address.length() == 0 || base64MAC.length() == 0)
             return false;
-        byte[] hmacKey = hashDigest(hashAlgorithm, mergedSaltAndPassword);
-        String macAlgorithm = getValuesInPreferences(MoaPreferences.KEY_WALLET_MAC_ALGORITHM);
-        if (macAlgorithm == null)
-            return false;
-        byte[] macData = hmacDigest(macAlgorithm, mergedWalletData.getBytes(), hmacKey);
-        String newMacDataBase58 = MoaBase58.encode(macData);
-        checkWalletMacData = macDataBase58.equals(newMacDataBase58);
 
-        return checkWalletMacData;
+        String mergedWalletData = versionInfo + osName + base64Salt + iterationCount + base64CipheredPrk + base64Puk + base64Address;
+        byte[] salt = Base64.decode(base64Salt, Base64.NO_WRAP);
+        byte[] mergedSaltAndPassword = getMergedByteArray(salt, psw.getBytes());
+        String hashAlg = getValuesInPreferences(MoaPreferences.KEY_WALLET_HASH_ALGORITHM);
+        if (hashAlg.length() == 0)
+            return false;
+
+        byte[] hmacKey = hashDigest(hashAlg, mergedSaltAndPassword);
+        String macAlg = getValuesInPreferences(MoaPreferences.KEY_WALLET_MAC_ALGORITHM);
+        if (macAlg.length() == 0)
+            return false;
+        byte[] macData = hmacDigest(macAlg, mergedWalletData.getBytes(), hmacKey);
+        String newMacDataBase58 = Base64.encodeToString(macData, Base64.NO_WRAP);
+        return base64MAC.equals(newMacDataBase58);
     }
 
-    private byte[] getDecryptedPrivateKey(String password) {
-        byte[] privateKey;
-        String rsaWithPbePrkBase58 = getValuesInPreferences(MoaPreferences.KEY_WALLET_CIPHERED_DATA);
-        if (rsaWithPbePrkBase58.length() == 0)
-            return null;
-        byte[] rsaWithPbePrk = MoaBase58.decode(rsaWithPbePrkBase58);
-        try {
-            Cipher rsaCipher = getDecryptRSACipher();
-            Cipher pbeCipher = getDecryptPBECipher(password);
-            if (rsaCipher == null || pbeCipher == null)
-                return null;
-            byte[] pbePrk = rsaCipher.doFinal(rsaWithPbePrk);
-            privateKey = pbeCipher.doFinal(pbePrk);
-        } catch (IllegalBlockSizeException | BadPaddingException e) {
-            Log.d("MoaLib", "[Wallet][getDecryptedPrivateKey] Failed to get decrypted wallet private key");
-            throw new RuntimeException("Failed to get decrypted wallet private key", e);
-        }
+    private byte[] getDecryptedPrivateKey(String psw) {
+        byte[] privateKey = {0, };
+        String lastEncryptedPrk = getValuesInPreferences(MoaPreferences.KEY_WALLET_CIPHERED_DATA);
+        if (lastEncryptedPrk.length() == 0)
+            return privateKey;
+
+        int cipherMode = Cipher.DECRYPT_MODE;
+        byte[] decode = Base64.decode(lastEncryptedPrk, Base64.NO_WRAP);
+        byte[] firstEncryptedPrk = getRSAData(cipherMode, decode);
+        privateKey = getPBKDF2Data(cipherMode, psw, firstEncryptedPrk);
         return privateKey;
-    }
-
-    private Cipher getDecryptRSACipher() {
-        Cipher cipher;
-        try {
-            cipher = Cipher.getInstance(transformation);
-            PrivateKey privateKey = (PrivateKey) keyStore.getKey(keyAlias, null);
-            if (privateKey == null) {
-                Log.d("MoaLib", "[Wallet][getDecryptRSACipher] private key is null");
-                return null;
-            }
-            cipher.init(Cipher.DECRYPT_MODE, privateKey);
-        } catch (NoSuchAlgorithmException | NoSuchPaddingException | UnrecoverableKeyException
-                | KeyStoreException | InvalidKeyException e) {
-            Log.d("MoaLib", "[Wallet][getDecryptRSACipher] failed to RSA cipher init");
-            throw new RuntimeException("Failed to RSA cipher init", e);
-        }
-        return cipher;
-    }
-
-    private Cipher getDecryptPBECipher(String password) {
-        int keySize = Integer.parseInt(getValuesInPreferences(MoaPreferences.KEY_WALLET_SYMMETRIC_KEY_SIZE));
-        String secretKeyAlgorithm = getValuesInPreferences(MoaPreferences.KEY_WALLET_SYMMETRIC_ALGORITHM);
-        int iterationCount = Integer.parseInt(getValuesInPreferences(MoaPreferences.KEY_WALLET_ITERATION_COUNT));
-        String saltBase58 = getValuesInPreferences(MoaPreferences.KEY_WALLET_SALT);
-        if (keySize == 0 || secretKeyAlgorithm.length() == 0 || saltBase58.length() == 0 || iterationCount == 0)
-            return null;
-
-        Cipher pbeCipher;
-        try {
-            pbeCipher = Cipher.getInstance(secretKeyAlgorithm);
-            byte[] salt = MoaBase58.decode(saltBase58);
-            KeySpec keySpec = new PBEKeySpec(password.toCharArray(), salt, iterationCount, keySize);
-            SecretKeyFactory secretKeyFactory = SecretKeyFactory.getInstance(secretKeyAlgorithm);
-            SecretKey secretKey = secretKeyFactory.generateSecret(keySpec);
-
-            AlgorithmParameterSpec algorithmParameterSpec = new PBEParameterSpec(salt, iterationCount);
-            pbeCipher.init(Cipher.DECRYPT_MODE, secretKey, algorithmParameterSpec);
-        } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | InvalidAlgorithmParameterException | InvalidKeySpecException e) {
-            Log.d("MoaLib", "[Wallet][getDecryptPBECipher] failed to PBE cipher init");
-            throw new RuntimeException("Failed to PBE cipher init", e);
-        }
-        return pbeCipher;
     }
 
     private byte[] generateSignedData(String algorithm, PrivateKey privateKey, byte[] targetData) {
