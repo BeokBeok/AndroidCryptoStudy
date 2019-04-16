@@ -4,14 +4,12 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
-import android.util.Base64;
 import android.util.Log;
 
 import org.moa.auth.userauth.manager.AuthToken;
 import org.moa.auth.userauth.manager.AutoLogin;
 import org.moa.auth.userauth.manager.FingerprintAuth;
 import org.moa.auth.userauth.manager.UserControl;
-import org.moa.auth.userauth.manager.Wallet;
 
 import java.security.PublicKey;
 import java.util.ArrayList;
@@ -129,68 +127,6 @@ public class MoaAuthHelper implements MoaCommonFunc{
             return null;
         FingerprintAuth fingerprintAuth = FingerprintAuth.getInstance();
         return fingerprintAuth.getPublicKey();
-    }
-
-    public void generateWalletInfo(String password) {
-        if (isNotValidUniqueDeviceID())
-            return;
-        Wallet wallet = Wallet.getInstance();
-        wallet.init(context);
-        wallet.generateInfo(password);
-    }
-
-    public byte[] getSigendTransactionData(String transaction, String password) {
-        if (isNotValidUniqueDeviceID())
-            return new byte[0];
-        Wallet wallet = Wallet.getInstance();
-        wallet.init(context);
-        return wallet.generateSignedTransactionData(transaction, password);
-    }
-
-    public PublicKey getWalletPublicKey() {
-        if (isNotValidUniqueDeviceID())
-            return null;
-        Wallet wallet = Wallet.getInstance();
-        wallet.init(context);
-        return wallet.getPublicKey();
-    }
-
-    public boolean verifySignedTransactionData(String plainText, String transactionData) {
-        Wallet wallet = Wallet.getInstance();
-        wallet.init(context);
-        return wallet.verifySignedData(plainText, Base64.decode(transactionData, Base64.NO_WRAP));
-    }
-
-    public boolean existWallet() {
-        if (isNotValidUniqueDeviceID())
-            return false;
-        Wallet wallet = Wallet.getInstance();
-        wallet.init(context);
-        return wallet.existPreferences();
-    }
-
-    //TODO 지갑 데이터별로 Getter 함수 구현
-    public String getWalletContent() {
-        if (isNotValidUniqueDeviceID())
-            return "";
-        Wallet wallet = Wallet.getInstance();
-        wallet.init(context);
-        String versionInfo = wallet.getValuesInPreferences(MoaPreferences.KEY_WALLET_VERSION_INFO);
-        String osInfo = wallet.getValuesInPreferences(MoaPreferences.KEY_WALLET_OS_INFO);
-        String salt = wallet.getValuesInPreferences(MoaPreferences.KEY_WALLET_SALT);
-        String iterationCount = wallet.getValuesInPreferences(MoaPreferences.KEY_WALLET_ITERATION_COUNT);
-        String cipheredData = wallet.getValuesInPreferences(MoaPreferences.KEY_WALLET_CIPHERED_DATA);
-        String walletPuk = wallet.getValuesInPreferences(MoaPreferences.KEY_WALLET_PUBLIC_KEY);
-        String walletAddr = wallet.getValuesInPreferences(MoaPreferences.KEY_WALLET_ADDRESS);
-        String macData = wallet.getValuesInPreferences(MoaPreferences.KEY_WALLET_MAC_DATA);
-        return "Version.Info=" + versionInfo + "\n" +
-                "OS.Info=" + osInfo + "\n" +
-                "Salt.Value=" + salt + "\n" +
-                "Iteration.Count=" + iterationCount + "\n" +
-                "Ciphered.Data=" + cipheredData + "\n" +
-                "Wallet.PublicKey=" + walletPuk + "\n" +
-                "Wallet.Addr=" + walletAddr + "\n" +
-                "MAC.Data=" + macData;
     }
 
     public String getAutoLoginInfo() {
