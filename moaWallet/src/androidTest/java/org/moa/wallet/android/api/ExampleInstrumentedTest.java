@@ -1,4 +1,4 @@
-package org.moa.android.wallet.api;
+package org.moa.wallet.android.api;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
@@ -21,6 +21,6 @@ public class ExampleInstrumentedTest {
         // Context of the app under test.
         Context appContext = InstrumentationRegistry.getTargetContext();
 
-        assertEquals("org.moa.android.wallet.api.test", appContext.getPackageName());
+        assertEquals("org.moa.wallet.android.api.test", appContext.getPackageName());
     }
 }

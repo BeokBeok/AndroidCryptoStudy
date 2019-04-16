@@ -1,4 +1,4 @@
-package org.moa.android.wallet.api;
+package org.moa.wallet.android.api;
 
 import org.junit.Test;
 

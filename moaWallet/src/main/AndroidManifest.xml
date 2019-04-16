@@ -1,2 +1,2 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="org.moa.android.wallet.api" />
+    package="org.moa.wallet.android.api" />
