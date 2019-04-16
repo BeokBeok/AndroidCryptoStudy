@@ -18,16 +18,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
 
-public class MoaAuthAssist implements MoaCommonFunc{
+public class MoaAuthHelper implements MoaCommonFunc{
     private Context context;
     private String uniqueDeviceID;
     private UserControl userControl;
     private AutoLogin autoLogin;
 
-    private MoaAuthAssist() {
+    private MoaAuthHelper() {
     }
 
-    public static MoaAuthAssist getInstance() {
+    public static MoaAuthHelper getInstance() {
         return Singleton.instance;
     }
 
@@ -235,13 +235,13 @@ public class MoaAuthAssist implements MoaCommonFunc{
             validUniqueDeviceID = false;
 
         if (!validUniqueDeviceID)
-            Log.d("MoaLib", "[MoaAuthAssist][isNotValidUniqueDeviceID] Please check whether unique device id valid or not");
+            Log.d("MoaLib", "[MoaAuthHelper][isNotValidUniqueDeviceID] Please check whether unique device id valid or not");
 
         return !validUniqueDeviceID;
     }
 
     private static class Singleton {
         @SuppressLint("StaticFieldLeak")
-        private static final MoaAuthAssist instance = new MoaAuthAssist();
+        private static final MoaAuthHelper instance = new MoaAuthHelper();
     }
 }
