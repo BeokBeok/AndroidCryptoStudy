@@ -1,3 +1,3 @@
-# AndroidAuthenticationManager
+# Moa Android Modules
 
-B2C MoaPlanet authentication manager for android
+B2C MoaPlanet Auth Helper, Crypto and Wallet
