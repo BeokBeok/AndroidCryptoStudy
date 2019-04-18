@@ -1,6 +1,6 @@
 package org.moa.auth.userauth.android.api;
 
-public interface MoaPreferences {
+public interface MoaConfigurable {
     String PREFNAME_CONTROL_INFO = "androidIDManager";
     String KEY_CONTROL_INFO = "Control.Info";
     String KEY_UNIQUE_DEVICE_INFO = "UniqueDevice.Info";

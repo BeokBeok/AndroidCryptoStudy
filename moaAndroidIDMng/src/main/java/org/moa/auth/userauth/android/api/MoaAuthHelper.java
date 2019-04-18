@@ -16,7 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
 
-public class MoaAuthHelper implements MoaCommonFunc{
+public class MoaAuthHelper implements MoaCommonable {
     private Context context;
     private String uniqueDeviceID;
     private UserControl userControl;
@@ -86,7 +86,7 @@ public class MoaAuthHelper implements MoaCommonFunc{
         String AUTH_TOKEN = fingerprintRegisterData.get(2);
         AuthToken authToken = AuthToken.getInstance();
         authToken.init(context);
-        authToken.setValuesInPreferences(MoaPreferences.KEY_AUTH_TOKEN, AUTH_TOKEN);
+        authToken.setValuesInPreferences(MoaConfigurable.KEY_AUTH_TOKEN, AUTH_TOKEN);
 
         FingerprintAuth fingerprintAuth = FingerprintAuth.getInstance();
         fingerprintAuth.init(ECDSA_CURVE, ECDSA_SUITE);
@@ -112,7 +112,7 @@ public class MoaAuthHelper implements MoaCommonFunc{
             return "";
         AuthToken authToken = AuthToken.getInstance();
         authToken.init(context);
-        return authToken.getValuesInPreferences(MoaPreferences.KEY_AUTH_TOKEN);
+        return authToken.getValuesInPreferences(MoaConfigurable.KEY_AUTH_TOKEN);
     }
 
     public void setControlInfoData(List<String> data) {
@@ -132,7 +132,7 @@ public class MoaAuthHelper implements MoaCommonFunc{
     public String getAutoLoginInfo() {
         if (isNotValidUniqueDeviceID())
             return "";
-        String content = autoLogin.getValuesInPreferences(MoaPreferences.KEY_AUTO_LOGIN);
+        String content = autoLogin.getValuesInPreferences(MoaConfigurable.KEY_AUTO_LOGIN);
         StringTokenizer stringTokenizer = new StringTokenizer(content, "$");
         String type = stringTokenizer.nextToken();
         String info = stringTokenizer.nextToken();
@@ -150,13 +150,13 @@ public class MoaAuthHelper implements MoaCommonFunc{
     public String getBasePrimaryInfo() {
         if (isNotValidUniqueDeviceID())
             return "";
-        return userControl.getValuesInPreferences(MoaPreferences.KEY_BASE_PRIMARY_INDEX);
+        return userControl.getValuesInPreferences(MoaConfigurable.KEY_BASE_PRIMARY_INDEX);
     }
 
     public void setBasePrimaryInfo(String userSequenceIndex) {
         if (isNotValidUniqueDeviceID())
             return;
-        userControl.setValuesInPreferences(MoaPreferences.KEY_BASE_PRIMARY_INDEX, userSequenceIndex);
+        userControl.setValuesInPreferences(MoaConfigurable.KEY_BASE_PRIMARY_INDEX, userSequenceIndex);
     }
 
     public String getUniqueDeviceInfo() {

@@ -4,11 +4,11 @@ import android.content.Context;
 import android.util.Base64;
 
 import org.moa.android.crypto.coreapi.SymmetricCrypto;
-import org.moa.auth.userauth.android.api.MoaPreferences;
+import org.moa.auth.userauth.android.api.MoaConfigurable;
 
 import java.security.KeyStore;
 
-abstract class PINAuth implements MoaPreferences {
+abstract class PINAuth implements MoaConfigurable {
     Context context;
     String uniqueDeviceID;
     KeyStore keyStore;

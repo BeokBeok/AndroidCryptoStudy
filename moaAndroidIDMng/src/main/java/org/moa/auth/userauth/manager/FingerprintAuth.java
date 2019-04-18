@@ -7,7 +7,7 @@ import android.support.annotation.RequiresApi;
 import android.util.Base64;
 import android.util.Log;
 
-import org.moa.auth.userauth.android.api.MoaTEEKeyStore;
+import org.moa.auth.userauth.android.api.MoaTEEUsable;
 
 import java.io.IOException;
 import java.security.InvalidAlgorithmParameterException;
@@ -26,8 +26,8 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.spec.ECGenParameterSpec;
 
-public class FingerprintAuth implements MoaTEEKeyStore {
-    private final String keyAlias = MoaTEEKeyStore.ALIAS_FINGERPRINT;
+public class FingerprintAuth implements MoaTEEUsable {
+    private final String keyAlias = MoaTEEUsable.ALIAS_FINGERPRINT;
     private String curve;
     private String signAlgorithmSuite;
     private KeyStore keyStore;
@@ -56,7 +56,7 @@ public class FingerprintAuth implements MoaTEEKeyStore {
     @Override
     public void initKeyStore() {
         try {
-            this.keyStore = KeyStore.getInstance(MoaTEEKeyStore.PROVIDER);
+            this.keyStore = KeyStore.getInstance(MoaTEEUsable.PROVIDER);
             this.keyStore.load(null);
         } catch (KeyStoreException | IOException | NoSuchAlgorithmException | CertificateException e) {
             Log.d("MoaLib", "[FingerprintAuthManager][initKeyStore] failed to init keystore");
@@ -68,7 +68,7 @@ public class FingerprintAuth implements MoaTEEKeyStore {
     @Override
     public void generateKey() {
         try {
-            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance(KeyProperties.KEY_ALGORITHM_EC, MoaTEEKeyStore.PROVIDER);
+            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance(KeyProperties.KEY_ALGORITHM_EC, MoaTEEUsable.PROVIDER);
             keyPairGenerator.initialize(
                     new KeyGenParameterSpec.Builder(keyAlias, KeyProperties.PURPOSE_SIGN)
                             .setDigests(KeyProperties.DIGEST_SHA256, KeyProperties.DIGEST_SHA512)

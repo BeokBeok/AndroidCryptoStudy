@@ -16,7 +16,7 @@ import javax.crypto.Cipher;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 
-public interface MoaCommonFunc {
+public interface MoaCommonable {
     String FORMAT_ENCODE = "UTF-8";
 
     default byte[] hashDigest(String algorithmName, byte[] targetData) {

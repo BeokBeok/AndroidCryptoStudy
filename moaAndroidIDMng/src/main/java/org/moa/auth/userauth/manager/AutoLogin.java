@@ -9,10 +9,10 @@ import android.util.Log;
 
 import org.moa.android.crypto.coreapi.PBKDF2;
 import org.moa.android.crypto.coreapi.SymmetricCrypto;
-import org.moa.auth.userauth.android.api.MoaCommonFunc;
+import org.moa.auth.userauth.android.api.MoaCommonable;
 import org.moa.auth.userauth.android.api.MoaMember;
-import org.moa.auth.userauth.android.api.MoaPreferences;
-import org.moa.auth.userauth.android.api.MoaTEEKeyStore;
+import org.moa.auth.userauth.android.api.MoaConfigurable;
+import org.moa.auth.userauth.android.api.MoaTEEUsable;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -37,8 +37,8 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.security.auth.x500.X500Principal;
 
-public class AutoLogin extends PINAuth implements MoaTEEKeyStore, MoaCommonFunc {
-    private final String keyAlias = MoaTEEKeyStore.ALIAS_AUTO_INFO;
+public class AutoLogin extends PINAuth implements MoaTEEUsable, MoaCommonable {
+    private final String keyAlias = MoaTEEUsable.ALIAS_AUTO_INFO;
     private PBKDF2 pbkdf2;
 
     private AutoLogin() {
@@ -64,7 +64,7 @@ public class AutoLogin extends PINAuth implements MoaTEEKeyStore, MoaCommonFunc 
     @Override
     public void initKeyStore() {
         try {
-            super.keyStore = KeyStore.getInstance(MoaTEEKeyStore.PROVIDER);
+            super.keyStore = KeyStore.getInstance(MoaTEEUsable.PROVIDER);
             super.keyStore.load(null);
         } catch (KeyStoreException | IOException | NoSuchAlgorithmException | CertificateException e) {
             Log.d("MoaLib", "[AutoLogin][initKeyStore] failed to init keystore");
@@ -78,7 +78,7 @@ public class AutoLogin extends PINAuth implements MoaTEEKeyStore, MoaCommonFunc 
         Calendar endData = Calendar.getInstance();
         endData.add(Calendar.YEAR, 25);
         try {
-            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA", MoaTEEKeyStore.PROVIDER);
+            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA", MoaTEEUsable.PROVIDER);
             keyPairGenerator.initialize(
                     new KeyPairGeneratorSpec.Builder(context)
                             .setAlias(keyAlias)
@@ -98,14 +98,14 @@ public class AutoLogin extends PINAuth implements MoaTEEKeyStore, MoaCommonFunc 
     @Override
     public void setValuesInPreferences(String key, String value) {
         String encryptValue = "";
-        if (key.equals(MoaPreferences.KEY_AUTO_LOGIN))
+        if (key.equals(MoaConfigurable.KEY_AUTO_LOGIN))
             encryptValue = getEncryptContent(value);
-        else if (key.equals(MoaPreferences.KEY_AUTO_SALT)) {
+        else if (key.equals(MoaConfigurable.KEY_AUTO_SALT)) {
             byte[] decode = Base64.decode(value, Base64.NO_WRAP);
             byte[] encryptSalt = symmetricCrypto.getSymmetricData(Cipher.ENCRYPT_MODE, decode);
             encryptValue = Base64.encodeToString(encryptSalt, Base64.NO_WRAP);
         }
-        SharedPreferences pref = context.getSharedPreferences(MoaPreferences.PREFNAME_CONTROL_INFO, Context.MODE_PRIVATE);
+        SharedPreferences pref = context.getSharedPreferences(MoaConfigurable.PREFNAME_CONTROL_INFO, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = pref.edit();
         editor.putString(key, encryptValue);
         editor.apply();
@@ -113,13 +113,13 @@ public class AutoLogin extends PINAuth implements MoaTEEKeyStore, MoaCommonFunc 
 
     @Override
     public String getValuesInPreferences(String key) {
-        SharedPreferences pref = context.getSharedPreferences(MoaPreferences.PREFNAME_CONTROL_INFO, Context.MODE_PRIVATE);
+        SharedPreferences pref = context.getSharedPreferences(MoaConfigurable.PREFNAME_CONTROL_INFO, Context.MODE_PRIVATE);
         String value = pref.getString(key, "");
         if (value == null || value.length() == 0)
             return "";
-        if (key.equals(MoaPreferences.KEY_AUTO_LOGIN))
+        if (key.equals(MoaConfigurable.KEY_AUTO_LOGIN))
             return getDecryptContent(value);
-        else if (key.equals(MoaPreferences.KEY_AUTO_SALT)) {
+        else if (key.equals(MoaConfigurable.KEY_AUTO_SALT)) {
             byte[] decode = Base64.decode(value, Base64.NO_WRAP);
             byte[] decrypt = symmetricCrypto.getSymmetricData(Cipher.DECRYPT_MODE, decode);
             return Base64.encodeToString(decrypt, Base64.NO_WRAP);
@@ -133,15 +133,15 @@ public class AutoLogin extends PINAuth implements MoaTEEKeyStore, MoaCommonFunc 
             password = "42009FFDDE80CA527DE3E1AB330481F7A4D76C35A3E7F9571BBA626927A25720B13E2C3F4EDE02DB5BA7B71151F8C7FFA5E4D559B7E7FED75DCCF636276B962B";
         }
         String content = MoaMember.AutoLoginType.ACTIVE.getType() + "$" + password;
-        setValuesInPreferences(MoaPreferences.KEY_AUTO_LOGIN, content);
+        setValuesInPreferences(MoaConfigurable.KEY_AUTO_LOGIN, content);
     }
 
     private byte[] getSalt() {
-        String base64Salt = getValuesInPreferences(MoaPreferences.KEY_AUTO_SALT);
+        String base64Salt = getValuesInPreferences(MoaConfigurable.KEY_AUTO_SALT);
         if (base64Salt == null || base64Salt.length() == 0) {
             byte[] salt = new byte[64];
             new SecureRandom().nextBytes(salt);
-            setValuesInPreferences(MoaPreferences.KEY_AUTO_SALT, Base64.encodeToString(salt, Base64.NO_WRAP));
+            setValuesInPreferences(MoaConfigurable.KEY_AUTO_SALT, Base64.encodeToString(salt, Base64.NO_WRAP));
             return salt;
         } else
             return Base64.decode(base64Salt, Base64.NO_WRAP);
@@ -205,7 +205,7 @@ public class AutoLogin extends PINAuth implements MoaTEEKeyStore, MoaCommonFunc 
         String encryptedData = "";
         int cipherMode = Cipher.ENCRYPT_MODE;
         try {
-            byte[] encode = content.getBytes(MoaCommonFunc.FORMAT_ENCODE);
+            byte[] encode = content.getBytes(MoaCommonable.FORMAT_ENCODE);
             byte[] firstEncrypt = getPBKDF2Data(cipherMode, encode);
             byte[] lastEncrypt = getRSAData(cipherMode, firstEncrypt);
             encryptedData = Base64.encodeToString(lastEncrypt, Base64.NO_WRAP);
@@ -222,7 +222,7 @@ public class AutoLogin extends PINAuth implements MoaTEEKeyStore, MoaCommonFunc 
             byte[] decode = Base64.decode(content, Base64.NO_WRAP);
             byte[] firstDecrypt = getRSAData(cipherMode, decode);
             byte[] lastDecrypt = getPBKDF2Data(cipherMode, firstDecrypt);
-            decryptedData = new String(lastDecrypt, MoaCommonFunc.FORMAT_ENCODE);
+            decryptedData = new String(lastDecrypt, MoaCommonable.FORMAT_ENCODE);
         } catch (UnsupportedEncodingException e) {
             Log.d("MoaLib", "[AutoLogin][getDecryptContent] occurred UnsupportedEncodingException");
         }

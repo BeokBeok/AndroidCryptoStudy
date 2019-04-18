@@ -10,9 +10,9 @@ import android.support.annotation.RequiresApi;
 import android.util.Base64;
 import android.util.Log;
 
-import org.moa.auth.userauth.android.api.MoaCommonFunc;
-import org.moa.auth.userauth.android.api.MoaPreferences;
-import org.moa.auth.userauth.android.api.MoaTEEKeyStore;
+import org.moa.auth.userauth.android.api.MoaCommonable;
+import org.moa.auth.userauth.android.api.MoaConfigurable;
+import org.moa.auth.userauth.android.api.MoaTEEUsable;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -32,8 +32,8 @@ import javax.crypto.KeyGenerator;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.GCMParameterSpec;
 
-public class AuthToken implements MoaTEEKeyStore, MoaPreferences {
-    private final String keyAlias = MoaTEEKeyStore.ALIAS_AUTH_TOKEN;
+public class AuthToken implements MoaTEEUsable, MoaConfigurable {
+    private final String keyAlias = MoaTEEUsable.ALIAS_AUTH_TOKEN;
     private final String transformation = "AES/GCM/NoPadding";
     private Context context;
     private KeyStore keyStore;
@@ -61,7 +61,7 @@ public class AuthToken implements MoaTEEKeyStore, MoaPreferences {
     @Override
     public void initKeyStore() {
         try {
-            this.keyStore = KeyStore.getInstance(MoaTEEKeyStore.PROVIDER);
+            this.keyStore = KeyStore.getInstance(MoaTEEUsable.PROVIDER);
             this.keyStore.load(null);
         } catch (KeyStoreException | IOException | NoSuchAlgorithmException | CertificateException e) {
             Log.d("MoaLib", "[AuthToken][initKeyStore] failed to init keystore");
@@ -73,7 +73,7 @@ public class AuthToken implements MoaTEEKeyStore, MoaPreferences {
     @Override
     public void generateKey() {
         try {
-            KeyGenerator keyGenerator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, MoaTEEKeyStore.PROVIDER);
+            KeyGenerator keyGenerator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, MoaTEEUsable.PROVIDER);
             keyGenerator.init(
                     new KeyGenParameterSpec.Builder(keyAlias, KeyProperties.PURPOSE_ENCRYPT | KeyProperties.PURPOSE_DECRYPT)
                             .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
@@ -93,7 +93,7 @@ public class AuthToken implements MoaTEEKeyStore, MoaPreferences {
     @Override
     public void setValuesInPreferences(String key, String value) {
         String encryptedData = getEncryptContent(value);
-        SharedPreferences pref = context.getSharedPreferences(MoaPreferences.PREFNAME_AUTH_TOKEN, Context.MODE_PRIVATE);
+        SharedPreferences pref = context.getSharedPreferences(MoaConfigurable.PREFNAME_AUTH_TOKEN, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = pref.edit();
         editor.putString(key, encryptedData);
         editor.apply();
@@ -101,7 +101,7 @@ public class AuthToken implements MoaTEEKeyStore, MoaPreferences {
 
     @Override
     public String getValuesInPreferences(String key) {
-        SharedPreferences pref = context.getSharedPreferences(MoaPreferences.PREFNAME_AUTH_TOKEN, Context.MODE_PRIVATE);
+        SharedPreferences pref = context.getSharedPreferences(MoaConfigurable.PREFNAME_AUTH_TOKEN, Context.MODE_PRIVATE);
         byte[] encryptData = Base64.decode(pref.getString(key, ""), Base64.NO_WRAP);
         return getDecryptContent(encryptData);
     }
@@ -120,7 +120,7 @@ public class AuthToken implements MoaTEEKeyStore, MoaPreferences {
             }
             Cipher cipher = Cipher.getInstance(transformation);
             cipher.init(Cipher.ENCRYPT_MODE, secretKeyEntry.getSecretKey());
-            resultData = Base64.encodeToString(cipher.doFinal(content.getBytes(MoaCommonFunc.FORMAT_ENCODE)), Base64.NO_WRAP);
+            resultData = Base64.encodeToString(cipher.doFinal(content.getBytes(MoaCommonable.FORMAT_ENCODE)), Base64.NO_WRAP);
 
             setIV(cipher.getIV());
         } catch (InvalidKeyException | NoSuchAlgorithmException | KeyStoreException | UnrecoverableEntryException
@@ -143,7 +143,7 @@ public class AuthToken implements MoaTEEKeyStore, MoaPreferences {
 
             cipher.init(Cipher.DECRYPT_MODE, secretKeyEntry.getSecretKey(), new GCMParameterSpec(128, getIV()));
             byte[] decryptData = cipher.doFinal(content);
-            result = new String(decryptData, MoaCommonFunc.FORMAT_ENCODE);
+            result = new String(decryptData, MoaCommonable.FORMAT_ENCODE);
         } catch (NoSuchPaddingException | NoSuchAlgorithmException | InvalidAlgorithmParameterException | InvalidKeyException |
                 KeyStoreException | UnrecoverableEntryException | IllegalBlockSizeException | BadPaddingException |
                 UnsupportedEncodingException e) {

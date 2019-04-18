@@ -6,9 +6,9 @@ import android.content.SharedPreferences;
 import android.util.Base64;
 import android.util.Log;
 
-import org.moa.auth.userauth.android.api.MoaCommonFunc;
+import org.moa.auth.userauth.android.api.MoaCommonable;
 import org.moa.auth.userauth.android.api.MoaMember;
-import org.moa.auth.userauth.android.api.MoaPreferences;
+import org.moa.auth.userauth.android.api.MoaConfigurable;
 
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
@@ -17,7 +17,7 @@ import java.util.StringTokenizer;
 
 import javax.crypto.Cipher;
 
-public class UserControl extends PINAuth implements MoaCommonFunc {
+public class UserControl extends PINAuth implements MoaCommonable {
 
     private UserControl() {
     }
@@ -30,14 +30,14 @@ public class UserControl extends PINAuth implements MoaCommonFunc {
     public void init(Context context, String uniqueDeviceID) {
         super.init(context, uniqueDeviceID);
         if (uniqueDeviceID != null && uniqueDeviceID.length() > 0)
-            setValuesInPreferences(MoaPreferences.KEY_UNIQUE_DEVICE_INFO, uniqueDeviceID);
+            setValuesInPreferences(MoaConfigurable.KEY_UNIQUE_DEVICE_INFO, uniqueDeviceID);
     }
 
     @Override
     public void setValuesInPreferences(String key, String value) {
         String encodedBase64Encryption = "";
         try {
-            byte[] encodedUtf8Content = value.getBytes(MoaCommonFunc.FORMAT_ENCODE);
+            byte[] encodedUtf8Content = value.getBytes(MoaCommonable.FORMAT_ENCODE);
             byte[] encryption = symmetricCrypto.getSymmetricData(Cipher.ENCRYPT_MODE, encodedUtf8Content);
             encodedBase64Encryption = Base64.encodeToString(encryption, Base64.NO_WRAP);
         } catch (UnsupportedEncodingException e) {
@@ -45,7 +45,7 @@ public class UserControl extends PINAuth implements MoaCommonFunc {
         }
         if (encodedBase64Encryption.length() == 0)
             return;
-        SharedPreferences pref = context.getSharedPreferences(MoaPreferences.PREFNAME_CONTROL_INFO, Context.MODE_PRIVATE);
+        SharedPreferences pref = context.getSharedPreferences(MoaConfigurable.PREFNAME_CONTROL_INFO, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = pref.edit();
         editor.putString(key, encodedBase64Encryption);
         editor.apply();
@@ -53,7 +53,7 @@ public class UserControl extends PINAuth implements MoaCommonFunc {
 
     @Override
     public String getValuesInPreferences(String key) {
-        SharedPreferences pref = context.getSharedPreferences(MoaPreferences.PREFNAME_CONTROL_INFO, Context.MODE_PRIVATE);
+        SharedPreferences pref = context.getSharedPreferences(MoaConfigurable.PREFNAME_CONTROL_INFO, Context.MODE_PRIVATE);
         String value = pref.getString(key, "");
         if (value == null || value.length() == 0)
             return "";
@@ -61,7 +61,7 @@ public class UserControl extends PINAuth implements MoaCommonFunc {
         byte[] decryption = symmetricCrypto.getSymmetricData(Cipher.DECRYPT_MODE, decodedBase64Value);
         String encodedUtf8Value = "";
         try {
-            encodedUtf8Value = new String(decryption, MoaCommonFunc.FORMAT_ENCODE);
+            encodedUtf8Value = new String(decryption, MoaCommonable.FORMAT_ENCODE);
         } catch (UnsupportedEncodingException e) {
             Log.d("MoaLib", "[UserControl][getValuesInPreferences] failed to encode utf8");
         }
@@ -69,7 +69,7 @@ public class UserControl extends PINAuth implements MoaCommonFunc {
     }
 
     public boolean existPreferences() {
-        String controlInfoData = getValuesInPreferences(MoaPreferences.KEY_CONTROL_INFO);
+        String controlInfoData = getValuesInPreferences(MoaConfigurable.KEY_CONTROL_INFO);
         return controlInfoData.length() > 0;
     }
 
@@ -80,7 +80,7 @@ public class UserControl extends PINAuth implements MoaCommonFunc {
             String AUTH_TYPE = data.get(2);
             String COIN_STORE_TYPE = data.get(3);
             String controlDataForm = MEMBER_TYPE + "$" +
-                    Base64.encodeToString(MEMBER_ID.getBytes(MoaCommonFunc.FORMAT_ENCODE), Base64.NO_WRAP) + "$" +
+                    Base64.encodeToString(MEMBER_ID.getBytes(MoaCommonable.FORMAT_ENCODE), Base64.NO_WRAP) + "$" +
                     AUTH_TYPE + "$" +
                     COIN_STORE_TYPE;
             if (MEMBER_TYPE.equals(MoaMember.Type.NONMEMBER.getType())) {
@@ -89,7 +89,7 @@ public class UserControl extends PINAuth implements MoaCommonFunc {
                         AUTH_TYPE + "$" +
                         COIN_STORE_TYPE;
             }
-            setValuesInPreferences(MoaPreferences.KEY_CONTROL_INFO, controlDataForm);
+            setValuesInPreferences(MoaConfigurable.KEY_CONTROL_INFO, controlDataForm);
         } catch (UnsupportedEncodingException e) {
             Log.d("MoaLib", "[UserControl][setMemberInfo] failed to set member info");
             throw new RuntimeException("Failed to set member info", e);
@@ -97,7 +97,7 @@ public class UserControl extends PINAuth implements MoaCommonFunc {
     }
 
     public String getMemberInfo(String type) {
-        String idManagerContent = getValuesInPreferences(MoaPreferences.KEY_CONTROL_INFO);
+        String idManagerContent = getValuesInPreferences(MoaConfigurable.KEY_CONTROL_INFO);
         String result = "";
         if (!checkData(idManagerContent))
             return "";
@@ -106,7 +106,7 @@ public class UserControl extends PINAuth implements MoaCommonFunc {
             String memberType = stringTokenizer.nextToken();
             String base64MemberID = stringTokenizer.nextToken();
             byte[] decodeBase64MemberID = Base64.decode(base64MemberID, Base64.NO_WRAP);
-            String memberID = new String(decodeBase64MemberID, MoaCommonFunc.FORMAT_ENCODE);
+            String memberID = new String(decodeBase64MemberID, MoaCommonable.FORMAT_ENCODE);
             if (memberType.equals(MoaMember.Type.NONMEMBER.getType()))
                 memberID = base64MemberID;
             String memberAuthType = stringTokenizer.nextToken();
@@ -128,7 +128,7 @@ public class UserControl extends PINAuth implements MoaCommonFunc {
     }
 
     public String getUniqueDeviceInfo() {
-        return getValuesInPreferences(MoaPreferences.KEY_UNIQUE_DEVICE_INFO);
+        return getValuesInPreferences(MoaConfigurable.KEY_UNIQUE_DEVICE_INFO);
     }
 
     private boolean checkData(String data) {
