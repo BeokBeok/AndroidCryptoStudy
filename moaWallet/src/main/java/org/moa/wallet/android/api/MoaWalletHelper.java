@@ -27,8 +27,8 @@ public class MoaWalletHelper {
         return wallet.getPublicKey();
     }
 
-    public boolean verifySignedTransactionData(String plainText, String transactionData) {
-        return wallet.verifySignedData(plainText, Base64.decode(transactionData, Base64.NO_WRAP));
+    public boolean verifySignedTransactionData(String plainText, String signedData) {
+        return wallet.verifySignedData(plainText, Base64.decode(signedData, Base64.NO_WRAP));
     }
 
     public boolean existWallet() {
