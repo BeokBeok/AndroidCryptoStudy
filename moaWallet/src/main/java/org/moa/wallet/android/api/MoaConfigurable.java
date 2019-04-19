@@ -1,6 +1,6 @@
 package org.moa.wallet.android.api;
 
-public interface MoaPreferences {
+public interface MoaConfigurable {
     String PREFNAME_WALLET = "moaWallet";
     String KEY_WALLET_VERSION_INFO = "Version.Info";
     String KEY_WALLET_OS_INFO = "OS.Info";

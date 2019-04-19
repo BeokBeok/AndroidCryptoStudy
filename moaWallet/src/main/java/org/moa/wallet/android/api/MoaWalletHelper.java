@@ -37,14 +37,14 @@ public class MoaWalletHelper {
 
     //TODO 지갑 데이터별로 Getter 함수 구현
     public String getWalletContent() {
-        String versionInfo = wallet.getValuesInPreferences(MoaPreferences.KEY_WALLET_VERSION_INFO);
-        String osInfo = wallet.getValuesInPreferences(MoaPreferences.KEY_WALLET_OS_INFO);
-        String salt = wallet.getValuesInPreferences(MoaPreferences.KEY_WALLET_SALT);
-        String iterationCount = wallet.getValuesInPreferences(MoaPreferences.KEY_WALLET_ITERATION_COUNT);
-        String cipheredData = wallet.getValuesInPreferences(MoaPreferences.KEY_WALLET_CIPHERED_DATA);
-        String walletPuk = wallet.getValuesInPreferences(MoaPreferences.KEY_WALLET_PUBLIC_KEY);
-        String walletAddr = wallet.getValuesInPreferences(MoaPreferences.KEY_WALLET_ADDRESS);
-        String macData = wallet.getValuesInPreferences(MoaPreferences.KEY_WALLET_MAC_DATA);
+        String versionInfo = wallet.getValuesInPreferences(MoaConfigurable.KEY_WALLET_VERSION_INFO);
+        String osInfo = wallet.getValuesInPreferences(MoaConfigurable.KEY_WALLET_OS_INFO);
+        String salt = wallet.getValuesInPreferences(MoaConfigurable.KEY_WALLET_SALT);
+        String iterationCount = wallet.getValuesInPreferences(MoaConfigurable.KEY_WALLET_ITERATION_COUNT);
+        String cipheredData = wallet.getValuesInPreferences(MoaConfigurable.KEY_WALLET_CIPHERED_DATA);
+        String walletPuk = wallet.getValuesInPreferences(MoaConfigurable.KEY_WALLET_PUBLIC_KEY);
+        String walletAddr = wallet.getValuesInPreferences(MoaConfigurable.KEY_WALLET_ADDRESS);
+        String macData = wallet.getValuesInPreferences(MoaConfigurable.KEY_WALLET_MAC_DATA);
         return "Version.Info=" + versionInfo + "\n" +
                 "OS.Info=" + osInfo + "\n" +
                 "Salt.Value=" + salt + "\n" +
