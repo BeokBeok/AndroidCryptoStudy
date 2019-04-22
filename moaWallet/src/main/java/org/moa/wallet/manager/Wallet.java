@@ -1,15 +1,21 @@
 package org.moa.wallet.manager;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.security.KeyPairGeneratorSpec;
 import android.util.Base64;
 import android.util.Log;
+import android.webkit.ConsoleMessage;
+import android.webkit.WebChromeClient;
+import android.webkit.WebView;
 
 import org.moa.android.crypto.coreapi.PBKDF2;
 import org.moa.android.crypto.coreapi.RIPEMD160;
 import org.moa.android.crypto.coreapi.SymmetricCrypto;
+import org.moa.wallet.android.api.MoaBridge;
 import org.moa.wallet.android.api.MoaConfigurable;
+import org.moa.wallet.android.api.MoaWalletReceiver;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -48,15 +54,19 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.SecretKeySpec;
 import javax.security.auth.x500.X500Principal;
 
-public class Wallet implements MoaConfigurable {
+public class Wallet implements MoaConfigurable, MoaWalletReceiver {
     private final String keyAlias = "MoaWalletEncDecKeyPair";
     private final String androidProvider = "AndroidKeyStore";
     private Context context;
+    private MoaWalletReceiver moaWalletReceiver;
     private KeyStore keyStore;
     private PBKDF2 pbkdf2;
+    private WebView webView;
+    private String password = "";
 
     private Wallet(Builder builder) {
         this.context = builder.context;
+        moaWalletReceiver = builder.receiver;
         initKeyStore();
         initProperties();
         pbkdf2 = new PBKDF2(getValuesInPreferences(MoaConfigurable.KEY_WALLET_HASH_ALGORITHM));
@@ -118,37 +128,37 @@ public class Wallet implements MoaConfigurable {
         return value;
     }
 
+    @SuppressLint("SetJavaScriptEnabled")
+    public void setWebView(WebView webview) {
+        if (webview == null)
+            return;
+        webview.getSettings().setJavaScriptEnabled(true);
+        webview.addJavascriptInterface(new MoaBridge(this), "ECDSA");
+        webview.loadUrl("file:///android_asset/ECDSA/ECDSA.html");
+        webview.setWebChromeClient(new WebChromeClient() {
+            @Override
+            public boolean onConsoleMessage(ConsoleMessage consoleMessage) {
+                Log.d("[kekemusa]", consoleMessage.message() + " -- From line "
+                        + consoleMessage.lineNumber() + " of "
+                        + consoleMessage.sourceId());
+                return true;
+            }
+        });
+        this.webView = webview;
+    }
+
     public boolean existPreferences() {
         String walletAddress = getValuesInPreferences(MoaConfigurable.KEY_WALLET_ADDRESS);
         return walletAddress.length() > 0;
     }
 
-    public void generateInfo(String psw) {
+    public void generateInfo(String password) {
         byte[][] walletKeyPair = generateKeyPair();
         if (walletKeyPair.length == 0)
             return;
-        String base64Puk = Base64.encodeToString(walletKeyPair[1], Base64.NO_WRAP);
-
-        byte[] walletAddressCreatedPuk = generateAddressCreatedWithPublicKey(walletKeyPair[1]);
-        if (walletAddressCreatedPuk.length == 0)
-            return;
-        String base64Address = Base64.encodeToString(walletAddressCreatedPuk, Base64.NO_WRAP);
-
-        int cipherMode = Cipher.ENCRYPT_MODE;
-        byte[] firstEncryptedPrk = getPBKDF2Data(cipherMode, psw, walletKeyPair[0]);
-        if (firstEncryptedPrk.length == 0)
-            return;
-        byte[] lastEncryptedPrk = getRSAData(cipherMode, firstEncryptedPrk);
-        if (lastEncryptedPrk.length == 0)
-            return;
-        String base64CipheredPrk = Base64.encodeToString(lastEncryptedPrk, Base64.NO_WRAP);
-
-        List<String> requiredDataForMAC = new ArrayList<>();
-        requiredDataForMAC.add(base64CipheredPrk);
-        requiredDataForMAC.add(base64Puk);
-        requiredDataForMAC.add(base64Address);
-        requiredDataForMAC.add(psw);
-        setWalletPref(requiredDataForMAC);
+        this.password = password;
+        setInfo(walletKeyPair);
+        this.password = "";
     }
 
     public byte[] generateSignedTransactionData(String transaction, String password) {
@@ -157,9 +167,7 @@ public class Wallet implements MoaConfigurable {
             return signData;
 
         byte[] privateKeyBytes = getDecryptedPrivateKey(password);
-        if (privateKeyBytes == null)
-            return signData;
-        if (privateKeyBytes.length == 0)
+        if (privateKeyBytes == null || privateKeyBytes.length == 0)
             return signData;
 
         String signatureAlgorithm = getValuesInPreferences(MoaConfigurable.KEY_WALLET_SIGNATURE_ALGIROTHM);
@@ -297,32 +305,6 @@ public class Wallet implements MoaConfigurable {
 
         byteBuffer.put((byte) 0x00);
         byteBuffer.put(ripemd160);
-        byteBuffer.put(checksum);
-        walletAddress = byteBuffer.array();
-        return walletAddress;
-    }
-
-    @Deprecated
-    private byte[] generateAddressCreatedWithPrivateKey(byte[] privateKey) {
-        byte[] walletAddress = {0,};
-        String hashAlgorithm = getValuesInPreferences(MoaConfigurable.KEY_WALLET_HASH_ALGORITHM);
-        if (hashAlgorithm == null)
-            return walletAddress;
-
-        int prefixSize = 1;
-        byte[] hashPrk = hashDigest(hashAlgorithm, privateKey);
-        byte[] dualHashPrk = hashDigest(hashAlgorithm, hashPrk);
-        byte[] checksum = new byte[4];
-        System.arraycopy(dualHashPrk, 0, checksum, 0, checksum.length);
-
-        int ethBlockChainAddrLen = prefixSize + privateKey.length + prefixSize + checksum.length;
-        ByteBuffer byteBuffer = ByteBuffer.allocate(ethBlockChainAddrLen);
-        byteBuffer.clear();
-        byteBuffer.order(ByteOrder.BIG_ENDIAN);
-
-        byteBuffer.put((byte) 0x80);
-        byteBuffer.put(privateKey);
-        byteBuffer.put((byte) 0x01);
         byteBuffer.put(checksum);
         walletAddress = byteBuffer.array();
         return walletAddress;
@@ -477,12 +459,110 @@ public class Wallet implements MoaConfigurable {
         }
     }
 
+    public void generateInfoJS(String password) {
+        String curve = getValuesInPreferences(MoaConfigurable.KEY_WALLET_ECC_CURVE);
+        webView.loadUrl("javascript:doGenerate('" + curve + "')");
+        this.password = password;
+    }
+
+    @Override
+    public void onSuccessKeyPair(String prk, String puk) {
+        byte[][] keyPair = new byte[2][];
+        keyPair[0] = hexStringToByteArray(prk);
+        keyPair[1] = hexStringToByteArray(puk);
+        setInfo(keyPair);
+        password = "";
+    }
+
+    private void setInfo(byte[][] walletKeyPair) {
+        if (walletKeyPair.length == 0)
+            return;
+        String base64Puk = Base64.encodeToString(walletKeyPair[1], Base64.NO_WRAP);
+
+        byte[] walletAddressCreatedPuk = generateAddressCreatedWithPublicKey(walletKeyPair[1]);
+        if (walletAddressCreatedPuk.length == 0)
+            return;
+        String base64Address = Base64.encodeToString(walletAddressCreatedPuk, Base64.NO_WRAP);
+
+        int cipherMode = Cipher.ENCRYPT_MODE;
+        byte[] firstEncryptedPrk = getPBKDF2Data(cipherMode, password, walletKeyPair[0]);
+        if (firstEncryptedPrk.length == 0)
+            return;
+        byte[] lastEncryptedPrk = getRSAData(cipherMode, firstEncryptedPrk);
+        if (lastEncryptedPrk.length == 0)
+            return;
+        String base64CipheredPrk = Base64.encodeToString(lastEncryptedPrk, Base64.NO_WRAP);
+
+        List<String> requiredDataForMAC = new ArrayList<>();
+        requiredDataForMAC.add(base64CipheredPrk);
+        requiredDataForMAC.add(base64Puk);
+        requiredDataForMAC.add(base64Address);
+        requiredDataForMAC.add(password);
+        setWalletPref(requiredDataForMAC);
+    }
+
+    public boolean generateSignedTransactionDataJS(String transaction, String password) {
+        if (!checkMACData(password))
+            return false;
+        byte[] privateKeyBytes = getDecryptedPrivateKey(password);
+        if (privateKeyBytes == null || privateKeyBytes.length == 0)
+            return false;
+        String curve = getValuesInPreferences(KEY_WALLET_ECC_CURVE);
+        String signAlg = getValuesInPreferences(KEY_WALLET_SIGNATURE_ALGIROTHM);
+        String prvkey = byteArrayToHexString(privateKeyBytes);
+        webView.loadUrl("javascript:doSign('" + curve + "', '" + signAlg + "', '" + transaction + "', '" + prvkey + "')");
+        return true;
+    }
+
+    public void verifySignedDataJS(String plainText, String signedData) {
+        String curve = getValuesInPreferences(MoaConfigurable.KEY_WALLET_ECC_CURVE);
+        String signAlg = getValuesInPreferences(MoaConfigurable.KEY_WALLET_SIGNATURE_ALGIROTHM);
+        String pubkey = byteArrayToHexString(Base64.decode(getValuesInPreferences(MoaConfigurable.KEY_WALLET_PUBLIC_KEY), Base64.NO_WRAP));
+        webView.loadUrl("javascript:doVerify('" + curve + "', '" + signAlg + "', '" + plainText + "', '" + signedData + "', '" + pubkey + "')");
+    }
+
+    private byte[] hexStringToByteArray(String s) {
+        int len = s.length();
+        byte[] data = new byte[len / 2];
+        for (int i = 0; i < len; i += 2) {
+            data[i / 2] = (byte) ((Character.digit(s.charAt(i), 16) << 4)
+                    + Character.digit(s.charAt(i + 1), 16));
+        }
+        return data;
+    }
+
+    private String byteArrayToHexString(byte[] bytes) {
+        StringBuilder sb = new StringBuilder();
+        for (byte b : bytes) {
+            sb.append(String.format("%02X", b & 0xff));
+        }
+        return sb.toString();
+    }
+
+    @Override
+    public void onSuccessSign(String sign) {
+        if (moaWalletReceiver != null)
+            moaWalletReceiver.onSuccessSign(sign);
+    }
+
+    @Override
+    public void onSuccessVerify(boolean checkSign) {
+        if (moaWalletReceiver != null)
+            moaWalletReceiver.onSuccessVerify(checkSign);
+    }
+
     public static class Builder {
         private Context context;
+        private MoaWalletReceiver receiver;
         private Wallet instance;
 
         public Builder(Context context) {
             this.context = context;
+        }
+
+        public Builder addReceiver(MoaWalletReceiver receiver) {
+            this.receiver = receiver;
+            return this;
         }
 
         public Wallet build() {

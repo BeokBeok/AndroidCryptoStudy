@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+
+	<body>
+		<script type="text/javascript" src="./MoaECDSACoreAPI.min.js">charset = "UTF-8" </script>
+		<script>
+			function doGenerate(curve) {
+				const ec = new KJUR.crypto.ECDSA({ "curve": curve });
+				const keyPair = ec.generateKeyPairHex();
+				ECDSA.generateKeyPair(keyPair.ecprvhex, keyPair.ecpubhex);
+			}
+
+			function doSign(curve, signAlg, msg, prvkey) {
+				const sign = new KJUR.crypto.Signature({ "alg": signAlg });
+				sign.init({ d: prvkey, curve: curve });
+				sign.updateString(msg);
+				const signValueHex = sign.sign();
+				ECDSA.generateSign(signValueHex);
+			}
+
+			function doVerify(curve, signAlg, msg, signVal, pubkey) {
+				const sign = new KJUR.crypto.Signature({ "alg": signAlg, "prov": "cryptojs/jsrsa" });
+				sign.init({ xy: pubkey, curve: curve });
+				sign.updateString(msg);
+				const result = sign.verify(signVal);
+				ECDSA.verifySign(result);
+			}
+		
+		</script>
+	</body>
+
+</html>

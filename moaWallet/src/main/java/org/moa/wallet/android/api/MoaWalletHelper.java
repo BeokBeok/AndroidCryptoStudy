@@ -2,6 +2,7 @@ package org.moa.wallet.android.api;
 
 import android.content.Context;
 import android.util.Base64;
+import android.webkit.WebView;
 
 import org.moa.wallet.manager.Wallet;
 
@@ -11,19 +12,28 @@ public class MoaWalletHelper {
     private Wallet wallet;
 
     private MoaWalletHelper(Builder builder) {
-        Context context = builder.context;
-        wallet = new Wallet.Builder(context).build();
+        wallet = new Wallet.Builder(builder.context).addReceiver(builder.receiver).build();
+        if (builder.webView != null)
+            wallet.setWebView(builder.webView);
     }
 
-    public void generateWalletInfo(String password) {
+    public void generateInfo(String password) {
         wallet.generateInfo(password);
     }
 
-    public byte[] getSigendTransactionData(String transaction, String password) {
+    public void generateInfoJS(String password) {
+        wallet.generateInfoJS(password);
+    }
+
+    public byte[] getSignedTransactionData(String transaction, String password) {
         return wallet.generateSignedTransactionData(transaction, password);
     }
 
-    public PublicKey getWalletPublicKey() {
+    public void getSignedTransactionDataJS(String transaction, String password) {
+        wallet.generateSignedTransactionDataJS(transaction, password);
+    }
+
+    public PublicKey getPublicKey() {
         return wallet.getPublicKey();
     }
 
@@ -31,12 +41,16 @@ public class MoaWalletHelper {
         return wallet.verifySignedData(plainText, Base64.decode(signedData, Base64.NO_WRAP));
     }
 
-    public boolean existWallet() {
+    public void verifySignedTransactionDataJS(String plainText, String signedData) {
+        wallet.verifySignedDataJS(plainText, signedData);
+    }
+
+    public boolean exists() {
         return wallet.existPreferences();
     }
 
     //TODO 지갑 데이터별로 Getter 함수 구현
-    public String getWalletContent() {
+    public String getContent() {
         String versionInfo = wallet.getValuesInPreferences(MoaConfigurable.KEY_WALLET_VERSION_INFO);
         String osInfo = wallet.getValuesInPreferences(MoaConfigurable.KEY_WALLET_OS_INFO);
         String salt = wallet.getValuesInPreferences(MoaConfigurable.KEY_WALLET_SALT);
@@ -57,10 +71,22 @@ public class MoaWalletHelper {
 
     public static class Builder {
         private Context context;
+        private WebView webView;
+        private MoaWalletReceiver receiver;
         private static MoaWalletHelper instance;
 
         public Builder(Context context) {
             this.context = context;
+        }
+
+        public Builder addWebView(WebView webView) {
+            this.webView = webView;
+            return this;
+        }
+
+        public Builder addReceiver(MoaWalletReceiver receiver) {
+            this.receiver = receiver;
+            return this;
         }
 
         public MoaWalletHelper build() {
