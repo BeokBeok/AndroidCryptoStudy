@@ -49,7 +49,7 @@ task deleteObjectJar(type: Delete){
 }
 
 task exportJar(type: Copy){
-    from('build/intermediates/intermediate-jars/release/')
+    from('build/intermediates/packaged-classes/release/')
     into('release/')
     include('classes.jar')
     rename('classes.jar', 'moaAndroidIDMng.jar')
