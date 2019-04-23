@@ -216,7 +216,7 @@ public class Wallet implements MoaConfigurable, MoaWalletReceiver {
         setValuesInPreferences(MoaConfigurable.KEY_WALLET_ECC_ALGORITHM, "EC");
         setValuesInPreferences(MoaConfigurable.KEY_WALLET_ECC_CURVE, "secp256r1");
         setValuesInPreferences(MoaConfigurable.KEY_WALLET_MAC_ALGORITHM, "HmacSHA256");
-        setValuesInPreferences(MoaConfigurable.KEY_WALLET_ITERATION_COUNT, "8192");
+        setValuesInPreferences(MoaConfigurable.KEY_WALLET_ITERATION_COUNT, "4096");
     }
 
     private byte[] getSalt() {
