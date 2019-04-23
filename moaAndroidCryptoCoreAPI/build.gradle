@@ -4,7 +4,6 @@ android {
     compileSdkVersion 28
 
 
-
     defaultConfig {
         minSdkVersion 19
         targetSdkVersion 28
@@ -33,15 +32,15 @@ dependencies {
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
 }
 
-task deleteObjectJar(type: Delete){
-    delete 'release/moaAndroidCryptoCoreAPI.jar'
+task deleteObjectJar(type: Delete) {
+    delete 'release/moaAndroidCryptoCoreAPI-v1.0.0.jar'
 }
 
-task exportJar(type: Copy){
+task exportJar(type: Copy) {
     from('build/intermediates/packaged-classes/release/')
     into('release/')
     include('classes.jar')
-    rename('classes.jar', 'moaAndroidCryptoCoreAPI.jar')
+    rename('classes.jar', 'moaAndroidCryptoCoreAPI-v1.0.0.jar')
 }
 
 exportJar.dependsOn(deleteObjectJar, build)
