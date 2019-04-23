@@ -211,7 +211,7 @@ public class Wallet implements MoaConfigurable, MoaWalletReceiver {
         setValuesInPreferences(MoaConfigurable.KEY_WALLET_VERSION_INFO, "1");
         setValuesInPreferences(MoaConfigurable.KEY_WALLET_SYMMETRIC_ALGORITHM, "AES/CBC/PKCS7Padding");
         setValuesInPreferences(MoaConfigurable.KEY_WALLET_SYMMETRIC_KEY_SIZE, "256");
-        setValuesInPreferences(MoaConfigurable.KEY_WALLET_HASH_ALGORITHM, "SHA384");
+        setValuesInPreferences(MoaConfigurable.KEY_WALLET_HASH_ALGORITHM, "SHA256");
         setValuesInPreferences(MoaConfigurable.KEY_WALLET_SIGNATURE_ALGIROTHM, "SHA256withECDSA");
         setValuesInPreferences(MoaConfigurable.KEY_WALLET_ECC_ALGORITHM, "EC");
         setValuesInPreferences(MoaConfigurable.KEY_WALLET_ECC_CURVE, "secp256r1");
