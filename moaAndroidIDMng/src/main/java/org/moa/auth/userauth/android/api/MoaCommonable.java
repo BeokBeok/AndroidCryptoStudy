@@ -3,7 +3,6 @@ package org.moa.auth.userauth.android.api;
 import android.util.Base64;
 import android.util.Log;
 
-import org.bouncycastle.util.encoders.Hex;
 import org.moa.android.crypto.coreapi.SymmetricCrypto;
 import org.moa.auth.userauth.client.api.MoaClientMsgPacketLib;
 
@@ -49,7 +48,7 @@ public interface MoaCommonable {
         try {
             byte[] idBytes = id.getBytes(FORMAT_ENCODE);
             byte[] passwordBytes = password.getBytes(FORMAT_ENCODE);
-            byte[] ivBytes = Hex.decode("00FF0000FF00FF000000FFFF000000FF");
+            byte[] ivBytes = hexStringToByteArray("00FF0000FF00FF000000FFFF000000FF");
             byte[] keyBytes = new byte[ivBytes.length];
             byte[] idBytesDigestM = hashDigest(hashAlg, idBytes);
 
@@ -75,7 +74,7 @@ public interface MoaCommonable {
         try {
             byte[] idBytes = id.getBytes(FORMAT_ENCODE);
             byte[] passwordBytes = password.getBytes(FORMAT_ENCODE);
-            byte[] ivBytes = Hex.decode("00FF0000FF00FF000000FFFF000000FF");
+            byte[] ivBytes = hexStringToByteArray("00FF0000FF00FF000000FFFF000000FF");
             byte[] keyBytes = new byte[ivBytes.length];
             byte[] idBytesDigestM = hashDigest(hashAlg, idBytes);
 
@@ -84,7 +83,7 @@ public interface MoaCommonable {
             byte[] encPswBytes = symmetricCrypto.getSymmetricData(Cipher.ENCRYPT_MODE, passwordBytes);
             byte[] pswDigestBytes = hashDigest(hashAlg, encPswBytes);
             byte[] idPswHmacDigestBytes = hmacDigest(hmacAlg, idBytes, pswDigestBytes);
-            byte[] nonceOTPBytes = Hex.decode(nonceOTP);
+            byte[] nonceOTPBytes = hexStringToByteArray(nonceOTP);
             pinLoginRequestMsgGen = MoaClientMsgPacketLib.PinLogInRequestMsgGen(idBytes.length, idBytes,
                     pswDigestBytes.length, pswDigestBytes, idPswHmacDigestBytes.length, idPswHmacDigestBytes,
                     nonceOTPBytes.length, nonceOTPBytes);
@@ -93,5 +92,15 @@ public interface MoaCommonable {
             throw new RuntimeException("Failed to generate PIN login request message", e);
         }
         return Base64.encodeToString(pinLoginRequestMsgGen, Base64.NO_WRAP);
+    }
+
+    default byte[] hexStringToByteArray(String s) {
+        int len = s.length();
+        byte[] data = new byte[len / 2];
+        for (int i = 0; i < len; i += 2) {
+            data[i / 2] = (byte) ((Character.digit(s.charAt(i), 16) << 4)
+                    + Character.digit(s.charAt(i + 1), 16));
+        }
+        return data;
     }
 }
