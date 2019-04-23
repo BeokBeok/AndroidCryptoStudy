@@ -9,7 +9,6 @@ import android.webkit.WebView;
 
 import org.moa.android.crypto.coreapi.MoaBase58;
 import org.moa.android.crypto.coreapi.PBKDF2;
-import org.moa.android.crypto.coreapi.RIPEMD160;
 import org.moa.android.crypto.coreapi.SymmetricCrypto;
 import org.moa.wallet.android.api.MoaBridge;
 import org.moa.wallet.android.api.MoaConfigurable;
@@ -17,8 +16,6 @@ import org.moa.wallet.android.api.MoaWalletReceiver;
 
 import java.io.IOException;
 import java.math.BigInteger;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.KeyFactory;
@@ -274,53 +271,18 @@ public class Wallet implements MoaConfigurable, MoaWalletReceiver {
         return resultData;
     }
 
-    private byte[] generateAddressCreatedWithPublicKey(byte[] publicKey) {
+    private byte[] generateAddress(byte[] publicKey) {
+        Log.d("kkk", "public key hex string [" + byteArrayToHexString(publicKey) + "]");
         byte[] walletAddress = {0,};
-        String hashAlgorithm = getValuesInPreferences(MoaConfigurable.KEY_WALLET_HASH_ALGORITHM);
-        if (hashAlgorithm == null)
+        String hashAlg = getValuesInPreferences(MoaConfigurable.KEY_WALLET_HASH_ALGORITHM);
+        if (hashAlg.length() == 0)
             return walletAddress;
-
-        int prefixSize = 1;
-        byte[] hashPuk = hashDigest(hashAlgorithm, publicKey);
-        byte[] ripemd160 = RIPEMD160.getHash(hashPuk);
-        byte[] checksum = new byte[4];
-        System.arraycopy(hashPuk, 0, checksum, 0, checksum.length);
-
-        int ethBlockChainAddrLen = prefixSize + ripemd160.length + checksum.length;
-        ByteBuffer byteBuffer = ByteBuffer.allocate(ethBlockChainAddrLen);
-        byteBuffer.clear();
-        byteBuffer.order(ByteOrder.BIG_ENDIAN);
-
-        byteBuffer.put((byte) 0x00);
-        byteBuffer.put(ripemd160);
-        byteBuffer.put(checksum);
-        walletAddress = byteBuffer.array();
-        return walletAddress;
-    }
-
-    private byte[] generateAddressCreatedWithPrivateKey(byte[] privateKey) {
-        byte[] walletAddress = {0,};
-        String hashAlgorithm = getValuesInPreferences(MoaConfigurable.KEY_WALLET_HASH_ALGORITHM);
-        if (hashAlgorithm == null)
-            return walletAddress;
-
-        int prefixSize = 1;
-        byte[] hashPrk = hashDigest(hashAlgorithm, privateKey);
-        byte[] dualHashPrk = hashDigest(hashAlgorithm, hashPrk);
-        byte[] checksum = new byte[4];
-        System.arraycopy(dualHashPrk, 0, checksum, 0, checksum.length);
-
-        int ethBlockChainAddrLen = prefixSize + privateKey.length + prefixSize + checksum.length;
-        ByteBuffer byteBuffer = ByteBuffer.allocate(ethBlockChainAddrLen);
-        byteBuffer.clear();
-        byteBuffer.order(ByteOrder.BIG_ENDIAN);
-
-        byteBuffer.put((byte) 0x80);
-        byteBuffer.put(privateKey);
-        byteBuffer.put((byte) 0x01);
-        byteBuffer.put(checksum);
-        walletAddress = byteBuffer.array();
-        return walletAddress;
+        byte[] hashPuk = hashDigest(hashAlg, publicKey);
+        Log.d("kkk", "hashed public key [" + byteArrayToHexString(hashPuk) + "]");
+        byte[] ethAddress = new byte[20];
+        System.arraycopy(hashPuk, 12, ethAddress, 0, ethAddress.length);
+        Log.d("kkk", "ethereum base address [" + byteArrayToHexString(ethAddress) + "]");
+        return ethAddress;
     }
 
     private String generateMACData(String base58Salt, String psw, String targetMacData) {
@@ -477,10 +439,10 @@ public class Wallet implements MoaConfigurable, MoaWalletReceiver {
             return;
         String base58Puk = MoaBase58.encode(walletKeyPair[1]);
 
-        byte[] walletAddressCreatedPuk = generateAddressCreatedWithPublicKey(walletKeyPair[1]);
-        if (walletAddressCreatedPuk.length == 0)
+        byte[] walletAddress = generateAddress(walletKeyPair[1]);
+        if (walletAddress.length == 0)
             return;
-        String base58Address = MoaBase58.encode(walletAddressCreatedPuk);
+        String base58Address = MoaBase58.encode(walletAddress);
 
         int cipherMode = Cipher.ENCRYPT_MODE;
         byte[] firstEncryptedPrk = getPBKDF2Data(cipherMode, password, walletKeyPair[0]);
@@ -573,7 +535,7 @@ public class Wallet implements MoaConfigurable, MoaWalletReceiver {
     private String byteArrayToHexString(byte[] bytes) {
         StringBuilder sb = new StringBuilder();
         for (byte b : bytes) {
-            sb.append(String.format("%02X", b & 0xff));
+            sb.append(String.format("%02x", b & 0xff));
         }
         return sb.toString();
     }
