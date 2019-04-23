@@ -10,8 +10,8 @@ import android.util.Log;
 import org.moa.android.crypto.coreapi.PBKDF2;
 import org.moa.android.crypto.coreapi.SymmetricCrypto;
 import org.moa.auth.userauth.android.api.MoaCommonable;
-import org.moa.auth.userauth.android.api.MoaMember;
 import org.moa.auth.userauth.android.api.MoaConfigurable;
+import org.moa.auth.userauth.android.api.MoaMember;
 import org.moa.auth.userauth.android.api.MoaTEEUsable;
 
 import java.io.IOException;

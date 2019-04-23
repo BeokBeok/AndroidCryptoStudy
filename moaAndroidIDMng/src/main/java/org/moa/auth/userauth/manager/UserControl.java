@@ -7,8 +7,8 @@ import android.util.Base64;
 import android.util.Log;
 
 import org.moa.auth.userauth.android.api.MoaCommonable;
-import org.moa.auth.userauth.android.api.MoaMember;
 import org.moa.auth.userauth.android.api.MoaConfigurable;
+import org.moa.auth.userauth.android.api.MoaMember;
 
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
