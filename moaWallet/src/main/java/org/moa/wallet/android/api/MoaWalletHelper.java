@@ -4,6 +4,7 @@ import android.content.Context;
 import android.util.Base64;
 import android.webkit.WebView;
 
+import org.moa.android.crypto.coreapi.MoaBase58;
 import org.moa.wallet.manager.Wallet;
 
 import java.security.PublicKey;
@@ -21,16 +22,8 @@ public class MoaWalletHelper {
         wallet.generateInfo(password);
     }
 
-    public void generateInfoJS(String password) {
-        wallet.generateInfoJS(password);
-    }
-
     public byte[] getSignedTransactionData(String transaction, String password) {
         return wallet.generateSignedTransactionData(transaction, password);
-    }
-
-    public void getSignedTransactionDataJS(String transaction, String password) {
-        wallet.generateSignedTransactionDataJS(transaction, password);
     }
 
     public PublicKey getPublicKey() {
@@ -38,11 +31,7 @@ public class MoaWalletHelper {
     }
 
     public boolean verifySignedTransactionData(String plainText, String signedData) {
-        return wallet.verifySignedData(plainText, Base64.decode(signedData, Base64.NO_WRAP));
-    }
-
-    public void verifySignedTransactionDataJS(String plainText, String signedData) {
-        wallet.verifySignedDataJS(plainText, signedData);
+        return wallet.verifySignedData(plainText, MoaBase58.decode(signedData));
     }
 
     public boolean exists() {
@@ -69,11 +58,31 @@ public class MoaWalletHelper {
                 "MAC.Data=" + macData;
     }
 
+    // [Start] JS Library
+
+    public void generateInfoJS(String password) {
+        wallet.generateInfoJS(password);
+    }
+
+    public void getSignedTransactionDataJS(String transaction, String password) {
+        wallet.generateSignedTransactionDataJS(transaction, password);
+    }
+
+    public void verifySignedTransactionDataJS(String plainText, String signedData) {
+        wallet.verifySignedDataJS(plainText, signedData);
+    }
+
+    public String getPublicKeyJS() {
+        return wallet.getPublicKeyJS();
+    }
+
+    // [End] JS Library
+
     public static class Builder {
+        private static MoaWalletHelper instance;
         private Context context;
         private WebView webView;
         private MoaWalletReceiver receiver;
-        private static MoaWalletHelper instance;
 
         public Builder(Context context) {
             this.context = context;
