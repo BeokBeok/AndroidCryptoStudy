@@ -272,16 +272,13 @@ public class Wallet implements MoaConfigurable, MoaWalletReceiver {
     }
 
     private byte[] generateAddress(byte[] publicKey) {
-        Log.d("kkk", "public key hex string [" + byteArrayToHexString(publicKey) + "]");
         byte[] walletAddress = {0,};
         String hashAlg = getValuesInPreferences(MoaConfigurable.KEY_WALLET_HASH_ALGORITHM);
         if (hashAlg.length() == 0)
             return walletAddress;
         byte[] hashPuk = hashDigest(hashAlg, publicKey);
-        Log.d("kkk", "hashed public key [" + byteArrayToHexString(hashPuk) + "]");
         byte[] ethAddress = new byte[20];
         System.arraycopy(hashPuk, 12, ethAddress, 0, ethAddress.length);
-        Log.d("kkk", "ethereum base address [" + byteArrayToHexString(ethAddress) + "]");
         return ethAddress;
     }
 
