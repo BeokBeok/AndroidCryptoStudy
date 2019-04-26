@@ -37,7 +37,7 @@ import java.security.spec.ECGenParameterSpec;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
 
@@ -450,11 +450,7 @@ public class Wallet implements MoaConfigurable, MoaWalletReceiver {
             return;
         String base58CipheredPrk = MoaBase58.encode(lastEncryptedPrk);
 
-        List<String> requiredDataForMAC = new ArrayList<>();
-        requiredDataForMAC.add(base58CipheredPrk);
-        requiredDataForMAC.add(base58Puk);
-        requiredDataForMAC.add(base58Address);
-        requiredDataForMAC.add(password);
+        List<String> requiredDataForMAC = Arrays.asList(base58CipheredPrk, base58Puk, base58Address, password);
         setWalletPref(requiredDataForMAC);
     }
 
