@@ -42,11 +42,11 @@ public class MoaAuthHelper implements MoaCommonable {
         autoLogin.init(context, uniqueDeviceID);
     }
 
-    public void setNonMemberPIN() {
+    public void setNonMemberPIN(String nonMemberPIN) {
         if (isNotValidUniqueDeviceID())
             return;
         List<String> nonMemberInfo = Arrays.asList(MoaMember.Type.NONMEMBER.getType(),
-                uniqueDeviceID, MoaMember.AuthType.INACTIVE.getType(), MoaMember.CoinKeyMgrType.INACTIVE.getType());
+                nonMemberPIN, MoaMember.AuthType.INACTIVE.getType(), MoaMember.CoinKeyMgrType.INACTIVE.getType());
         userControl.setMemberInfo(nonMemberInfo);
     }
 
@@ -154,10 +154,6 @@ public class MoaAuthHelper implements MoaCommonable {
         if (isNotValidUniqueDeviceID())
             return;
         userControl.setValuesInPreferences(MoaConfigurable.KEY_BASE_PRIMARY_INDEX, userSequenceIndex);
-    }
-
-    public String getUniqueDeviceInfo() {
-        return userControl.getUniqueDeviceInfo();
     }
 
     private boolean isNotValidUniqueDeviceID() {
