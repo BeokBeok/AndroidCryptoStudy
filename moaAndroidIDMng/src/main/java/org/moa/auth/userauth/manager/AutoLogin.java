@@ -68,7 +68,6 @@ public class AutoLogin extends PINAuth implements MoaTEEUsable, MoaCommonable {
             super.keyStore.load(null);
         } catch (KeyStoreException | IOException | NoSuchAlgorithmException | CertificateException e) {
             Log.d("MoaLib", "[AutoLogin][initKeyStore] failed to init keystore");
-            throw new RuntimeException("Failed to init keystore", e);
         }
     }
 
@@ -91,7 +90,6 @@ public class AutoLogin extends PINAuth implements MoaTEEUsable, MoaCommonable {
             keyPairGenerator.generateKeyPair();
         } catch (NoSuchAlgorithmException | NoSuchProviderException | InvalidAlgorithmParameterException e) {
             Log.d("MoaLib", "[AutoLogin][generateKey] Failed to create auto login key pair");
-            throw new RuntimeException("Failed to create auto login key pair", e);
         }
     }
 

@@ -65,7 +65,6 @@ public class AuthToken implements MoaTEEUsable, MoaConfigurable {
             this.keyStore.load(null);
         } catch (KeyStoreException | IOException | NoSuchAlgorithmException | CertificateException e) {
             Log.d("MoaLib", "[AuthToken][initKeyStore] failed to init keystore");
-            throw new RuntimeException("Failed to init keystore", e);
         }
     }
 
@@ -85,7 +84,6 @@ public class AuthToken implements MoaTEEUsable, MoaConfigurable {
             keyGenerator.generateKey();
         } catch (NoSuchAlgorithmException | NoSuchProviderException | InvalidAlgorithmParameterException e) {
             Log.d("MoaLib", "[AuthToken][generateKey] failed to generate key");
-            throw new RuntimeException("Failed to generate key", e);
         }
     }
 
@@ -108,7 +106,7 @@ public class AuthToken implements MoaTEEUsable, MoaConfigurable {
 
     @RequiresApi(api = Build.VERSION_CODES.M)
     private String getEncryptContent(String content) {
-        String resultData;
+        String resultData = "";
         try {
             if (!keyStore.containsAlias(keyAlias))
                 generateKey();
@@ -126,19 +124,18 @@ public class AuthToken implements MoaTEEUsable, MoaConfigurable {
         } catch (InvalidKeyException | NoSuchAlgorithmException | KeyStoreException | UnrecoverableEntryException
                 | NoSuchPaddingException | BadPaddingException | UnsupportedEncodingException | IllegalBlockSizeException e) {
             Log.d("MoaLib", "[AuthToken][getEncryptContent] failed to get encrypted content");
-            throw new RuntimeException("Failed to get encrypted content", e);
         }
         return resultData;
     }
 
     private String getDecryptContent(byte[] content) {
-        String result;
+        String result = "";
         try {
             Cipher cipher = Cipher.getInstance(transformation);
             KeyStore.SecretKeyEntry secretKeyEntry = (KeyStore.SecretKeyEntry) keyStore.getEntry(keyAlias, null);
             if (secretKeyEntry == null) {
                 Log.d("MoaLib", "[AuthToken][getDecryptContent] secretKeyEntry is null");
-                return null;
+                return result;
             }
 
             cipher.init(Cipher.DECRYPT_MODE, secretKeyEntry.getSecretKey(), new GCMParameterSpec(128, getIV()));
@@ -148,7 +145,6 @@ public class AuthToken implements MoaTEEUsable, MoaConfigurable {
                 KeyStoreException | UnrecoverableEntryException | IllegalBlockSizeException | BadPaddingException |
                 UnsupportedEncodingException e) {
             Log.d("MoaLib", "[AuthToken][getDecryptContent] failed to get decrypt content");
-            throw new RuntimeException("Failed to get decrypt content", e);
         }
         return result;
     }
