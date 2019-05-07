@@ -12,7 +12,7 @@ import org.moa.auth.userauth.manager.FingerprintAuth;
 import org.moa.auth.userauth.manager.UserControl;
 
 import java.security.PublicKey;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.StringTokenizer;
 
@@ -45,11 +45,8 @@ public class MoaAuthHelper implements MoaCommonable {
     public void setNonMemberPIN() {
         if (isNotValidUniqueDeviceID())
             return;
-        List<String> nonMemberInfo = new ArrayList<>();
-        nonMemberInfo.add(MoaMember.Type.NONMEMBER.getType());
-        nonMemberInfo.add(uniqueDeviceID);
-        nonMemberInfo.add(MoaMember.AuthType.INACTIVE.getType());
-        nonMemberInfo.add(MoaMember.CoinKeyMgrType.INACTIVE.getType());
+        List<String> nonMemberInfo = Arrays.asList(MoaMember.Type.NONMEMBER.getType(),
+                uniqueDeviceID, MoaMember.AuthType.INACTIVE.getType(), MoaMember.CoinKeyMgrType.INACTIVE.getType());
         userControl.setMemberInfo(nonMemberInfo);
     }
 
