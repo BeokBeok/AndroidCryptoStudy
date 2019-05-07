@@ -1,6 +1,8 @@
 package org.moa.auth.userauth.android.api;
 
-public abstract class MoaMember {
+public class MoaMember {
+    private MoaMember() {}
+    
     public enum Get {
         MEMBER("0"),
         MEMBER_ID("1"),
