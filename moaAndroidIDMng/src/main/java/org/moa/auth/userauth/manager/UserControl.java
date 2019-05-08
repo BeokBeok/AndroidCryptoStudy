@@ -83,12 +83,6 @@ public class UserControl extends PINAuth implements MoaCommonable {
                     Base64.encodeToString(MEMBER_ID.getBytes(MoaCommonable.FORMAT_ENCODE), Base64.NO_WRAP) + "$" +
                     AUTH_TYPE + "$" +
                     COIN_STORE_TYPE;
-            if (MEMBER_TYPE.equals(MoaMember.Type.NONMEMBER.getType())) {
-                controlDataForm = MEMBER_TYPE + "$" +
-                        MEMBER_ID + "$" +
-                        AUTH_TYPE + "$" +
-                        COIN_STORE_TYPE;
-            }
             setValuesInPreferences(MoaConfigurable.KEY_CONTROL_INFO, controlDataForm);
         } catch (UnsupportedEncodingException e) {
             Log.d("MoaLib", "[UserControl][setMemberInfo] failed to set member info");
@@ -106,8 +100,6 @@ public class UserControl extends PINAuth implements MoaCommonable {
             String base64MemberID = stringTokenizer.nextToken();
             byte[] decodeBase64MemberID = Base64.decode(base64MemberID, Base64.NO_WRAP);
             String memberID = new String(decodeBase64MemberID, MoaCommonable.FORMAT_ENCODE);
-            if (memberType.equals(MoaMember.Type.NONMEMBER.getType()))
-                memberID = base64MemberID;
             String memberAuthType = stringTokenizer.nextToken();
             String memberCoinKeyMgrType = stringTokenizer.nextToken();
 
@@ -125,8 +117,9 @@ public class UserControl extends PINAuth implements MoaCommonable {
         return result;
     }
 
-    public String getUniqueDeviceInfo() {
-        return getValuesInPreferences(MoaConfigurable.KEY_UNIQUE_DEVICE_INFO);
+    public void removeAllMemberInfo() {
+        SharedPreferences pref = context.getSharedPreferences(MoaConfigurable.PREFNAME_CONTROL_INFO, Context.MODE_PRIVATE);
+        pref.edit().clear().apply();
     }
 
     private boolean checkData(String data) {
