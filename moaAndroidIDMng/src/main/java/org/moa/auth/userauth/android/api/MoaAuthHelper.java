@@ -156,6 +156,10 @@ public class MoaAuthHelper implements MoaCommonable {
         userControl.setValuesInPreferences(MoaConfigurable.KEY_BASE_PRIMARY_INDEX, userSequenceIndex);
     }
 
+    public void removeAllControlInfo() {
+        userControl.removeAllMemberInfo();
+    }
+
     private boolean isNotValidUniqueDeviceID() {
         boolean validUniqueDeviceID = true;
         if (uniqueDeviceID == null)
