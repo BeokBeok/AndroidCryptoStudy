@@ -518,6 +518,24 @@ public class Wallet implements MoaConfigurable, MoaECDSAReceiver, MoaWalletRecei
         this.password = password;
     }
 
+    public byte[] hexStringToByteArray(String s) {
+        int len = s.length();
+        byte[] data = new byte[len / 2];
+        for (int i = 0; i < len; i += 2) {
+            data[i / 2] = (byte) ((Character.digit(s.charAt(i), 16) << 4)
+                    + Character.digit(s.charAt(i + 1), 16));
+        }
+        return data;
+    }
+
+    public String byteArrayToHexString(byte[] bytes) {
+        StringBuilder sb = new StringBuilder();
+        for (byte b : bytes) {
+            sb.append(String.format("%02x", b & 0xff));
+        }
+        return sb.toString();
+    }
+
     // [Start] JS Library
 
     public void generateSignedTransactionDataJS(String transaction, String password) {
@@ -598,24 +616,6 @@ public class Wallet implements MoaConfigurable, MoaECDSAReceiver, MoaWalletRecei
     public void onCompleteRestoreMsg(String msg) {
         if (moaWalletReceiver != null)
             moaWalletReceiver.onCompleteRestoreMsg(msg);
-    }
-
-    private byte[] hexStringToByteArray(String s) {
-        int len = s.length();
-        byte[] data = new byte[len / 2];
-        for (int i = 0; i < len; i += 2) {
-            data[i / 2] = (byte) ((Character.digit(s.charAt(i), 16) << 4)
-                    + Character.digit(s.charAt(i + 1), 16));
-        }
-        return data;
-    }
-
-    private String byteArrayToHexString(byte[] bytes) {
-        StringBuilder sb = new StringBuilder();
-        for (byte b : bytes) {
-            sb.append(String.format("%02x", b & 0xff));
-        }
-        return sb.toString();
     }
 
     private enum CoinKeyMgrType {

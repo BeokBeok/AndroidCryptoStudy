@@ -84,6 +84,14 @@ public class MoaWalletHelper {
         wallet.setRestoreInfo(password, msg);
     }
 
+    public byte[] hexStringToByteArray(String target) {
+        return wallet.hexStringToByteArray(target);
+    }
+
+    public String byteArrayToHexString(byte[] target) {
+        return wallet.byteArrayToHexString(target);
+    }
+
     // [End] JS Library
 
     public static class Builder {
