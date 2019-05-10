@@ -38,14 +38,14 @@ dependencies {
 }
 
 task deleteObjectJar(type: Delete){
-    delete 'release/moaWallet-v1.0.0.jar'
+    delete 'release/moaAndroidBCWallet-v1.0.0.jar'
 }
 
 task exportJar(type: Copy){
     from('build/intermediates/packaged-classes/release/')
     into('release/')
     include('classes.jar')
-    rename('classes.jar', 'moaWallet-v1.0.0.jar')
+    rename('classes.jar', 'moaAndroidBCWallet-v1.0.0.jar')
 }
 
 exportJar.dependsOn(deleteObjectJar, build)
