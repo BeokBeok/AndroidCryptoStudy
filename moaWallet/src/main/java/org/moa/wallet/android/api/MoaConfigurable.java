@@ -2,6 +2,7 @@ package org.moa.wallet.android.api;
 
 public interface MoaConfigurable {
     String PREFNAME_WALLET = "moaWallet";
+    String PREFNAME_RESTORE_WALLET = "moaRestoreWallet";
     String KEY_WALLET_VERSION_INFO = "Version.Info";
     String KEY_WALLET_OS_INFO = "OS.Info";
     String KEY_WALLET_SYMMETRIC_ALGORITHM = "Symmetric.Alg";

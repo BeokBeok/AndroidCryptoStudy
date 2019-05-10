@@ -2,11 +2,11 @@ package org.moa.wallet.android.api;
 
 import android.webkit.JavascriptInterface;
 
-public class MoaBridge implements MoaWalletReceiver {
-    private MoaWalletReceiver moaWalletReceiver;
+public class MoaBridge implements MoaECDSAReceiver {
+    private MoaECDSAReceiver moaECDSAReceiver;
 
-    public MoaBridge(MoaWalletReceiver moaWalletReceiver) {
-        this.moaWalletReceiver = moaWalletReceiver;
+    public MoaBridge(MoaECDSAReceiver moaECDSAReceiver) {
+        this.moaECDSAReceiver = moaECDSAReceiver;
     }
 
     @JavascriptInterface
@@ -26,19 +26,19 @@ public class MoaBridge implements MoaWalletReceiver {
 
     @Override
     public void onSuccessKeyPair(String prk, String puk) {
-        if (moaWalletReceiver != null)
-            moaWalletReceiver.onSuccessKeyPair(prk, puk);
+        if (moaECDSAReceiver != null)
+            moaECDSAReceiver.onSuccessKeyPair(prk, puk);
     }
 
     @Override
     public void onSuccessSign(String sign) {
-        if (moaWalletReceiver != null)
-            moaWalletReceiver.onSuccessSign(sign);
+        if (moaECDSAReceiver != null)
+            moaECDSAReceiver.onSuccessSign(sign);
     }
 
     @Override
     public void onSuccessVerify(boolean checkSign) {
-        if (moaWalletReceiver != null)
-            moaWalletReceiver.onSuccessVerify(checkSign);
+        if (moaECDSAReceiver != null)
+            moaECDSAReceiver.onSuccessVerify(checkSign);
     }
 }

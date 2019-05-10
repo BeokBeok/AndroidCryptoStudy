@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.security.KeyPairGeneratorSpec;
+import android.util.Base64;
 import android.util.Log;
 import android.webkit.WebView;
 
@@ -12,6 +13,7 @@ import org.moa.android.crypto.coreapi.PBKDF2;
 import org.moa.android.crypto.coreapi.SymmetricCrypto;
 import org.moa.wallet.android.api.MoaBridge;
 import org.moa.wallet.android.api.MoaConfigurable;
+import org.moa.wallet.android.api.MoaECDSAReceiver;
 import org.moa.wallet.android.api.MoaWalletReceiver;
 
 import java.io.IOException;
@@ -40,6 +42,7 @@ import java.security.spec.X509EncodedKeySpec;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
+import java.util.StringTokenizer;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -49,7 +52,7 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.SecretKeySpec;
 import javax.security.auth.x500.X500Principal;
 
-public class Wallet implements MoaConfigurable, MoaWalletReceiver {
+public class Wallet implements MoaConfigurable, MoaECDSAReceiver, MoaWalletReceiver {
     private final String keyAlias = "MoaWalletEncDecKeyPair";
     private final String androidProvider = "AndroidKeyStore";
     private Context context;
@@ -58,10 +61,13 @@ public class Wallet implements MoaConfigurable, MoaWalletReceiver {
     private PBKDF2 pbkdf2;
     private WebView webView;
     private String password = "";
+    private String type = CoinKeyMgrType.KEY_GEN_AND_SAVE_APP.getType();
 
     private Wallet(Builder builder) {
         this.context = builder.context;
         moaWalletReceiver = builder.receiver;
+        if (verifyType(type))
+            this.type = builder.type;
         initKeyStore();
         initProperties();
         pbkdf2 = new PBKDF2(getValuesInPreferences(MoaConfigurable.KEY_WALLET_HASH_ALGORITHM));
@@ -71,6 +77,14 @@ public class Wallet implements MoaConfigurable, MoaWalletReceiver {
         } catch (KeyStoreException e) {
             Log.d("MoaLib", "[Wallet] failed to check key alias");
         }
+    }
+
+    private boolean verifyType(String type) {
+        if (type == null || type.length() == 0)
+            return false;
+        return type.equals(CoinKeyMgrType.KEY_GEN_AND_SAVE_APP.getType()) ||
+                type.equals(CoinKeyMgrType.KEY_GEN_AND_SAVE_HSM.getType()) ||
+                type.equals(CoinKeyMgrType.KEY_GEN_HSM_AND_SAVE_HSM_SE.getType());
     }
 
     private void initKeyStore() {
@@ -108,7 +122,10 @@ public class Wallet implements MoaConfigurable, MoaWalletReceiver {
 
     @Override
     public void setValuesInPreferences(String key, String value) {
-        SharedPreferences pref = context.getSharedPreferences(MoaConfigurable.PREFNAME_WALLET, Context.MODE_PRIVATE);
+        String prefName = MoaConfigurable.PREFNAME_WALLET;
+        if (type.equals(CoinKeyMgrType.KEY_GEN_AND_SAVE_HSM.getType()))
+            prefName = MoaConfigurable.PREFNAME_RESTORE_WALLET;
+        SharedPreferences pref = context.getSharedPreferences(prefName, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = pref.edit();
         editor.putString(key, value);
         editor.apply();
@@ -116,7 +133,10 @@ public class Wallet implements MoaConfigurable, MoaWalletReceiver {
 
     @Override
     public String getValuesInPreferences(String key) {
-        SharedPreferences pref = context.getSharedPreferences(MoaConfigurable.PREFNAME_WALLET, Context.MODE_PRIVATE);
+        String prefName = MoaConfigurable.PREFNAME_WALLET;
+        if (type.equals(CoinKeyMgrType.KEY_GEN_AND_SAVE_HSM.getType()))
+            prefName = MoaConfigurable.PREFNAME_RESTORE_WALLET;
+        SharedPreferences pref = context.getSharedPreferences(prefName, Context.MODE_PRIVATE);
         String value = pref.getString(key, "");
         if (value == null || value.length() == 0)
             value = "";
@@ -138,6 +158,7 @@ public class Wallet implements MoaConfigurable, MoaWalletReceiver {
         return walletAddress.length() > 0;
     }
 
+    @Deprecated
     public void generateInfo(String password) {
         byte[][] walletKeyPair = generateKeyPair();
         if (walletKeyPair.length == 0)
@@ -147,6 +168,7 @@ public class Wallet implements MoaConfigurable, MoaWalletReceiver {
         this.password = "";
     }
 
+    @Deprecated
     public byte[] generateSignedTransactionData(String transaction, String password) {
         byte[] signData = {0,};
         if (!checkMACData(password))
@@ -170,6 +192,7 @@ public class Wallet implements MoaConfigurable, MoaWalletReceiver {
         return signData;
     }
 
+    @Deprecated
     public PublicKey getPublicKey() {
         if (!existPreferences())
             return null;
@@ -189,6 +212,7 @@ public class Wallet implements MoaConfigurable, MoaWalletReceiver {
         return null;
     }
 
+    @Deprecated
     public boolean verifySignedData(String plainText, byte[] signedData) {
         try {
             String algorithm = getValuesInPreferences(MoaConfigurable.KEY_WALLET_SIGNATURE_ALGIROTHM);
@@ -202,11 +226,40 @@ public class Wallet implements MoaConfigurable, MoaWalletReceiver {
         return false;
     }
 
+    public void setRestoreInfo(String password, String msg) {
+        if (msg == null || msg.length() == 0)
+            return;
+        StringTokenizer st = new StringTokenizer(msg, "$");
+        byte[] encPrk = Base64.decode(st.nextToken(), Base64.NO_WRAP);
+        byte[] encPuk = Base64.decode(st.nextToken(), Base64.NO_WRAP);
+        byte[] salt = Base64.decode(st.nextToken(), Base64.NO_WRAP);
+        if (!Arrays.equals(salt, getSalt()))
+            return;
+        this.password = password;
+        byte[] puk = getPBKDF2Data(Cipher.DECRYPT_MODE, password, encPuk);
+        String base58Puk = MoaBase58.encode(puk);
+
+        byte[] walletAddress = generateAddress(puk);
+        if (walletAddress.length == 0)
+            return;
+        String base58Address = MoaBase58.encode(walletAddress);
+
+        byte[] lastEncryptedPrk = getRSAData(Cipher.ENCRYPT_MODE, encPrk);
+        if (lastEncryptedPrk.length == 0)
+            return;
+        String base58CipheredPrk = MoaBase58.encode(lastEncryptedPrk);
+
+        List<String> requiredDataForMAC = Arrays.asList(base58CipheredPrk, base58Puk, base58Address, password);
+        setWalletPref(requiredDataForMAC);
+        this.password = "";
+        onCompleteWallet();
+    }
+
     private void initProperties() {
         if (getValuesInPreferences(MoaConfigurable.KEY_WALLET_VERSION_INFO).length() > 0)
             return;
         setValuesInPreferences(MoaConfigurable.KEY_WALLET_VERSION_INFO, "1");
-        setValuesInPreferences(MoaConfigurable.KEY_WALLET_SYMMETRIC_ALGORITHM, "AES/CBC/PKCS7Padding");
+        setValuesInPreferences(MoaConfigurable.KEY_WALLET_SYMMETRIC_ALGORITHM, "AES/CTR/NoPadding");
         setValuesInPreferences(MoaConfigurable.KEY_WALLET_SYMMETRIC_KEY_SIZE, "256");
         setValuesInPreferences(MoaConfigurable.KEY_WALLET_HASH_ALGORITHM, "SHA256");
         setValuesInPreferences(MoaConfigurable.KEY_WALLET_SIGNATURE_ALGIROTHM, "SHA256withECDSA");
@@ -260,7 +313,7 @@ public class Wallet implements MoaConfigurable, MoaWalletReceiver {
         if (derivedKey.length != 48)
             return resultData;
 
-        String transformationAES = "AES/CBC/PKCS7Padding";
+        String transformationAES = "AES/CTR/NoPadding";
         int keySize = Integer.parseInt(getValuesInPreferences(MoaConfigurable.KEY_WALLET_SYMMETRIC_KEY_SIZE)) / 8;
         byte[] key = new byte[keySize];
         System.arraycopy(derivedKey, 0, key, 0, key.length);
@@ -365,17 +418,7 @@ public class Wallet implements MoaConfigurable, MoaWalletReceiver {
                 || base58Puk.length() == 0 || base58Address.length() == 0 || base58MAC.length() == 0)
             return false;
         String mergedWalletData = versionInfo + osName + base58Salt + iterationCount + base58CipheredPrk + base58Puk + base58Address;
-        byte[] salt = MoaBase58.decode(base58Salt);
-        byte[] mergedSaltAndPassword = getMergedByteArray(salt, psw.getBytes());
-        String hashAlg = getValuesInPreferences(MoaConfigurable.KEY_WALLET_HASH_ALGORITHM);
-        if (hashAlg.length() == 0)
-            return false;
-        byte[] hmacKey = hashDigest(hashAlg, mergedSaltAndPassword);
-        String macAlg = getValuesInPreferences(MoaConfigurable.KEY_WALLET_MAC_ALGORITHM);
-        if (macAlg.length() == 0)
-            return false;
-        byte[] macData = hmacDigest(macAlg, mergedWalletData.getBytes(), hmacKey);
-        String newMacDataBase58 = MoaBase58.encode(macData);
+        String newMacDataBase58 = generateMACData(base58Salt, psw, mergedWalletData);
         return base58MAC.equals(newMacDataBase58);
     }
 
@@ -454,13 +497,28 @@ public class Wallet implements MoaConfigurable, MoaWalletReceiver {
         setWalletPref(requiredDataForMAC);
     }
 
-    // [Start] JS Library
+    private String generateRestoreDataFormat(byte[][] walletKeyPair) {
+        String result = "";
+        int cipherMode = Cipher.ENCRYPT_MODE;
+        byte[] encryptedPrk = getPBKDF2Data(cipherMode, password, walletKeyPair[0]);
+        if (encryptedPrk.length == 0)
+            return result;
+        byte[] encryptedPuk = getPBKDF2Data(cipherMode, password, walletKeyPair[1]);
+        if (encryptedPuk.length == 0)
+            return result;
+        result = Base64.encodeToString(encryptedPrk, Base64.NO_WRAP) + "$" +
+                Base64.encodeToString(encryptedPuk, Base64.NO_WRAP) + "$" +
+                Base64.encodeToString(getSalt(), Base64.NO_WRAP);
+        return result;
+    }
 
     public void generateInfoJS(String password) {
         String curve = getValuesInPreferences(MoaConfigurable.KEY_WALLET_ECC_CURVE);
         webView.loadUrl("javascript:doGenerate('" + curve + "')");
         this.password = password;
     }
+
+    // [Start] JS Library
 
     public void generateSignedTransactionDataJS(String transaction, String password) {
         if (!checkMACData(password)) {
@@ -496,23 +554,50 @@ public class Wallet implements MoaConfigurable, MoaWalletReceiver {
         byte[][] keyPair = new byte[2][];
         keyPair[0] = hexStringToByteArray(prk);
         keyPair[1] = hexStringToByteArray(puk);
-        setInfo(keyPair);
-        password = "";
-        if (moaWalletReceiver != null)
-            moaWalletReceiver.onSuccessKeyPair("", "");
+        if (type.equals(CoinKeyMgrType.KEY_GEN_AND_SAVE_APP.getType())) {
+            setInfo(keyPair);
+            password = "";
+            onCompleteWallet();
+        } else if (type.equals(CoinKeyMgrType.KEY_GEN_AND_SAVE_HSM.getType())) {
+            String restoreMsg = generateRestoreDataFormat(keyPair);
+            password = "";
+            onCompleteRestoreMsg(restoreMsg);
+        }
     }
 
     @Override
     public void onSuccessSign(String sign) {
         password = "";
-        if (moaWalletReceiver != null)
-            moaWalletReceiver.onSuccessSign(sign);
+        onCompleteSign(sign);
     }
 
     @Override
     public void onSuccessVerify(boolean checkSign) {
+        onCompleteVerify(checkSign);
+    }
+
+    @Override
+    public void onCompleteWallet() {
         if (moaWalletReceiver != null)
-            moaWalletReceiver.onSuccessVerify(checkSign);
+            moaWalletReceiver.onCompleteWallet();
+    }
+
+    @Override
+    public void onCompleteSign(String sign) {
+        if (moaWalletReceiver != null)
+            moaWalletReceiver.onCompleteSign(sign);
+    }
+
+    @Override
+    public void onCompleteVerify(boolean checkSign) {
+        if (moaWalletReceiver != null)
+            moaWalletReceiver.onCompleteVerify(checkSign);
+    }
+
+    @Override
+    public void onCompleteRestoreMsg(String msg) {
+        if (moaWalletReceiver != null)
+            moaWalletReceiver.onCompleteRestoreMsg(msg);
     }
 
     private byte[] hexStringToByteArray(String s) {
@@ -533,12 +618,29 @@ public class Wallet implements MoaConfigurable, MoaWalletReceiver {
         return sb.toString();
     }
 
+    private enum CoinKeyMgrType {
+        INACTIVE("0x90"),
+        KEY_GEN_AND_SAVE_APP("0x91"),
+        KEY_GEN_AND_SAVE_HSM("0x92"),
+        KEY_GEN_HSM_AND_SAVE_HSM_SE("0x93");
+
+        private String type;
+
+        CoinKeyMgrType(String type) {
+            this.type = type;
+        }
+
+        public String getType() {
+            return this.type;
+        }
+    }
+
     // [End] JS Library
 
     public static class Builder {
         private Context context;
         private MoaWalletReceiver receiver;
-        private Wallet instance;
+        private String type;
 
         public Builder(Context context) {
             this.context = context;
@@ -549,10 +651,13 @@ public class Wallet implements MoaConfigurable, MoaWalletReceiver {
             return this;
         }
 
+        public Builder addType(String type) {
+            this.type = type;
+            return this;
+        }
+
         public Wallet build() {
-            if (instance == null)
-                instance = new Wallet(this);
-            return instance;
+            return new Wallet(this);
         }
     }
 }
