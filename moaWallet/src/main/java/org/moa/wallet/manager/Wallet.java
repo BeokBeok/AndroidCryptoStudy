@@ -280,6 +280,7 @@ public class Wallet implements MoaConfigurable, MoaECDSAReceiver, MoaWalletRecei
             return MoaBase58.decode(base58Salt);
     }
 
+    @Deprecated
     private byte[][] generateKeyPair() {
         String keyPairAlgorithm = getValuesInPreferences(MoaConfigurable.KEY_WALLET_ECC_ALGORITHM);
         String standardName = getValuesInPreferences(MoaConfigurable.KEY_WALLET_ECC_CURVE);
@@ -512,11 +513,7 @@ public class Wallet implements MoaConfigurable, MoaECDSAReceiver, MoaWalletRecei
         return result;
     }
 
-    public void generateInfoJS(String password) {
-        String curve = getValuesInPreferences(MoaConfigurable.KEY_WALLET_ECC_CURVE);
-        webView.loadUrl("javascript:doGenerate('" + curve + "')");
-        this.password = password;
-    }
+
 
     public byte[] hexStringToByteArray(String s) {
         int len = s.length();
@@ -537,6 +534,12 @@ public class Wallet implements MoaConfigurable, MoaECDSAReceiver, MoaWalletRecei
     }
 
     // [Start] JS Library
+
+    public void generateInfoJS(String password) {
+        String curve = getValuesInPreferences(MoaConfigurable.KEY_WALLET_ECC_CURVE);
+        webView.loadUrl("javascript:doGenerate('" + curve + "')");
+        this.password = password;
+    }
 
     public void generateSignedTransactionDataJS(String transaction, String password) {
         if (!checkMACData(password)) {
