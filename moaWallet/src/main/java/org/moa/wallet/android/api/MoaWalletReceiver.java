@@ -1,9 +1,11 @@
 package org.moa.wallet.android.api;
 
 public interface MoaWalletReceiver {
-    void onSuccessKeyPair(String prk, String puk);
+    void onCompleteWallet();
 
-    void onSuccessSign(String sign);
+    void onCompleteSign(String sign);
 
-    void onSuccessVerify(boolean checkSign);
+    void onCompleteVerify(boolean checkSign);
+
+    void onCompleteRestoreMsg(String msg);
 }
