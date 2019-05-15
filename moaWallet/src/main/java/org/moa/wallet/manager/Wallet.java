@@ -255,6 +255,63 @@ public class Wallet implements MoaConfigurable, MoaECDSAReceiver, MoaWalletRecei
         onCompleteWallet();
     }
 
+    public byte[] hexStringToByteArray(String s) {
+        int len = s.length();
+        byte[] data = new byte[len / 2];
+        for (int i = 0; i < len; i += 2) {
+            data[i / 2] = (byte) ((Character.digit(s.charAt(i), 16) << 4)
+                    + Character.digit(s.charAt(i + 1), 16));
+        }
+        return data;
+    }
+
+    public String byteArrayToHexString(byte[] bytes) {
+        StringBuilder sb = new StringBuilder();
+        for (byte b : bytes) {
+            sb.append(String.format("%02x", b & 0xff));
+        }
+        return sb.toString();
+    }
+
+    public void generateInfoJS(String password) {
+        String curve = getValuesInPreferences(MoaConfigurable.KEY_WALLET_ECC_CURVE);
+        webView.loadUrl("javascript:doGenerate('" + curve + "')");
+        this.password = password;
+    }
+
+    public void generateSignedTransactionDataJS(String transaction, String password) {
+        if (!checkMACData(password)) {
+            onSuccessSign("");
+            return;
+        }
+        byte[] privateKeyBytes = getDecryptedPrivateKey(password);
+        if (privateKeyBytes == null || privateKeyBytes.length == 0) {
+            onSuccessSign("");
+            return;
+        }
+        String curve = getValuesInPreferences(KEY_WALLET_ECC_CURVE);
+        String signAlg = getValuesInPreferences(KEY_WALLET_SIGNATURE_ALGIROTHM);
+        String prk = byteArrayToHexString(privateKeyBytes);
+        webView.loadUrl("javascript:doSign('" + curve + "', '" + signAlg + "', '" + transaction + "', '" + prk + "')");
+    }
+
+    public void verifySignedDataJS(String plainText, String signedData) {
+        String curve = getValuesInPreferences(MoaConfigurable.KEY_WALLET_ECC_CURVE);
+        String signAlg = getValuesInPreferences(MoaConfigurable.KEY_WALLET_SIGNATURE_ALGIROTHM);
+        String puk = byteArrayToHexString(MoaBase58.decode(getValuesInPreferences(MoaConfigurable.KEY_WALLET_PUBLIC_KEY)));
+        webView.loadUrl("javascript:doVerify('" + curve + "', '" + signAlg + "', '" + plainText + "', '" + signedData + "', '" + puk + "')");
+    }
+
+    public String getPublicKeyJS() {
+        String base58Puk = getValuesInPreferences(MoaConfigurable.KEY_WALLET_PUBLIC_KEY);
+        byte[] decode = MoaBase58.decode(base58Puk);
+        return byteArrayToHexString(decode);
+    }
+
+    public String getAddress() {
+        return getValuesInPreferences(MoaConfigurable.KEY_WALLET_ADDRESS);
+    }
+
     private void initProperties() {
         if (getValuesInPreferences(MoaConfigurable.KEY_WALLET_VERSION_INFO).length() > 0)
             return;
@@ -272,7 +329,7 @@ public class Wallet implements MoaConfigurable, MoaECDSAReceiver, MoaWalletRecei
     private byte[] getSalt() {
         String base58Salt = getValuesInPreferences(MoaConfigurable.KEY_WALLET_SALT);
         if (base58Salt == null || base58Salt.length() == 0) {
-            byte[] salt = new byte[64];
+            byte[] salt = new byte[32];
             new SecureRandom().nextBytes(salt);
             setValuesInPreferences(MoaConfigurable.KEY_WALLET_SALT, MoaBase58.encode(salt));
             return salt;
@@ -513,63 +570,6 @@ public class Wallet implements MoaConfigurable, MoaECDSAReceiver, MoaWalletRecei
         return result;
     }
 
-
-
-    public byte[] hexStringToByteArray(String s) {
-        int len = s.length();
-        byte[] data = new byte[len / 2];
-        for (int i = 0; i < len; i += 2) {
-            data[i / 2] = (byte) ((Character.digit(s.charAt(i), 16) << 4)
-                    + Character.digit(s.charAt(i + 1), 16));
-        }
-        return data;
-    }
-
-    public String byteArrayToHexString(byte[] bytes) {
-        StringBuilder sb = new StringBuilder();
-        for (byte b : bytes) {
-            sb.append(String.format("%02x", b & 0xff));
-        }
-        return sb.toString();
-    }
-
-    // [Start] JS Library
-
-    public void generateInfoJS(String password) {
-        String curve = getValuesInPreferences(MoaConfigurable.KEY_WALLET_ECC_CURVE);
-        webView.loadUrl("javascript:doGenerate('" + curve + "')");
-        this.password = password;
-    }
-
-    public void generateSignedTransactionDataJS(String transaction, String password) {
-        if (!checkMACData(password)) {
-            onSuccessSign("");
-            return;
-        }
-        byte[] privateKeyBytes = getDecryptedPrivateKey(password);
-        if (privateKeyBytes == null || privateKeyBytes.length == 0) {
-            onSuccessSign("");
-            return;
-        }
-        String curve = getValuesInPreferences(KEY_WALLET_ECC_CURVE);
-        String signAlg = getValuesInPreferences(KEY_WALLET_SIGNATURE_ALGIROTHM);
-        String prk = byteArrayToHexString(privateKeyBytes);
-        webView.loadUrl("javascript:doSign('" + curve + "', '" + signAlg + "', '" + transaction + "', '" + prk + "')");
-    }
-
-    public void verifySignedDataJS(String plainText, String signedData) {
-        String curve = getValuesInPreferences(MoaConfigurable.KEY_WALLET_ECC_CURVE);
-        String signAlg = getValuesInPreferences(MoaConfigurable.KEY_WALLET_SIGNATURE_ALGIROTHM);
-        String puk = byteArrayToHexString(MoaBase58.decode(getValuesInPreferences(MoaConfigurable.KEY_WALLET_PUBLIC_KEY)));
-        webView.loadUrl("javascript:doVerify('" + curve + "', '" + signAlg + "', '" + plainText + "', '" + signedData + "', '" + puk + "')");
-    }
-
-    public String getPublicKeyJS() {
-        String base58Puk = getValuesInPreferences(MoaConfigurable.KEY_WALLET_PUBLIC_KEY);
-        byte[] decode = MoaBase58.decode(base58Puk);
-        return byteArrayToHexString(decode);
-    }
-
     @Override
     public void onSuccessKeyPair(String prk, String puk) {
         byte[][] keyPair = new byte[2][];
@@ -637,8 +637,6 @@ public class Wallet implements MoaConfigurable, MoaECDSAReceiver, MoaWalletRecei
             return this.type;
         }
     }
-
-    // [End] JS Library
 
     public static class Builder {
         private Context context;
