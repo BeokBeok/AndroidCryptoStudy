@@ -14,7 +14,7 @@ import org.moa.android.crypto.coreapi.SymmetricCrypto;
 import org.moa.wallet.android.api.MoaBridge;
 import org.moa.wallet.android.api.MoaConfigurable;
 import org.moa.wallet.android.api.MoaECDSAReceiver;
-import org.moa.wallet.android.api.MoaWalletReceiver;
+import org.moa.wallet.android.api.MoaWalletLibReceiver;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -52,11 +52,11 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.SecretKeySpec;
 import javax.security.auth.x500.X500Principal;
 
-public class Wallet implements MoaConfigurable, MoaECDSAReceiver, MoaWalletReceiver {
+public class Wallet implements MoaConfigurable, MoaECDSAReceiver, MoaWalletLibReceiver {
     private final String keyAlias = "MoaWalletEncDecKeyPair";
     private final String androidProvider = "AndroidKeyStore";
     private Context context;
-    private MoaWalletReceiver moaWalletReceiver;
+    private MoaWalletLibReceiver moaWalletReceiver;
     private KeyStore keyStore;
     private PBKDF2 pbkdf2;
     private WebView webView;
@@ -640,14 +640,14 @@ public class Wallet implements MoaConfigurable, MoaECDSAReceiver, MoaWalletRecei
 
     public static class Builder {
         private Context context;
-        private MoaWalletReceiver receiver;
+        private MoaWalletLibReceiver receiver;
         private String type;
 
         public Builder(Context context) {
             this.context = context;
         }
 
-        public Builder addReceiver(MoaWalletReceiver receiver) {
+        public Builder addReceiver(MoaWalletLibReceiver receiver) {
             this.receiver = receiver;
             return this;
         }
