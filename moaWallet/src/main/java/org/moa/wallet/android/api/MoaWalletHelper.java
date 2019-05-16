@@ -1,7 +1,6 @@
 package org.moa.wallet.android.api;
 
 import android.content.Context;
-import android.util.Base64;
 import android.webkit.WebView;
 
 import org.moa.android.crypto.coreapi.MoaBase58;
@@ -99,7 +98,7 @@ public class MoaWalletHelper {
         private Context context;
         private WebView webView;
         private String type;
-        private MoaWalletReceiver receiver;
+        private MoaWalletLibReceiver receiver;
 
         public Builder(Context context) {
             this.context = context;
@@ -110,7 +109,7 @@ public class MoaWalletHelper {
             return this;
         }
 
-        public Builder addReceiver(MoaWalletReceiver receiver) {
+        public Builder addReceiver(MoaWalletLibReceiver receiver) {
             this.receiver = receiver;
             return this;
         }
