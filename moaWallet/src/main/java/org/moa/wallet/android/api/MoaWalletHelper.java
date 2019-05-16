@@ -62,8 +62,6 @@ public class MoaWalletHelper {
                 "MAC.Data=" + macData;
     }
 
-    // [Start] JS Library
-
     public void createOrGenerateInfoByTypeJS(String password) {
         wallet.generateInfoJS(password);
     }
@@ -92,7 +90,9 @@ public class MoaWalletHelper {
         return wallet.byteArrayToHexString(target);
     }
 
-    // [End] JS Library
+    public String getAddress() {
+        return wallet.getAddress();
+    }
 
     public static class Builder {
         private static MoaWalletHelper instance;
