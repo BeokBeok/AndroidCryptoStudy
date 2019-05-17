@@ -1,11 +1,11 @@
 package org.moa.wallet.android.api;
 
 public interface MoaWalletLibReceiver {
-    void onCompleteWallet();
+    void onLibCompleteWallet();
 
-    void onCompleteSign(String sign);
+    void onLibCompleteSign(String sign);
 
-    void onCompleteVerify(boolean checkSign);
+    void onLibCompleteVerify(boolean checkSign);
 
-    void onCompleteRestoreMsg(String msg);
+    void onLibCompleteRestoreMsg(String msg);
 }

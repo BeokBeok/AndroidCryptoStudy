@@ -232,9 +232,7 @@ public class Wallet implements MoaConfigurable, MoaECDSAReceiver, MoaWalletLibRe
         StringTokenizer st = new StringTokenizer(msg, "$");
         byte[] encPrk = Base64.decode(st.nextToken(), Base64.NO_WRAP);
         byte[] encPuk = Base64.decode(st.nextToken(), Base64.NO_WRAP);
-        byte[] salt = Base64.decode(st.nextToken(), Base64.NO_WRAP);
-        if (!Arrays.equals(salt, getSalt()))
-            return;
+        setValuesInPreferences(MoaConfigurable.KEY_WALLET_SALT, MoaBase58.encode(Base64.decode(st.nextToken(), Base64.NO_WRAP)));
         this.password = password;
         byte[] puk = getPBKDF2Data(Cipher.DECRYPT_MODE, password, encPuk);
         String base58Puk = MoaBase58.encode(puk);
@@ -252,7 +250,7 @@ public class Wallet implements MoaConfigurable, MoaECDSAReceiver, MoaWalletLibRe
         List<String> requiredDataForMAC = Arrays.asList(base58CipheredPrk, base58Puk, base58Address, password);
         setWalletPref(requiredDataForMAC);
         this.password = "";
-        onCompleteWallet();
+        onLibCompleteWallet();
     }
 
     public byte[] hexStringToByteArray(String s) {
@@ -578,47 +576,47 @@ public class Wallet implements MoaConfigurable, MoaECDSAReceiver, MoaWalletLibRe
         if (type.equals(CoinKeyMgrType.KEY_GEN_AND_SAVE_APP.getType())) {
             setInfo(keyPair);
             password = "";
-            onCompleteWallet();
+            onLibCompleteWallet();
         } else if (type.equals(CoinKeyMgrType.KEY_GEN_AND_SAVE_HSM.getType())) {
             String restoreMsg = generateRestoreDataFormat(keyPair);
             password = "";
-            onCompleteRestoreMsg(restoreMsg);
+            onLibCompleteRestoreMsg(restoreMsg);
         }
     }
 
     @Override
     public void onSuccessSign(String sign) {
         password = "";
-        onCompleteSign(sign);
+        onLibCompleteSign(sign);
     }
 
     @Override
     public void onSuccessVerify(boolean checkSign) {
-        onCompleteVerify(checkSign);
+        onLibCompleteVerify(checkSign);
     }
 
     @Override
-    public void onCompleteWallet() {
+    public void onLibCompleteWallet() {
         if (moaWalletReceiver != null)
-            moaWalletReceiver.onCompleteWallet();
+            moaWalletReceiver.onLibCompleteWallet();
     }
 
     @Override
-    public void onCompleteSign(String sign) {
+    public void onLibCompleteSign(String sign) {
         if (moaWalletReceiver != null)
-            moaWalletReceiver.onCompleteSign(sign);
+            moaWalletReceiver.onLibCompleteSign(sign);
     }
 
     @Override
-    public void onCompleteVerify(boolean checkSign) {
+    public void onLibCompleteVerify(boolean checkSign) {
         if (moaWalletReceiver != null)
-            moaWalletReceiver.onCompleteVerify(checkSign);
+            moaWalletReceiver.onLibCompleteVerify(checkSign);
     }
 
     @Override
-    public void onCompleteRestoreMsg(String msg) {
+    public void onLibCompleteRestoreMsg(String msg) {
         if (moaWalletReceiver != null)
-            moaWalletReceiver.onCompleteRestoreMsg(msg);
+            moaWalletReceiver.onLibCompleteRestoreMsg(msg);
     }
 
     private enum CoinKeyMgrType {
