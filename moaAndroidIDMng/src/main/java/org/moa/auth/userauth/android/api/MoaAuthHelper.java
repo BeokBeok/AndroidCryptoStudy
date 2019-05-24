@@ -16,7 +16,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.StringTokenizer;
 
-public class MoaAuthHelper implements MoaCommonable {
+public class MoaAuthHelper {
     private Context context;
     private String uniqueDeviceID;
     private UserControl userControl;
@@ -65,13 +65,13 @@ public class MoaAuthHelper implements MoaCommonable {
     public String generatePINRegisterMessage(String id, String password) {
         if (isNotValidUniqueDeviceID())
             return "";
-        return generateRegisterMessage(id, password);
+        return MoaCommon.getInstance().generateRegisterMessage(id, password);
     }
 
     public String generatePINLoginRequestMessage(String id, String password, String nonceOTP) {
         if (isNotValidUniqueDeviceID())
             return "";
-        return generateLoginRequestMessage(id, password, nonceOTP);
+        return MoaCommon.getInstance().generateLoginRequestMessage(id, password, nonceOTP);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)
@@ -83,7 +83,7 @@ public class MoaAuthHelper implements MoaCommonable {
         String AUTH_TOKEN = fingerprintRegisterData.get(2);
         AuthToken authToken = AuthToken.getInstance();
         authToken.init(context);
-        authToken.setValuesInPreferences(MoaConfigurable.KEY_AUTH_TOKEN, AUTH_TOKEN);
+        authToken.setValuesInPreferences("AuthToken.Info", AUTH_TOKEN);
 
         FingerprintAuth fingerprintAuth = FingerprintAuth.getInstance();
         fingerprintAuth.init(ECDSA_CURVE, ECDSA_SUITE);
@@ -109,7 +109,7 @@ public class MoaAuthHelper implements MoaCommonable {
             return "";
         AuthToken authToken = AuthToken.getInstance();
         authToken.init(context);
-        return authToken.getValuesInPreferences(MoaConfigurable.KEY_AUTH_TOKEN);
+        return authToken.getValuesInPreferences("AuthToken.Info");
     }
 
     public void setControlInfoData(List<String> data) {
@@ -129,7 +129,7 @@ public class MoaAuthHelper implements MoaCommonable {
     public String getAutoLoginInfo() {
         if (isNotValidUniqueDeviceID())
             return "";
-        String content = autoLogin.getValuesInPreferences(MoaConfigurable.KEY_AUTO_LOGIN);
+        String content = autoLogin.getAutoInfo();
         StringTokenizer stringTokenizer = new StringTokenizer(content, "$");
         String type = stringTokenizer.nextToken();
         String info = stringTokenizer.nextToken();
@@ -147,13 +147,13 @@ public class MoaAuthHelper implements MoaCommonable {
     public String getBasePrimaryInfo() {
         if (isNotValidUniqueDeviceID())
             return "";
-        return userControl.getValuesInPreferences(MoaConfigurable.KEY_BASE_PRIMARY_INDEX);
+        return userControl.getBasePrimaryInfo();
     }
 
     public void setBasePrimaryInfo(String userSequenceIndex) {
         if (isNotValidUniqueDeviceID())
             return;
-        userControl.setValuesInPreferences(MoaConfigurable.KEY_BASE_PRIMARY_INDEX, userSequenceIndex);
+        userControl.setBasePrimaryInfo(userSequenceIndex);
     }
 
     public void removeAllControlInfo() {

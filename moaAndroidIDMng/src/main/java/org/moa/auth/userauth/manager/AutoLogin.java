@@ -9,14 +9,11 @@ import android.util.Log;
 
 import org.moa.android.crypto.coreapi.PBKDF2;
 import org.moa.android.crypto.coreapi.SymmetricCrypto;
-import org.moa.auth.userauth.android.api.MoaCommonable;
-import org.moa.auth.userauth.android.api.MoaConfigurable;
 import org.moa.auth.userauth.android.api.MoaMember;
-import org.moa.auth.userauth.android.api.MoaTEEUsable;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.KeyPairGenerator;
@@ -37,8 +34,8 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.security.auth.x500.X500Principal;
 
-public class AutoLogin extends PINAuth implements MoaTEEUsable, MoaCommonable {
-    private final String keyAlias = MoaTEEUsable.ALIAS_AUTO_INFO;
+public class AutoLogin extends PINAuth {
+    private final String keyAlias = "MoaAutoInfo";
     private PBKDF2 pbkdf2;
 
     private AutoLogin() {
@@ -61,23 +58,34 @@ public class AutoLogin extends PINAuth implements MoaTEEUsable, MoaCommonable {
         }
     }
 
-    @Override
-    public void initKeyStore() {
+    public String getAutoInfo() {
+        return getValuesInPreferences("Auto.Info");
+    }
+
+    public void setAutoInfo(String password) {
+        if (password == null) {
+            // Hashing "MoaPlanet" (SHA-512)
+            password = "42009FFDDE80CA527DE3E1AB330481F7A4D76C35A3E7F9571BBA626927A25720B13E2C3F4EDE02DB5BA7B71151F8C7FFA5E4D559B7E7FED75DCCF636276B962B";
+        }
+        String content = MoaMember.AutoLoginType.ACTIVE.getType() + "$" + password;
+        setValuesInPreferences("Auto.Info", content);
+    }
+
+    private void initKeyStore() {
         try {
-            super.keyStore = KeyStore.getInstance(MoaTEEUsable.PROVIDER);
+            super.keyStore = KeyStore.getInstance("AndroidKeyStore");
             super.keyStore.load(null);
         } catch (KeyStoreException | IOException | NoSuchAlgorithmException | CertificateException e) {
             Log.d("MoaLib", "[AutoLogin][initKeyStore] failed to init keystore");
         }
     }
 
-    @Override
-    public void generateKey() {
+    private void generateKey() {
         Calendar startData = Calendar.getInstance();
         Calendar endData = Calendar.getInstance();
         endData.add(Calendar.YEAR, 25);
         try {
-            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA", MoaTEEUsable.PROVIDER);
+            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA", "AndroidKeyStore");
             keyPairGenerator.initialize(
                     new KeyPairGeneratorSpec.Builder(context)
                             .setAlias(keyAlias)
@@ -93,31 +101,29 @@ public class AutoLogin extends PINAuth implements MoaTEEUsable, MoaCommonable {
         }
     }
 
-    @Override
-    public void setValuesInPreferences(String key, String value) {
+    private void setValuesInPreferences(String key, String value) {
         String encryptValue = "";
-        if (key.equals(MoaConfigurable.KEY_AUTO_LOGIN))
+        if (key.equals("Auto.Info"))
             encryptValue = getEncryptContent(value);
-        else if (key.equals(MoaConfigurable.KEY_AUTO_SALT)) {
+        else if (key.equals("Salt.Info")) {
             byte[] decode = Base64.decode(value, Base64.NO_WRAP);
             byte[] encryptSalt = symmetricCrypto.getSymmetricData(Cipher.ENCRYPT_MODE, decode);
             encryptValue = Base64.encodeToString(encryptSalt, Base64.NO_WRAP);
         }
-        SharedPreferences pref = context.getSharedPreferences(MoaConfigurable.PREFNAME_CONTROL_INFO, Context.MODE_PRIVATE);
+        SharedPreferences pref = context.getSharedPreferences("androidIDManager", Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = pref.edit();
         editor.putString(key, encryptValue);
         editor.apply();
     }
 
-    @Override
-    public String getValuesInPreferences(String key) {
-        SharedPreferences pref = context.getSharedPreferences(MoaConfigurable.PREFNAME_CONTROL_INFO, Context.MODE_PRIVATE);
+    private String getValuesInPreferences(String key) {
+        SharedPreferences pref = context.getSharedPreferences("androidIDManager", Context.MODE_PRIVATE);
         String value = pref.getString(key, "");
         if (value == null || value.length() == 0)
             return "";
-        if (key.equals(MoaConfigurable.KEY_AUTO_LOGIN))
+        if (key.equals("Auto.Info"))
             return getDecryptContent(value);
-        else if (key.equals(MoaConfigurable.KEY_AUTO_SALT)) {
+        else if (key.equals("Salt.Info")) {
             byte[] decode = Base64.decode(value, Base64.NO_WRAP);
             byte[] decrypt = symmetricCrypto.getSymmetricData(Cipher.DECRYPT_MODE, decode);
             return Base64.encodeToString(decrypt, Base64.NO_WRAP);
@@ -125,21 +131,12 @@ public class AutoLogin extends PINAuth implements MoaTEEUsable, MoaCommonable {
         return "";
     }
 
-    public void setAutoInfo(String password) {
-        if (password == null) {
-            // Hashing "MoaPlanet" (SHA-512)
-            password = "42009FFDDE80CA527DE3E1AB330481F7A4D76C35A3E7F9571BBA626927A25720B13E2C3F4EDE02DB5BA7B71151F8C7FFA5E4D559B7E7FED75DCCF636276B962B";
-        }
-        String content = MoaMember.AutoLoginType.ACTIVE.getType() + "$" + password;
-        setValuesInPreferences(MoaConfigurable.KEY_AUTO_LOGIN, content);
-    }
-
     private byte[] getSalt() {
-        String base64Salt = getValuesInPreferences(MoaConfigurable.KEY_AUTO_SALT);
+        String base64Salt = getValuesInPreferences("Salt.Info");
         if (base64Salt == null || base64Salt.length() == 0) {
             byte[] salt = new byte[64];
             new SecureRandom().nextBytes(salt);
-            setValuesInPreferences(MoaConfigurable.KEY_AUTO_SALT, Base64.encodeToString(salt, Base64.NO_WRAP));
+            setValuesInPreferences("Salt.Info", Base64.encodeToString(salt, Base64.NO_WRAP));
             return salt;
         } else
             return Base64.decode(base64Salt, Base64.NO_WRAP);
@@ -200,30 +197,22 @@ public class AutoLogin extends PINAuth implements MoaTEEUsable, MoaCommonable {
     }
 
     private String getEncryptContent(String content) {
-        String encryptedData = "";
+        String encryptedData;
         int cipherMode = Cipher.ENCRYPT_MODE;
-        try {
-            byte[] encode = content.getBytes(MoaCommonable.FORMAT_ENCODE);
-            byte[] firstEncrypt = getPBKDF2Data(cipherMode, encode);
-            byte[] lastEncrypt = getRSAData(cipherMode, firstEncrypt);
-            encryptedData = Base64.encodeToString(lastEncrypt, Base64.NO_WRAP);
-        } catch (UnsupportedEncodingException e) {
-            Log.d("MoaLib", "[AutoLogin][getEncryptContent] occurred UnsupportedEncodingException");
-        }
+        byte[] encode = content.getBytes(StandardCharsets.UTF_8);
+        byte[] firstEncrypt = getPBKDF2Data(cipherMode, encode);
+        byte[] lastEncrypt = getRSAData(cipherMode, firstEncrypt);
+        encryptedData = Base64.encodeToString(lastEncrypt, Base64.NO_WRAP);
         return encryptedData;
     }
 
     private String getDecryptContent(String content) {
-        String decryptedData = "";
+        String decryptedData;
         int cipherMode = Cipher.DECRYPT_MODE;
-        try {
-            byte[] decode = Base64.decode(content, Base64.NO_WRAP);
-            byte[] firstDecrypt = getRSAData(cipherMode, decode);
-            byte[] lastDecrypt = getPBKDF2Data(cipherMode, firstDecrypt);
-            decryptedData = new String(lastDecrypt, MoaCommonable.FORMAT_ENCODE);
-        } catch (UnsupportedEncodingException e) {
-            Log.d("MoaLib", "[AutoLogin][getDecryptContent] occurred UnsupportedEncodingException");
-        }
+        byte[] decode = Base64.decode(content, Base64.NO_WRAP);
+        byte[] firstDecrypt = getRSAData(cipherMode, decode);
+        byte[] lastDecrypt = getPBKDF2Data(cipherMode, firstDecrypt);
+        decryptedData = new String(lastDecrypt, StandardCharsets.UTF_8);
         return decryptedData;
     }
 
