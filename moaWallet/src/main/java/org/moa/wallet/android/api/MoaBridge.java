@@ -2,7 +2,7 @@ package org.moa.wallet.android.api;
 
 import android.webkit.JavascriptInterface;
 
-public class MoaBridge implements MoaECDSAReceiver {
+public class MoaBridge {
     private MoaECDSAReceiver moaECDSAReceiver;
 
     public MoaBridge(MoaECDSAReceiver moaECDSAReceiver) {
@@ -11,34 +11,19 @@ public class MoaBridge implements MoaECDSAReceiver {
 
     @JavascriptInterface
     public void generateKeyPair(String prk, String puk) {
-        onSuccessKeyPair(prk, puk);
-    }
-
-    @JavascriptInterface
-    public void generateSign(String sign) {
-        onSuccessSign(sign);
-    }
-
-    @JavascriptInterface
-    public void verifySign(String verificationResult) {
-        onSuccessVerify(Boolean.parseBoolean(verificationResult));
-    }
-
-    @Override
-    public void onSuccessKeyPair(String prk, String puk) {
         if (moaECDSAReceiver != null)
             moaECDSAReceiver.onSuccessKeyPair(prk, puk);
     }
 
-    @Override
-    public void onSuccessSign(String sign) {
+    @JavascriptInterface
+    public void generateSign(String sign) {
         if (moaECDSAReceiver != null)
             moaECDSAReceiver.onSuccessSign(sign);
     }
 
-    @Override
-    public void onSuccessVerify(boolean checkSign) {
+    @JavascriptInterface
+    public void verifySign(String verificationResult) {
         if (moaECDSAReceiver != null)
-            moaECDSAReceiver.onSuccessVerify(checkSign);
+            moaECDSAReceiver.onSuccessVerify(Boolean.parseBoolean(verificationResult));
     }
 }
