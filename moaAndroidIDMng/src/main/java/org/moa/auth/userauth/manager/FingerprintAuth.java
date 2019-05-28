@@ -7,8 +7,6 @@ import android.support.annotation.RequiresApi;
 import android.util.Base64;
 import android.util.Log;
 
-import org.moa.auth.userauth.android.api.MoaTEEUsable;
-
 import java.io.IOException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
@@ -26,8 +24,8 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.spec.ECGenParameterSpec;
 
-public class FingerprintAuth implements MoaTEEUsable {
-    private final String keyAlias = MoaTEEUsable.ALIAS_FINGERPRINT;
+public class FingerprintAuth {
+    private final String keyAlias = "MoaFingerKeyPair";
     private String curve;
     private String signAlgorithmSuite;
     private KeyStore keyStore;
@@ -53,38 +51,9 @@ public class FingerprintAuth implements MoaTEEUsable {
         }
     }
 
-    @Override
-    public void initKeyStore() {
-        try {
-            this.keyStore = KeyStore.getInstance(MoaTEEUsable.PROVIDER);
-            this.keyStore.load(null);
-        } catch (KeyStoreException | IOException | NoSuchAlgorithmException | CertificateException e) {
-            Log.d("MoaLib", "[FingerprintAuthManager][initKeyStore] failed to init keystore");
-        }
-    }
-
-    @RequiresApi(api = Build.VERSION_CODES.M)
-    @Override
-    public void generateKey() {
-        try {
-            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance(KeyProperties.KEY_ALGORITHM_EC, MoaTEEUsable.PROVIDER);
-            keyPairGenerator.initialize(
-                    new KeyGenParameterSpec.Builder(keyAlias, KeyProperties.PURPOSE_SIGN)
-                            .setDigests(KeyProperties.DIGEST_SHA256, KeyProperties.DIGEST_SHA512)
-                            .setAlgorithmParameterSpec(new ECGenParameterSpec(curve))
-                            .setUserAuthenticationRequired(true)
-                            .setUserAuthenticationValidityDurationSeconds(10)
-                            .build()
-            );
-            keyPairGenerator.generateKeyPair();
-        } catch (NoSuchAlgorithmException | NoSuchProviderException | InvalidAlgorithmParameterException e) {
-            Log.d("MoaLib", "[FingerprintAuthManager][generateKey] Failed to create fingerprint key pair");
-        }
-    }
-
     @RequiresApi(api = Build.VERSION_CODES.M)
     public byte[] getRegisterSignature(String base64AuthToken) {
-        byte[] resultData = {0, };
+        byte[] resultData = {0,};
         try {
             if (!keyStore.containsAlias(keyAlias))
                 generateKey();
@@ -103,7 +72,7 @@ public class FingerprintAuth implements MoaTEEUsable {
 
     @RequiresApi(api = Build.VERSION_CODES.M)
     public byte[] getLoginSignature(String base64NonceOTP, String base64AuthToken) {
-        byte[] resultData = {0, };
+        byte[] resultData = {0,};
         byte[] nonceOTP = Base64.decode(base64NonceOTP, Base64.NO_WRAP);
         byte[] authToken = Base64.decode(base64AuthToken, Base64.NO_WRAP);
         byte[] combineNonceOTPWithAuthToken = getMergedByteArray(nonceOTP, authToken);
@@ -134,6 +103,33 @@ public class FingerprintAuth implements MoaTEEUsable {
         return publicKey;
     }
 
+    private void initKeyStore() {
+        try {
+            this.keyStore = KeyStore.getInstance("AndroidKeyStore");
+            this.keyStore.load(null);
+        } catch (KeyStoreException | IOException | NoSuchAlgorithmException | CertificateException e) {
+            Log.d("MoaLib", "[FingerprintAuthManager][initKeyStore] failed to init keystore");
+        }
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    private void generateKey() {
+        try {
+            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance(KeyProperties.KEY_ALGORITHM_EC, "AndroidKeyStore");
+            keyPairGenerator.initialize(
+                    new KeyGenParameterSpec.Builder(keyAlias, KeyProperties.PURPOSE_SIGN)
+                            .setDigests(KeyProperties.DIGEST_SHA256, KeyProperties.DIGEST_SHA512)
+                            .setAlgorithmParameterSpec(new ECGenParameterSpec(curve))
+                            .setUserAuthenticationRequired(true)
+                            .setUserAuthenticationValidityDurationSeconds(10)
+                            .build()
+            );
+            keyPairGenerator.generateKeyPair();
+        } catch (NoSuchAlgorithmException | NoSuchProviderException | InvalidAlgorithmParameterException e) {
+            Log.d("MoaLib", "[FingerprintAuthManager][generateKey] Failed to create fingerprint key pair");
+        }
+    }
+
     private byte[] getMergedByteArray(byte[] first, byte[] second) {
         byte[] targetByteArr = new byte[first.length + second.length];
         System.arraycopy(first, 0, targetByteArr, 0, first.length);
@@ -142,7 +138,7 @@ public class FingerprintAuth implements MoaTEEUsable {
     }
 
     private byte[] getSignedData(PrivateKey privateKey, byte[] targetData) {
-        byte[] resultData = {0, };
+        byte[] resultData = {0,};
         try {
             Signature signature = Signature.getInstance(signAlgorithmSuite);
             signature.initSign(privateKey);
