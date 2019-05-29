@@ -41,26 +41,6 @@ public class MoaWalletHelper {
         return wallet.existPreferences();
     }
 
-    //TODO 추후 제거
-    public String getContent() {
-        String versionInfo = wallet.getValuesInPreferences(MoaConfigurable.KEY_WALLET_VERSION_INFO);
-        String osInfo = wallet.getValuesInPreferences(MoaConfigurable.KEY_WALLET_OS_INFO);
-        String salt = wallet.getValuesInPreferences(MoaConfigurable.KEY_WALLET_SALT);
-        String iterationCount = wallet.getValuesInPreferences(MoaConfigurable.KEY_WALLET_ITERATION_COUNT);
-        String cipheredData = wallet.getValuesInPreferences(MoaConfigurable.KEY_WALLET_CIPHERED_DATA);
-        String walletPuk = wallet.getValuesInPreferences(MoaConfigurable.KEY_WALLET_PUBLIC_KEY);
-        String walletAddr = wallet.getValuesInPreferences(MoaConfigurable.KEY_WALLET_ADDRESS);
-        String macData = wallet.getValuesInPreferences(MoaConfigurable.KEY_WALLET_MAC_DATA);
-        return "Version.Info=" + versionInfo + "\n" +
-                "OS.Info=" + osInfo + "\n" +
-                "Salt.Value=" + salt + "\n" +
-                "Iteration.Count=" + iterationCount + "\n" +
-                "Ciphered.Data=" + cipheredData + "\n" +
-                "Wallet.PublicKey=" + walletPuk + "\n" +
-                "Wallet.Addr=" + walletAddr + "\n" +
-                "MAC.Data=" + macData;
-    }
-
     public void createOrGenerateInfoByTypeJS(String password) {
         wallet.generateInfoJS(password);
     }
