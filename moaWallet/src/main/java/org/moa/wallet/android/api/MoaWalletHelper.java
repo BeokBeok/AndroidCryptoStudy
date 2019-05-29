@@ -37,10 +37,6 @@ public class MoaWalletHelper {
         return wallet.verifySignedData(plainText, MoaBase58.decode(signedData));
     }
 
-    public boolean exists() {
-        return wallet.existPreferences();
-    }
-
     public void createOrGenerateInfoByTypeJS(String password) {
         wallet.generateInfoJS(password);
     }
@@ -71,6 +67,10 @@ public class MoaWalletHelper {
 
     public String getAddress() {
         return wallet.getAddress();
+    }
+
+    public void removeWallet() {
+        wallet.removeWallet();
     }
 
     public static class Builder {
