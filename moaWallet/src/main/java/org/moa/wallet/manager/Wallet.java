@@ -150,7 +150,6 @@ public class Wallet implements MoaECDSAReceiver {
             return;
         this.password = password;
         setInfo(walletKeyPair);
-        this.password = "";
     }
 
     @Deprecated
@@ -542,6 +541,9 @@ public class Wallet implements MoaECDSAReceiver {
 
         List<String> requiredDataForMAC = Arrays.asList(base58CipheredPrk, base58Puk, base58Address, password);
         setWalletPref(requiredDataForMAC);
+        this.password = "";
+        if (moaWalletReceiver != null)
+            moaWalletReceiver.onLibCompleteWallet();
     }
 
     private String generateRestoreDataFormat(byte[][] walletKeyPair) {
@@ -571,17 +573,13 @@ public class Wallet implements MoaECDSAReceiver {
         byte[][] keyPair = new byte[2][];
         keyPair[0] = hexStringToByteArray(prk);
         keyPair[1] = hexStringToByteArray(puk);
-        if (type.equals(CoinKeyMgrType.KEY_GEN_AND_SAVE_APP.getType())) {
-            setInfo(keyPair);
-            password = "";
-            if (moaWalletReceiver != null)
-                moaWalletReceiver.onLibCompleteWallet();
-        } else if (type.equals(CoinKeyMgrType.KEY_GEN_AND_SAVE_HSM.getType())) {
-            String restoreMsg = generateRestoreDataFormat(keyPair);
-            password = "";
-            if (moaWalletReceiver != null)
-                moaWalletReceiver.onLibCompleteRestoreMsg(restoreMsg);
-        }
+        setInfo(keyPair);
+        if (moaWalletReceiver == null)
+            return;
+        if (type.equals(CoinKeyMgrType.KEY_GEN_AND_SAVE_APP.getType()))
+            moaWalletReceiver.onLibCompleteWallet();
+        else if (type.equals(CoinKeyMgrType.KEY_GEN_AND_SAVE_HSM.getType()))
+            moaWalletReceiver.onLibCompleteRestoreMsg(generateRestoreDataFormat(keyPair));
     }
 
     @Override
