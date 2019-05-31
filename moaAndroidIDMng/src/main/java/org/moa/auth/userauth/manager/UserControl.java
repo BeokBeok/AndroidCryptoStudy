@@ -10,7 +10,6 @@ import org.moa.auth.userauth.android.api.MoaMember;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.StringTokenizer;
 
 import javax.crypto.Cipher;
@@ -36,27 +35,15 @@ public class UserControl extends PINAuth {
         return controlInfoData.length() > 0;
     }
 
-    public void setMemberInfo(List<String> data) {
-        String MEMBER_TYPE = data.get(0);
-        String MEMBER_ID = data.get(1);
-        String AUTH_TYPE = data.get(2);
-        String COIN_STORE_TYPE = data.get(3);
-        String controlDataForm = MEMBER_TYPE + "$" +
-                Base64.encodeToString(MEMBER_ID.getBytes(StandardCharsets.UTF_8), Base64.NO_WRAP) + "$" +
-                AUTH_TYPE + "$" +
-                COIN_STORE_TYPE;
+    public void setMemberInfo(String id, MoaMember moaMember) {
+        String controlDataForm = moaMember.getMemberType() + "$" +
+                Base64.encodeToString(id.getBytes(StandardCharsets.UTF_8), Base64.NO_WRAP) + "$" +
+                moaMember.getAuthType() + "$" +
+                moaMember.getWalletType();
         setValuesInPreferences("Control.Info", controlDataForm);
     }
 
-    public String getBasePrimaryInfo() {
-        return getValuesInPreferences("BasePrimary.Info");
-    }
-
-    public void setBasePrimaryInfo(String basePrimaryInfo) {
-        setValuesInPreferences("BasePrimary.Info", basePrimaryInfo);
-    }
-
-    public String getMemberInfo(String type) {
+    public String getMemberInfo(int type) {
         String idManagerContent = getValuesInPreferences("Control.Info");
         String result = "";
         if (!checkData(idManagerContent))
@@ -65,19 +52,30 @@ public class UserControl extends PINAuth {
         String memberType = stringTokenizer.nextToken();
         String base64MemberID = stringTokenizer.nextToken();
         byte[] decodeBase64MemberID = Base64.decode(base64MemberID, Base64.NO_WRAP);
-        String memberID = new String(decodeBase64MemberID, StandardCharsets.UTF_8);
-        String memberAuthType = stringTokenizer.nextToken();
-        String memberCoinKeyMgrType = stringTokenizer.nextToken();
+        String id = new String(decodeBase64MemberID, StandardCharsets.UTF_8);
+        String authType = stringTokenizer.nextToken();
+        String walletType = stringTokenizer.nextToken();
 
-        if (type.equals(MoaMember.Get.MEMBER.getType()))
-            result = memberType;
-        else if (type.equals(MoaMember.Get.MEMBER_ID.getType()))
-            result = memberID;
-        else if (type.equals(MoaMember.Get.MEMBER_AUTH.getType()))
-            result = memberAuthType;
-        else if (type.equals(MoaMember.Get.MEMBER_COIN_KEY_MGR.getType()))
-            result = memberCoinKeyMgrType;
-        return result;
+        switch (type) {
+            case 0:
+                return memberType;
+            case 1:
+                return id;
+            case 2:
+                return authType;
+            case 3:
+                return walletType;
+            default:
+                return "";
+        }
+    }
+
+    public String getBasePrimaryInfo() {
+        return getValuesInPreferences("BasePrimary.Info");
+    }
+
+    public void setBasePrimaryInfo(String basePrimaryInfo) {
+        setValuesInPreferences("BasePrimary.Info", basePrimaryInfo);
     }
 
     public void removeAllMemberInfo() {

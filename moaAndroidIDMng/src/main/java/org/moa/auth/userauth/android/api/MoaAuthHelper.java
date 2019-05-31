@@ -12,8 +12,8 @@ import org.moa.auth.userauth.manager.FingerprintAuth;
 import org.moa.auth.userauth.manager.UserControl;
 
 import java.security.PublicKey;
-import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.StringTokenizer;
 
 public class MoaAuthHelper {
@@ -42,12 +42,10 @@ public class MoaAuthHelper {
         autoLogin.init(context, uniqueDeviceID);
     }
 
-    public void setNonMemberPIN(String nonMemberPIN) {
+    public void setNonMemberPIN(String nonMemberId) {
         if (isNotValidUniqueDeviceID())
             return;
-        List<String> nonMemberInfo = Arrays.asList(MoaMember.Type.NONMEMBER.getType(),
-                nonMemberPIN, MoaMember.AuthType.INACTIVE.getType(), MoaMember.CoinKeyMgrType.INACTIVE.getType());
-        userControl.setMemberInfo(nonMemberInfo);
+        userControl.setMemberInfo(nonMemberId, MoaMember.NON_MEMBER);
     }
 
     public boolean existControlInfo() {
@@ -56,7 +54,7 @@ public class MoaAuthHelper {
         return userControl.existPreferences();
     }
 
-    public String getMemberInfo(String type) {
+    public String getMemberInfo(int type) {
         if (isNotValidUniqueDeviceID())
             return "";
         return userControl.getMemberInfo(type);
@@ -75,32 +73,32 @@ public class MoaAuthHelper {
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)
-    public byte[] getFingerprintRegisterECDSASign(List<String> fingerprintRegisterData) {
+    public byte[] getFingerprintRegisterECDSASign(Map<String, String> fingerprintRegisterData) {
         if (isNotValidUniqueDeviceID())
             return new byte[0];
-        String ECDSA_CURVE = fingerprintRegisterData.get(0);
-        String ECDSA_SUITE = fingerprintRegisterData.get(1);
-        String AUTH_TOKEN = fingerprintRegisterData.get(2);
+        String curve = fingerprintRegisterData.get("curve");
+        String suite = fingerprintRegisterData.get("suite");
+        String authTokenData = fingerprintRegisterData.get("authToken");
         AuthToken authToken = AuthToken.getInstance();
         authToken.init(context);
-        authToken.setValuesInPreferences("AuthToken.Info", AUTH_TOKEN);
+        authToken.setValuesInPreferences("AuthToken.Info", authTokenData);
 
         FingerprintAuth fingerprintAuth = FingerprintAuth.getInstance();
-        fingerprintAuth.init(ECDSA_CURVE, ECDSA_SUITE);
-        return fingerprintAuth.getRegisterSignature(AUTH_TOKEN);
+        fingerprintAuth.init(curve, suite);
+        return fingerprintAuth.getRegisterSignature(authTokenData);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)
-    public byte[] getFingerprintLoginECDSASign(List<String> fingerprintLoginData) {
+    public byte[] getFingerprintLoginECDSASign(Map<String, String> fingerprintLoginData) {
         if (isNotValidUniqueDeviceID())
             return new byte[0];
-        String ECDSA_CURVE = fingerprintLoginData.get(0);
-        String ECDSA_SUITE = fingerprintLoginData.get(1);
-        String AUTH_TOKEN = fingerprintLoginData.get(2);
-        String NONCE_OTP = fingerprintLoginData.get(3);
+        String curve = fingerprintLoginData.get("curve");
+        String suite = fingerprintLoginData.get("suite");
+        String authToken = fingerprintLoginData.get("authToken");
+        String nonce = fingerprintLoginData.get("nonce");
         FingerprintAuth fingerprintAuth = FingerprintAuth.getInstance();
-        fingerprintAuth.init(ECDSA_CURVE, ECDSA_SUITE);
-        return fingerprintAuth.getLoginSignature(NONCE_OTP, AUTH_TOKEN);
+        fingerprintAuth.init(curve, suite);
+        return fingerprintAuth.getLoginSignature(nonce, authToken);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)
@@ -112,10 +110,10 @@ public class MoaAuthHelper {
         return authToken.getValuesInPreferences("AuthToken.Info");
     }
 
-    public void setControlInfoData(List<String> data) {
+    public void setControlInfoData(String id, MoaMember moaMember) {
         if (isNotValidUniqueDeviceID())
             return;
-        userControl.setMemberInfo(data);
+        userControl.setMemberInfo(id, moaMember);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)
@@ -133,9 +131,10 @@ public class MoaAuthHelper {
         StringTokenizer stringTokenizer = new StringTokenizer(content, "$");
         String type = stringTokenizer.nextToken();
         String info = stringTokenizer.nextToken();
-        if (type.equals(MoaMember.AutoLoginType.ACTIVE.getType()))
+        if (type.equals("0xA1"))
             return info;
-        return "";
+        else
+            return "";
     }
 
     public void setAutoLoginInfo(String password) {

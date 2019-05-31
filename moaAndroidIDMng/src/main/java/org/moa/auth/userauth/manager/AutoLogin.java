@@ -9,7 +9,6 @@ import android.util.Log;
 
 import org.moa.android.crypto.coreapi.PBKDF2;
 import org.moa.android.crypto.coreapi.SymmetricCrypto;
-import org.moa.auth.userauth.android.api.MoaMember;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -35,6 +34,8 @@ import javax.crypto.NoSuchPaddingException;
 import javax.security.auth.x500.X500Principal;
 
 public class AutoLogin extends PINAuth {
+    private static final int NONE = 0xA0;
+    private static final int AUTO_LOGIN = 0xA1;
     private final String keyAlias = "MoaAutoInfo";
     private PBKDF2 pbkdf2;
 
@@ -63,11 +64,13 @@ public class AutoLogin extends PINAuth {
     }
 
     public void setAutoInfo(String password) {
+        int autoLoginType = AUTO_LOGIN;
         if (password == null) {
             // Hashing "MoaPlanet" (SHA-512)
             password = "42009FFDDE80CA527DE3E1AB330481F7A4D76C35A3E7F9571BBA626927A25720B13E2C3F4EDE02DB5BA7B71151F8C7FFA5E4D559B7E7FED75DCCF636276B962B";
+            autoLoginType = NONE;
         }
-        String content = MoaMember.AutoLoginType.ACTIVE.getType() + "$" + password;
+        String content = autoLoginType + "$" + password;
         setValuesInPreferences("Auto.Info", content);
     }
 
