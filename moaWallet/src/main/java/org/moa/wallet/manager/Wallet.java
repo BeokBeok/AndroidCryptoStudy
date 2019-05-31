@@ -38,10 +38,10 @@ import java.security.spec.ECGenParameterSpec;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
-import java.util.Arrays;
 import java.util.Calendar;
-import java.util.List;
+import java.util.Map;
 import java.util.StringTokenizer;
+import java.util.WeakHashMap;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -60,13 +60,10 @@ public class Wallet implements MoaECDSAReceiver {
     private PBKDF2 pbkdf2;
     private WebView webView;
     private String password = "";
-    private String type = CoinKeyMgrType.KEY_GEN_AND_SAVE_APP.getType();
 
     private Wallet(Builder builder) {
         this.context = builder.context;
         moaWalletReceiver = builder.receiver;
-        if (verifyType(type))
-            this.type = builder.type;
         initKeyStore();
         initProperties();
         pbkdf2 = new PBKDF2(getValuesInPreferences("Hash.Alg"));
@@ -76,14 +73,6 @@ public class Wallet implements MoaECDSAReceiver {
         } catch (KeyStoreException e) {
             Log.d("MoaLib", "[Wallet] failed to check key alias");
         }
-    }
-
-    private boolean verifyType(String type) {
-        if (type == null || type.length() == 0)
-            return false;
-        return type.equals(CoinKeyMgrType.KEY_GEN_AND_SAVE_APP.getType()) ||
-                type.equals(CoinKeyMgrType.KEY_GEN_AND_SAVE_HSM.getType()) ||
-                type.equals(CoinKeyMgrType.KEY_GEN_HSM_AND_SAVE_HSM_SE.getType());
     }
 
     private void initKeyStore() {
@@ -119,14 +108,14 @@ public class Wallet implements MoaECDSAReceiver {
     }
 
     private void setValuesInPreferences(String key, String value) {
-        SharedPreferences pref = context.getSharedPreferences(getPrefName(), Context.MODE_PRIVATE);
+        SharedPreferences pref = context.getSharedPreferences("moaWallet", Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = pref.edit();
         editor.putString(key, value);
         editor.apply();
     }
 
     private String getValuesInPreferences(String key) {
-        SharedPreferences pref = context.getSharedPreferences(getPrefName(), Context.MODE_PRIVATE);
+        SharedPreferences pref = context.getSharedPreferences("moaWallet", Context.MODE_PRIVATE);
         String value = pref.getString(key, "");
         if (value == null || value.length() == 0)
             value = "";
@@ -231,7 +220,11 @@ public class Wallet implements MoaECDSAReceiver {
             return;
         String base58CipheredPrk = MoaBase58.encode(lastEncryptedPrk);
 
-        List<String> requiredDataForMAC = Arrays.asList(base58CipheredPrk, base58Puk, base58Address, password);
+        WeakHashMap<String, String> requiredDataForMAC = new WeakHashMap<>();
+        requiredDataForMAC.put("cipheredPrk", base58CipheredPrk);
+        requiredDataForMAC.put("puk", base58Puk);
+        requiredDataForMAC.put("address", base58Address);
+        requiredDataForMAC.put("pw", password);
         setWalletPref(requiredDataForMAC);
         this.password = "";
         if (moaWalletReceiver != null)
@@ -296,8 +289,10 @@ public class Wallet implements MoaECDSAReceiver {
     }
 
     public void removeWallet() {
-        SharedPreferences sp = context.getSharedPreferences(getPrefName(), Context.MODE_PRIVATE);
-        sp.edit().clear().apply();
+        SharedPreferences sp = context.getSharedPreferences("moaWallet", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sp.edit();
+        editor.remove("Wallet.Addr");
+        editor.apply();
     }
 
     private void initProperties() {
@@ -430,10 +425,10 @@ public class Wallet implements MoaECDSAReceiver {
         return resultData;
     }
 
-    private void setWalletPref(List<String> requiredDataForMAC) {
-        String base58CipheredPrk = requiredDataForMAC.get(0);
-        String base58Puk = requiredDataForMAC.get(1);
-        String base58Address = requiredDataForMAC.get(2);
+    private void setWalletPref(Map<String, String> requiredDataForMAC) {
+        String base58CipheredPrk = requiredDataForMAC.get("cipheredPrk");
+        String base58Puk = requiredDataForMAC.get("puk");
+        String base58Address = requiredDataForMAC.get("address");
         setValuesInPreferences("Ciphered.Data", base58CipheredPrk);
         setValuesInPreferences("Wallet.PublicKey", base58Puk);
         setValuesInPreferences("Wallet.Addr", base58Address);
@@ -445,7 +440,7 @@ public class Wallet implements MoaECDSAReceiver {
         String iterationCount = String.valueOf(getValuesInPreferences("Iteration.Count"));
         String base58Salt = getValuesInPreferences("Salt.Value");
         String targetMacData = versionInfo + osInfo + base58Salt + iterationCount + base58CipheredPrk + base58Puk + base58Address;
-        String macDataBase58 = generateMACData(base58Salt, requiredDataForMAC.get(3), targetMacData);
+        String macDataBase58 = generateMACData(base58Salt, requiredDataForMAC.get("pw"), targetMacData);
         setValuesInPreferences("MAC.Data", macDataBase58);
     }
 
@@ -539,7 +534,11 @@ public class Wallet implements MoaECDSAReceiver {
             return;
         String base58CipheredPrk = MoaBase58.encode(lastEncryptedPrk);
 
-        List<String> requiredDataForMAC = Arrays.asList(base58CipheredPrk, base58Puk, base58Address, password);
+        WeakHashMap<String, String> requiredDataForMAC = new WeakHashMap<>();
+        requiredDataForMAC.put("cipheredPrk", base58CipheredPrk);
+        requiredDataForMAC.put("puk", base58Puk);
+        requiredDataForMAC.put("address", base58Address);
+        requiredDataForMAC.put("pw", password);
         setWalletPref(requiredDataForMAC);
         this.password = "";
         if (moaWalletReceiver != null)
@@ -561,25 +560,15 @@ public class Wallet implements MoaECDSAReceiver {
         return result;
     }
 
-    private String getPrefName() {
-        String prefName = "moaWallet";
-        if (type.equals(CoinKeyMgrType.KEY_GEN_AND_SAVE_HSM.getType()))
-            prefName = "moaRestoreWallet";
-        return prefName;
-    }
-
     @Override
     public void onSuccessKeyPair(String prk, String puk) {
+        if (moaWalletReceiver == null)
+            return;
         byte[][] keyPair = new byte[2][];
         keyPair[0] = hexStringToByteArray(prk);
         keyPair[1] = hexStringToByteArray(puk);
         setInfo(keyPair);
-        if (moaWalletReceiver == null)
-            return;
-        if (type.equals(CoinKeyMgrType.KEY_GEN_AND_SAVE_APP.getType()))
-            moaWalletReceiver.onLibCompleteWallet();
-        else if (type.equals(CoinKeyMgrType.KEY_GEN_AND_SAVE_HSM.getType()))
-            moaWalletReceiver.onLibCompleteRestoreMsg(generateRestoreDataFormat(keyPair));
+        moaWalletReceiver.onLibCompleteRestoreMsg(generateRestoreDataFormat(keyPair));
     }
 
     @Override
@@ -595,27 +584,10 @@ public class Wallet implements MoaECDSAReceiver {
             moaWalletReceiver.onLibCompleteVerify(checkSign);
     }
 
-    private enum CoinKeyMgrType {
-        INACTIVE("0x90"),
-        KEY_GEN_AND_SAVE_APP("0x91"),
-        KEY_GEN_AND_SAVE_HSM("0x92"),
-        KEY_GEN_HSM_AND_SAVE_HSM_SE("0x93");
-
-        private String type;
-
-        CoinKeyMgrType(String type) {
-            this.type = type;
-        }
-
-        public String getType() {
-            return this.type;
-        }
-    }
-
     public static class Builder {
+        private Wallet instance;
         private Context context;
         private MoaWalletLibReceiver receiver;
-        private String type;
 
         public Builder(Context context) {
             this.context = context;
@@ -626,13 +598,10 @@ public class Wallet implements MoaECDSAReceiver {
             return this;
         }
 
-        public Builder addType(String type) {
-            this.type = type;
-            return this;
-        }
-
         public Wallet build() {
-            return new Wallet(this);
+            if (instance == null)
+                instance = new Wallet(this);
+            return instance;
         }
     }
 }
