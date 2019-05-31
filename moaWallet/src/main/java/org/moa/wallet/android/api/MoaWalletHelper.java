@@ -12,29 +12,9 @@ public class MoaWalletHelper {
     private Wallet wallet;
 
     private MoaWalletHelper(Builder builder) {
-        wallet = new Wallet.Builder(builder.context).addReceiver(builder.receiver).addType(builder.type).build();
+        wallet = new Wallet.Builder(builder.context).addReceiver(builder.receiver).build();
         if (builder.webView != null)
             wallet.setWebView(builder.webView);
-    }
-
-    @Deprecated
-    public void generateInfo(String password) {
-        wallet.generateInfo(password);
-    }
-
-    @Deprecated
-    public byte[] getSignedTransactionData(String transaction, String password) {
-        return wallet.generateSignedTransactionData(transaction, password);
-    }
-
-    @Deprecated
-    public PublicKey getPublicKey() {
-        return wallet.getPublicKey();
-    }
-
-    @Deprecated
-    public boolean verifySignedTransactionData(String plainText, String signedData) {
-        return wallet.verifySignedData(plainText, MoaBase58.decode(signedData));
     }
 
     public void createOrGenerateInfoByTypeJS(String password) {
@@ -73,11 +53,30 @@ public class MoaWalletHelper {
         wallet.removeWallet();
     }
 
+    @Deprecated
+    public void generateInfo(String password) {
+        wallet.generateInfo(password);
+    }
+
+    @Deprecated
+    public byte[] getSignedTransactionData(String transaction, String password) {
+        return wallet.generateSignedTransactionData(transaction, password);
+    }
+
+    @Deprecated
+    public PublicKey getPublicKey() {
+        return wallet.getPublicKey();
+    }
+
+    @Deprecated
+    public boolean verifySignedTransactionData(String plainText, String signedData) {
+        return wallet.verifySignedData(plainText, MoaBase58.decode(signedData));
+    }
+
     public static class Builder {
         private static MoaWalletHelper instance;
         private Context context;
         private WebView webView;
-        private String type;
         private MoaWalletLibReceiver receiver;
 
         public Builder(Context context) {
@@ -94,13 +93,10 @@ public class MoaWalletHelper {
             return this;
         }
 
-        public Builder addType(String type) {
-            this.type = type;
-            return this;
-        }
-
         public MoaWalletHelper build() {
-            return new MoaWalletHelper(this);
+            if (instance == null)
+                instance = new MoaWalletHelper(this);
+            return instance;
         }
     }
 }
