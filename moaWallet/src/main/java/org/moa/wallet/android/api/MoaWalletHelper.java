@@ -41,7 +41,7 @@ public class MoaWalletHelper {
         return wallet.existPreferences();
     }
 
-    //TODO ì§€ê°‘ ë°ì´í„°ë³„ë¡œ Getter í•¨ìˆ˜ êµ¬í˜„
+    //TODO ÃßÈÄ Á¦°Å
     public String getContent() {
         String versionInfo = wallet.getValuesInPreferences(MoaConfigurable.KEY_WALLET_VERSION_INFO);
         String osInfo = wallet.getValuesInPreferences(MoaConfigurable.KEY_WALLET_OS_INFO);
