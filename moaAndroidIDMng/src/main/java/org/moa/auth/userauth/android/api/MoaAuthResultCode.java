@@ -1,6 +1,6 @@
 package org.moa.auth.userauth.android.api;
 
-public enum MoaAuthCode {
+public enum MoaAuthResultCode {
     COMMON_ID_EXIST("0x5011"),
     COMMON_ID_NOT_EXIST("0x5012"),
     REGIST_PIN_SUCCESS("0x5021"),
@@ -33,7 +33,7 @@ public enum MoaAuthCode {
 
     private String authCode;
 
-    MoaAuthCode(String authCode) {
+    MoaAuthResultCode(String authCode) {
         this.authCode = authCode;
     }
 
