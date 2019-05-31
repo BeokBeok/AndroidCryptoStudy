@@ -100,7 +100,6 @@ public class Wallet implements MoaECDSAReceiver {
         Calendar startData = Calendar.getInstance();
         Calendar endData = Calendar.getInstance();
         endData.add(Calendar.YEAR, 25);
-
         try {
             KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA", androidProvider);
             keyPairGenerator.initialize(
@@ -120,20 +119,14 @@ public class Wallet implements MoaECDSAReceiver {
     }
 
     private void setValuesInPreferences(String key, String value) {
-        String prefName = "moaWallet";
-        if (type.equals(CoinKeyMgrType.KEY_GEN_AND_SAVE_HSM.getType()))
-            prefName = "moaRestoreWallet";
-        SharedPreferences pref = context.getSharedPreferences(prefName, Context.MODE_PRIVATE);
+        SharedPreferences pref = context.getSharedPreferences(getPrefName(), Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = pref.edit();
         editor.putString(key, value);
         editor.apply();
     }
 
     private String getValuesInPreferences(String key) {
-        String prefName = "moaWallet";
-        if (type.equals(CoinKeyMgrType.KEY_GEN_AND_SAVE_HSM.getType()))
-            prefName = "moaRestoreWallet";
-        SharedPreferences pref = context.getSharedPreferences(prefName, Context.MODE_PRIVATE);
+        SharedPreferences pref = context.getSharedPreferences(getPrefName(), Context.MODE_PRIVATE);
         String value = pref.getString(key, "");
         if (value == null || value.length() == 0)
             value = "";
@@ -148,11 +141,6 @@ public class Wallet implements MoaECDSAReceiver {
         webview.addJavascriptInterface(new MoaBridge(this), "ECDSA");
         webview.loadUrl("file:///android_asset/ECDSA/ECDSA.html");
         this.webView = webview;
-    }
-
-    public boolean existPreferences() {
-        String walletAddress = getValuesInPreferences("Wallet.Addr");
-        return walletAddress.length() > 0;
     }
 
     @Deprecated
@@ -191,7 +179,7 @@ public class Wallet implements MoaECDSAReceiver {
 
     @Deprecated
     public PublicKey getPublicKey() {
-        if (!existPreferences())
+        if (getAddress().length() == 0)
             return null;
 
         String base58WalletPuk = getValuesInPreferences("Wallet.PublicKey");
@@ -306,6 +294,11 @@ public class Wallet implements MoaECDSAReceiver {
 
     public String getAddress() {
         return getValuesInPreferences("Wallet.Addr");
+    }
+
+    public void removeWallet() {
+        SharedPreferences sp = context.getSharedPreferences(getPrefName(), Context.MODE_PRIVATE);
+        sp.edit().clear().apply();
     }
 
     private void initProperties() {
@@ -458,7 +451,7 @@ public class Wallet implements MoaECDSAReceiver {
     }
 
     private boolean checkMACData(String psw) {
-        if (!existPreferences())
+        if (getAddress().length() == 0)
             return false;
         int versionInfo = Integer.parseInt(getValuesInPreferences("Version.Info"));
         String osName = getValuesInPreferences("OS.Info");
@@ -564,6 +557,13 @@ public class Wallet implements MoaECDSAReceiver {
                 Base64.encodeToString(encryptedPuk, Base64.NO_WRAP) + "$" +
                 Base64.encodeToString(getSalt(), Base64.NO_WRAP);
         return result;
+    }
+
+    private String getPrefName() {
+        String prefName = "moaWallet";
+        if (type.equals(CoinKeyMgrType.KEY_GEN_AND_SAVE_HSM.getType()))
+            prefName = "moaRestoreWallet";
+        return prefName;
     }
 
     @Override
