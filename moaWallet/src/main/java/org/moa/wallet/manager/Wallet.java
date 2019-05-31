@@ -132,73 +132,6 @@ public class Wallet implements MoaECDSAReceiver {
         this.webView = webview;
     }
 
-    @Deprecated
-    public void generateInfo(String password) {
-        byte[][] walletKeyPair = generateKeyPair();
-        if (walletKeyPair.length == 0)
-            return;
-        this.password = password;
-        setInfo(walletKeyPair);
-    }
-
-    @Deprecated
-    public byte[] generateSignedTransactionData(String transaction, String password) {
-        byte[] signData = {0,};
-        if (!checkMACData(password))
-            return signData;
-
-        byte[] privateKeyBytes = getDecryptedPrivateKey(password);
-        if (privateKeyBytes == null || privateKeyBytes.length == 0)
-            return signData;
-
-        String signatureAlgorithm = getValuesInPreferences("Signature.Alg");
-        String keyPairAlgorithm = getValuesInPreferences("ECC.Alg");
-        if (signatureAlgorithm.length() == 0 || keyPairAlgorithm.length() == 0)
-            return signData;
-        try {
-            KeyFactory keyFactory = KeyFactory.getInstance(keyPairAlgorithm);
-            PrivateKey privateKey = keyFactory.generatePrivate(new PKCS8EncodedKeySpec(privateKeyBytes));
-            signData = generateSignedData(signatureAlgorithm, privateKey, transaction.getBytes());
-        } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
-            Log.d("MoaLib", "[Wallet][generateSignedTransactionData] failed to get signed transaction data", e);
-        }
-        return signData;
-    }
-
-    @Deprecated
-    public PublicKey getPublicKey() {
-        if (getAddress().length() == 0)
-            return null;
-
-        String base58WalletPuk = getValuesInPreferences("Wallet.PublicKey");
-        String keyPairAlgorithm = getValuesInPreferences("ECC.Alg");
-        if (base58WalletPuk.length() == 0 || keyPairAlgorithm.length() == 0)
-            return null;
-
-        byte[] puk = MoaBase58.decode(base58WalletPuk);
-        try {
-            KeyFactory keyFactory = KeyFactory.getInstance(keyPairAlgorithm);
-            return keyFactory.generatePublic(new X509EncodedKeySpec(puk));
-        } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
-            Log.d("MoaLib", "[Wallet][getPublicKey] failed to get wallet public key", e);
-        }
-        return null;
-    }
-
-    @Deprecated
-    public boolean verifySignedData(String plainText, byte[] signedData) {
-        try {
-            String algorithm = getValuesInPreferences("Signature.Alg");
-            Signature signature = Signature.getInstance(algorithm);
-            signature.initVerify(getPublicKey());
-            signature.update(plainText.getBytes());
-            return signature.verify(signedData);
-        } catch (NoSuchAlgorithmException | InvalidKeyException | SignatureException e) {
-            Log.d("MoaLib", "[Wallet][verifySignedData] Failed to verify sign data", e);
-        }
-        return false;
-    }
-
     public void setRestoreInfo(String password, String msg) {
         if (msg == null || msg.length() == 0)
             return;
@@ -271,13 +204,6 @@ public class Wallet implements MoaECDSAReceiver {
         webView.loadUrl("javascript:doSign('" + curve + "', '" + signAlg + "', '" + transaction + "', '" + prk + "')");
     }
 
-    public void verifySignedDataJS(String plainText, String signedData) {
-        String curve = getValuesInPreferences("ECC.Curve");
-        String signAlg = getValuesInPreferences("Signature.Alg");
-        String puk = byteArrayToHexString(MoaBase58.decode(getValuesInPreferences("Wallet.PublicKey")));
-        webView.loadUrl("javascript:doVerify('" + curve + "', '" + signAlg + "', '" + plainText + "', '" + signedData + "', '" + puk + "')");
-    }
-
     public String getPublicKeyJS() {
         String base58Puk = getValuesInPreferences("Wallet.PublicKey");
         byte[] decode = MoaBase58.decode(base58Puk);
@@ -318,26 +244,6 @@ public class Wallet implements MoaECDSAReceiver {
             return salt;
         } else
             return MoaBase58.decode(base58Salt);
-    }
-
-    @Deprecated
-    private byte[][] generateKeyPair() {
-        String keyPairAlgorithm = getValuesInPreferences("ECC.Alg");
-        String standardName = getValuesInPreferences("ECC.Curve");
-        byte[][] walletKeyPair = new byte[2][];
-        if (keyPairAlgorithm.length() == 0 || standardName.length() == 0)
-            return walletKeyPair;
-        try {
-            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance(keyPairAlgorithm);
-            ECGenParameterSpec ecGenParameterSpec = new ECGenParameterSpec(standardName);
-            keyPairGenerator.initialize(ecGenParameterSpec);
-            KeyPair keyPair = keyPairGenerator.generateKeyPair();
-            walletKeyPair[0] = keyPair.getPrivate().getEncoded();
-            walletKeyPair[1] = keyPair.getPublic().getEncoded();
-        } catch (NoSuchAlgorithmException | InvalidAlgorithmParameterException e) {
-            Log.d("MoaLib", "[Wallet][generateKeyPair] Failed to get wallet key pair", e);
-        }
-        return walletKeyPair;
     }
 
     private byte[] generateDerivedKey(String psw) {
@@ -476,18 +382,7 @@ public class Wallet implements MoaECDSAReceiver {
         return privateKey;
     }
 
-    private byte[] generateSignedData(String algorithm, PrivateKey privateKey, byte[] targetData) {
-        byte[] resultData = {0,};
-        try {
-            Signature signature = Signature.getInstance(algorithm);
-            signature.initSign(privateKey);
-            signature.update(targetData);
-            resultData = signature.sign();
-        } catch (NoSuchAlgorithmException | InvalidKeyException | SignatureException e) {
-            Log.d("MoaLib", "[Wallet][generateSignedData] Failed to get sign data", e);
-        }
-        return resultData;
-    }
+
 
     private byte[] hashDigest(String algorithmName, byte[] targetData) {
         byte[] result = {0,};
@@ -582,6 +477,115 @@ public class Wallet implements MoaECDSAReceiver {
     public void onSuccessVerify(boolean checkSign) {
         if (moaWalletReceiver != null)
             moaWalletReceiver.onLibCompleteVerify(checkSign);
+    }
+
+    @Deprecated
+    public void generateInfo(String password) {
+        byte[][] walletKeyPair = generateKeyPair();
+        if (walletKeyPair.length == 0)
+            return;
+        this.password = password;
+        setInfo(walletKeyPair);
+    }
+
+    @Deprecated
+    public byte[] generateSignedTransactionData(String transaction, String password) {
+        byte[] signData = {0,};
+        if (!checkMACData(password))
+            return signData;
+
+        byte[] privateKeyBytes = getDecryptedPrivateKey(password);
+        if (privateKeyBytes == null || privateKeyBytes.length == 0)
+            return signData;
+
+        String signatureAlgorithm = getValuesInPreferences("Signature.Alg");
+        String keyPairAlgorithm = getValuesInPreferences("ECC.Alg");
+        if (signatureAlgorithm.length() == 0 || keyPairAlgorithm.length() == 0)
+            return signData;
+        try {
+            KeyFactory keyFactory = KeyFactory.getInstance(keyPairAlgorithm);
+            PrivateKey privateKey = keyFactory.generatePrivate(new PKCS8EncodedKeySpec(privateKeyBytes));
+            signData = generateSignedData(signatureAlgorithm, privateKey, transaction.getBytes());
+        } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+            Log.d("MoaLib", "[Wallet][generateSignedTransactionData] failed to get signed transaction data", e);
+        }
+        return signData;
+    }
+
+    @Deprecated
+    public PublicKey getPublicKey() {
+        if (getAddress().length() == 0)
+            return null;
+
+        String base58WalletPuk = getValuesInPreferences("Wallet.PublicKey");
+        String keyPairAlgorithm = getValuesInPreferences("ECC.Alg");
+        if (base58WalletPuk.length() == 0 || keyPairAlgorithm.length() == 0)
+            return null;
+
+        byte[] puk = MoaBase58.decode(base58WalletPuk);
+        try {
+            KeyFactory keyFactory = KeyFactory.getInstance(keyPairAlgorithm);
+            return keyFactory.generatePublic(new X509EncodedKeySpec(puk));
+        } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+            Log.d("MoaLib", "[Wallet][getPublicKey] failed to get wallet public key", e);
+        }
+        return null;
+    }
+
+    @Deprecated
+    public boolean verifySignedData(String plainText, byte[] signedData) {
+        try {
+            String algorithm = getValuesInPreferences("Signature.Alg");
+            Signature signature = Signature.getInstance(algorithm);
+            signature.initVerify(getPublicKey());
+            signature.update(plainText.getBytes());
+            return signature.verify(signedData);
+        } catch (NoSuchAlgorithmException | InvalidKeyException | SignatureException e) {
+            Log.d("MoaLib", "[Wallet][verifySignedData] Failed to verify sign data", e);
+        }
+        return false;
+    }
+
+    @Deprecated
+    private byte[][] generateKeyPair() {
+        String keyPairAlgorithm = getValuesInPreferences("ECC.Alg");
+        String standardName = getValuesInPreferences("ECC.Curve");
+        byte[][] walletKeyPair = new byte[2][];
+        if (keyPairAlgorithm.length() == 0 || standardName.length() == 0)
+            return walletKeyPair;
+        try {
+            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance(keyPairAlgorithm);
+            ECGenParameterSpec ecGenParameterSpec = new ECGenParameterSpec(standardName);
+            keyPairGenerator.initialize(ecGenParameterSpec);
+            KeyPair keyPair = keyPairGenerator.generateKeyPair();
+            walletKeyPair[0] = keyPair.getPrivate().getEncoded();
+            walletKeyPair[1] = keyPair.getPublic().getEncoded();
+        } catch (NoSuchAlgorithmException | InvalidAlgorithmParameterException e) {
+            Log.d("MoaLib", "[Wallet][generateKeyPair] Failed to get wallet key pair", e);
+        }
+        return walletKeyPair;
+    }
+
+    @Deprecated
+    public void verifySignedDataJS(String plainText, String signedData) {
+        String curve = getValuesInPreferences("ECC.Curve");
+        String signAlg = getValuesInPreferences("Signature.Alg");
+        String puk = byteArrayToHexString(MoaBase58.decode(getValuesInPreferences("Wallet.PublicKey")));
+        webView.loadUrl("javascript:doVerify('" + curve + "', '" + signAlg + "', '" + plainText + "', '" + signedData + "', '" + puk + "')");
+    }
+
+    @Deprecated
+    private byte[] generateSignedData(String algorithm, PrivateKey privateKey, byte[] targetData) {
+        byte[] resultData = {0,};
+        try {
+            Signature signature = Signature.getInstance(algorithm);
+            signature.initSign(privateKey);
+            signature.update(targetData);
+            resultData = signature.sign();
+        } catch (NoSuchAlgorithmException | InvalidKeyException | SignatureException e) {
+            Log.d("MoaLib", "[Wallet][generateSignedData] Failed to get sign data", e);
+        }
+        return resultData;
     }
 
     public static class Builder {

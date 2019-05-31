@@ -25,10 +25,6 @@ public class MoaWalletHelper {
         wallet.generateSignedTransactionDataJS(transaction, password);
     }
 
-    public void verifySignedTransactionDataJS(String plainText, String signedData) {
-        wallet.verifySignedDataJS(plainText, signedData);
-    }
-
     public String getPublicKeyJS() {
         return wallet.getPublicKeyJS();
     }
@@ -37,20 +33,20 @@ public class MoaWalletHelper {
         wallet.setRestoreInfo(password, msg);
     }
 
-    public byte[] hexStringToByteArray(String target) {
-        return wallet.hexStringToByteArray(target);
-    }
-
-    public String byteArrayToHexString(byte[] target) {
-        return wallet.byteArrayToHexString(target);
-    }
-
     public String getAddress() {
         return wallet.getAddress();
     }
 
     public void removeWallet() {
         wallet.removeWallet();
+    }
+
+    public byte[] hexStringToByteArray(String target) {
+        return wallet.hexStringToByteArray(target);
+    }
+
+    public String byteArrayToHexString(byte[] target) {
+        return wallet.byteArrayToHexString(target);
     }
 
     @Deprecated
@@ -71,6 +67,11 @@ public class MoaWalletHelper {
     @Deprecated
     public boolean verifySignedTransactionData(String plainText, String signedData) {
         return wallet.verifySignedData(plainText, MoaBase58.decode(signedData));
+    }
+
+    @Deprecated
+    public void verifySignedTransactionDataJS(String plainText, String signedData) {
+        wallet.verifySignedDataJS(plainText, signedData);
     }
 
     public static class Builder {

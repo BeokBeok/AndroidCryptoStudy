@@ -5,5 +5,6 @@ public interface MoaECDSAReceiver {
 
     void onSuccessSign(String sign);
 
+    @Deprecated
     void onSuccessVerify(boolean checkSign);
 }
