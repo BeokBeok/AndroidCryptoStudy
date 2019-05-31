@@ -5,6 +5,7 @@ public interface MoaWalletLibReceiver {
 
     void onLibCompleteSign(String sign);
 
+    @Deprecated
     void onLibCompleteVerify(boolean checkSign);
 
     void onLibCompleteRestoreMsg(String msg);
