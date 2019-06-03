@@ -1,5 +1,6 @@
 package org.moa.wallet.android.api;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.webkit.WebView;
 
@@ -75,6 +76,7 @@ public class MoaWalletHelper {
     }
 
     public static class Builder {
+        @SuppressLint("StaticFieldLeak")
         private static MoaWalletHelper instance;
         private Context context;
         private WebView webView;
