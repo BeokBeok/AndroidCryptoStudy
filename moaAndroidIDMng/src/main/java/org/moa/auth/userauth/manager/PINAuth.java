@@ -14,14 +14,13 @@ abstract class PINAuth {
     SymmetricCrypto symmetricCrypto;
 
     public void init(Context context, String uniqueDeviceID) {
-        boolean isContext = (this.context != null);
-        boolean isUniqueDeviceID = (this.uniqueDeviceID != null && this.uniqueDeviceID.length() > 0);
-        if (isContext && isUniqueDeviceID)
-            return;
-
-        this.context = context;
-        this.uniqueDeviceID = uniqueDeviceID;
-        setSymmetricCryptoInstance();
+        boolean isContext = (context != null);
+        boolean isUniqueDeviceID = (uniqueDeviceID != null && uniqueDeviceID.length() > 0);
+        if (isContext && isUniqueDeviceID) {
+            this.context = context;
+            this.uniqueDeviceID = uniqueDeviceID;
+            setSymmetricCryptoInstance();
+        }
     }
 
     private void setSymmetricCryptoInstance() {
