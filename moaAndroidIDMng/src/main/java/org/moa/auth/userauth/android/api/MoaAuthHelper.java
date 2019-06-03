@@ -20,25 +20,36 @@ public class MoaAuthHelper {
     private AutoLogin autoLogin;
 
     private MoaAuthHelper(Builder builder) {
-        assert builder != null && builder.context != null && builder.uniqueDeviceID != null;
-
+        assert builder != null && builder.context != null;
         this.context = builder.context;
+    }
+
+    public void setUniqueDeviceID(String uniqueDeviceID) {
+        if (uniqueDeviceID == null || uniqueDeviceID.length() < 1)
+            throw new RuntimeException("Unique Device ID not exist");
         userControl = UserControl.getInstance();
         autoLogin = AutoLogin.getInstance();
-        userControl.init(context, builder.uniqueDeviceID);
-        autoLogin.init(context, builder.uniqueDeviceID);
+        userControl.init(context, uniqueDeviceID);
+        autoLogin.init(context, uniqueDeviceID);
     }
 
     public void setNonMemberPIN(String nonMemberId) {
-        userControl.setMemberInfo(nonMemberId, MoaMember.NON_MEMBER);
+        if (userControl != null)
+            userControl.setMemberInfo(nonMemberId, MoaMember.NON_MEMBER);
     }
 
     public boolean existControlInfo() {
-        return userControl.existPreferences();
+        if (userControl != null)
+            return userControl.existPreferences();
+        else
+            return false;
     }
 
     public String getMemberInfo(int type) {
-        return userControl.getMemberInfo(type);
+        if (userControl != null)
+            return userControl.getMemberInfo(type);
+        else
+            return "";
     }
 
     public String generatePINRegisterMessage(String id, String password) {
@@ -82,6 +93,8 @@ public class MoaAuthHelper {
     }
 
     public void setControlInfoData(String id, MoaMember moaMember) {
+        if (userControl == null)
+            throw new RuntimeException("User Control is null");
         userControl.setMemberInfo(id, moaMember);
     }
 
@@ -92,22 +105,34 @@ public class MoaAuthHelper {
     }
 
     public String getAutoLoginInfo() {
-        return autoLogin.get();
+        if (autoLogin != null)
+            return autoLogin.get();
+        else
+            return "";
     }
 
     public void setAutoLoginInfo(String password) {
+        if (autoLogin == null)
+            throw new RuntimeException("Auto Login is null");
         autoLogin.set(password);
     }
 
     public String getBasePrimaryInfo() {
-        return userControl.getBasePrimaryInfo();
+        if (userControl != null)
+            return userControl.getBasePrimaryInfo();
+        else
+            return "";
     }
 
     public void setBasePrimaryInfo(String userSequenceIndex) {
+        if (userControl == null)
+            throw new RuntimeException("User Control is null");
         userControl.setBasePrimaryInfo(userSequenceIndex);
     }
 
     public void removeAllControlInfo() {
+        if (userControl == null)
+            throw new RuntimeException("User Control is null");
         userControl.removeAllMemberInfo();
     }
 
@@ -115,15 +140,9 @@ public class MoaAuthHelper {
         @SuppressLint("StaticFieldLeak")
         private static MoaAuthHelper instance;
         private Context context;
-        private String uniqueDeviceID;
 
         public Builder(Context context) {
             this.context = context;
-        }
-
-        public Builder addUniqueDeviceID(String uniqueDeviceID) {
-            this.uniqueDeviceID = uniqueDeviceID;
-            return this;
         }
 
         public MoaAuthHelper build() {
