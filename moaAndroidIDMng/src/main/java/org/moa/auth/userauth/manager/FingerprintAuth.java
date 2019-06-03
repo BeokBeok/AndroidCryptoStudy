@@ -131,6 +131,8 @@ public class FingerprintAuth {
     }
 
     private byte[] getMergedByteArray(byte[] first, byte[] second) {
+        assert first != null && second != null;
+
         byte[] targetByteArr = new byte[first.length + second.length];
         System.arraycopy(first, 0, targetByteArr, 0, first.length);
         System.arraycopy(second, 0, targetByteArr, first.length, second.length);
@@ -138,6 +140,8 @@ public class FingerprintAuth {
     }
 
     private byte[] getSignedData(PrivateKey privateKey, byte[] targetData) {
+        assert privateKey != null && targetData != null;
+
         byte[] resultData = {0,};
         try {
             Signature signature = Signature.getInstance(signAlgorithmSuite);

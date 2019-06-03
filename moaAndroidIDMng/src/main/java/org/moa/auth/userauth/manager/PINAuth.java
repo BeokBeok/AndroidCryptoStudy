@@ -25,8 +25,8 @@ abstract class PINAuth {
     }
 
     private void setSymmetricCryptoInstance() {
-        if (symmetricCrypto != null)
-            return;
+        assert symmetricCrypto != null;
+
         String transformation = "AES/CBC/PKCS7Padding";
         byte[] src = Base64.decode(uniqueDeviceID, Base64.NO_WRAP);
         byte[] key = new byte[32];

@@ -84,6 +84,8 @@ public class UserControl extends PINAuth {
     }
 
     private void setValuesInPreferences(String key, String value) {
+        assert key != null && value != null;
+
         String encodedBase64Encryption;
         byte[] encodedUtf8Content = value.getBytes(StandardCharsets.UTF_8);
         byte[] encryption = symmetricCrypto.getSymmetricData(Cipher.ENCRYPT_MODE, encodedUtf8Content);
@@ -97,6 +99,8 @@ public class UserControl extends PINAuth {
     }
 
     private String getValuesInPreferences(String key) {
+        assert key != null;
+
         SharedPreferences pref = context.getSharedPreferences("androidIDManager", Context.MODE_PRIVATE);
         String value = pref.getString(key, "");
         if (value == null || value.length() == 0)
@@ -107,6 +111,8 @@ public class UserControl extends PINAuth {
     }
 
     private boolean checkData(String data) {
+        assert data != null;
+
         StringTokenizer stringTokenizer = new StringTokenizer(data, "$");
         ArrayList<String> controlInfoArray = new ArrayList<>();
         while (stringTokenizer.hasMoreElements()) {
