@@ -1,5 +1,6 @@
 package org.moa.auth.userauth.android.api;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
@@ -111,7 +112,8 @@ public class MoaAuthHelper {
     }
 
     public static class Builder {
-        private MoaAuthHelper instance;
+        @SuppressLint("StaticFieldLeak")
+        private static MoaAuthHelper instance;
         private Context context;
         private String uniqueDeviceID;
 
