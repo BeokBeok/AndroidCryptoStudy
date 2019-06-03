@@ -67,6 +67,8 @@ class MoaCommon {
     }
 
     private byte[] hashDigest(String algorithmName, byte[] targetData) {
+        assert algorithmName != null && targetData != null;
+
         try {
             MessageDigest messageDigest = MessageDigest.getInstance(algorithmName);
             messageDigest.update(targetData);
@@ -77,6 +79,8 @@ class MoaCommon {
     }
 
     private byte[] hmacDigest(String algorithmName, byte[] targetData, byte[] key) {
+        assert algorithmName != null && targetData != null && key != null;
+
         try {
             SecretKeySpec secretKeySpec = new SecretKeySpec(key, algorithmName);
             Mac mac = Mac.getInstance(algorithmName);
@@ -89,6 +93,8 @@ class MoaCommon {
     }
 
     private byte[] hexStringToByteArray(String s) {
+        assert s != null;
+
         int len = s.length();
         byte[] data = new byte[len / 2];
         for (int i = 0; i < len; i += 2) {

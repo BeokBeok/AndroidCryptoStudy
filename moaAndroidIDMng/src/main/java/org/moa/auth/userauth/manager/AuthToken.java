@@ -54,19 +54,19 @@ public class AuthToken {
         this.context = context;
     }
 
+    public String get() {
+        SharedPreferences pref = context.getSharedPreferences("androidAuthToken", Context.MODE_PRIVATE);
+        byte[] encryptData = Base64.decode(pref.getString("AuthToken.Info", ""), Base64.NO_WRAP);
+        return getDecryptContent(encryptData);
+    }
+
     @RequiresApi(api = Build.VERSION_CODES.M)
-    public void setValuesInPreferences(String key, String value) {
+    public void set(String value) {
         String encryptedData = getEncryptContent(value);
         SharedPreferences pref = context.getSharedPreferences("androidAuthToken", Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = pref.edit();
-        editor.putString(key, encryptedData);
+        editor.putString("AuthToken.Info", encryptedData);
         editor.apply();
-    }
-
-    public String getValuesInPreferences(String key) {
-        SharedPreferences pref = context.getSharedPreferences("androidAuthToken", Context.MODE_PRIVATE);
-        byte[] encryptData = Base64.decode(pref.getString(key, ""), Base64.NO_WRAP);
-        return getDecryptContent(encryptData);
     }
 
     private void initKeyStore() {
@@ -98,6 +98,8 @@ public class AuthToken {
 
     @RequiresApi(api = Build.VERSION_CODES.M)
     private String getEncryptContent(String content) {
+        assert content != null;
+
         String resultData = "";
         try {
             if (!keyStore.containsAlias(keyAlias))
@@ -121,6 +123,8 @@ public class AuthToken {
     }
 
     private String getDecryptContent(byte[] content) {
+        assert content != null;
+
         String result = "";
         try {
             Cipher cipher = Cipher.getInstance(transformation);
@@ -146,6 +150,8 @@ public class AuthToken {
     }
 
     private void setIV(byte[] iv) {
+        assert iv != null;
+
         SharedPreferences pref = context.getSharedPreferences("IV_AuthToken", Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = pref.edit();
         editor.putString("iv", Base64.encodeToString(iv, Base64.NO_WRAP));

@@ -105,6 +105,8 @@ public class AutoLogin extends PINAuth {
     }
 
     private void setValuesInPreferences(String key, String value) {
+        assert key != null && value != null;
+
         String encryptValue = "";
         if (key.equals("Auto.Info"))
             encryptValue = getEncryptContent(value);
@@ -120,6 +122,8 @@ public class AutoLogin extends PINAuth {
     }
 
     private String getValuesInPreferences(String key) {
+        assert key != null;
+
         SharedPreferences pref = context.getSharedPreferences("androidIDManager", Context.MODE_PRIVATE);
         String value = pref.getString(key, "");
         if (value == null || value.length() == 0)
@@ -146,6 +150,10 @@ public class AutoLogin extends PINAuth {
     }
 
     private byte[] getPBKDF2Data(int encOrDecMode, byte[] data) {
+        if (encOrDecMode != Cipher.ENCRYPT_MODE && encOrDecMode != Cipher.DECRYPT_MODE)
+            throw new AssertionError();
+        assert data != null;
+
         byte[] resultData = {0,};
         byte[] derivedKey = generateDerivedKey();
         if (derivedKey.length != 48)
@@ -170,6 +178,10 @@ public class AutoLogin extends PINAuth {
     }
 
     private byte[] getRSAData(int encOrDecMode, byte[] data) {
+        if (encOrDecMode != Cipher.ENCRYPT_MODE && encOrDecMode != Cipher.DECRYPT_MODE)
+            throw new AssertionError();
+        assert data != null;
+
         byte[] resultData = {0,};
         try {
             if (!keyStore.containsAlias(keyAlias))
@@ -183,7 +195,7 @@ public class AutoLogin extends PINAuth {
                     return resultData;
                 }
                 cipher.init(encOrDecMode, publicKey);
-            } else if (encOrDecMode == Cipher.DECRYPT_MODE) {
+            } else {
                 PrivateKey privateKey = (PrivateKey) keyStore.getKey(keyAlias, null);
                 if (privateKey == null) {
                     Log.d("MoaLib", "[AutoLogin][getRSAData] private key is null");
@@ -200,6 +212,8 @@ public class AutoLogin extends PINAuth {
     }
 
     private String getEncryptContent(String content) {
+        assert content != null;
+
         String encryptedData;
         int cipherMode = Cipher.ENCRYPT_MODE;
         byte[] encode = content.getBytes(StandardCharsets.UTF_8);
@@ -210,6 +224,8 @@ public class AutoLogin extends PINAuth {
     }
 
     private String getDecryptContent(String content) {
+        assert content != null;
+
         String decryptedData;
         int cipherMode = Cipher.DECRYPT_MODE;
         byte[] decode = Base64.decode(content, Base64.NO_WRAP);
