@@ -26,6 +26,7 @@ import java.security.SecureRandom;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.util.Calendar;
+import java.util.StringTokenizer;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -59,11 +60,18 @@ public class AutoLogin extends PINAuth {
         }
     }
 
-    public String getAutoInfo() {
-        return getValuesInPreferences("Auto.Info");
+    public String get() {
+        String content = getValuesInPreferences("Auto.Info");
+        StringTokenizer stringTokenizer = new StringTokenizer(content, "$");
+        String type = stringTokenizer.nextToken();
+        String info = stringTokenizer.nextToken();
+        if (Integer.parseInt(type) == AUTO_LOGIN)
+            return info;
+        else
+            return "";
     }
 
-    public void setAutoInfo(String password) {
+    public void set(String password) {
         int autoLoginType = AUTO_LOGIN;
         if (password == null) {
             // Hashing "MoaPlanet" (SHA-512)

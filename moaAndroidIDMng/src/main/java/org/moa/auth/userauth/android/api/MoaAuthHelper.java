@@ -91,18 +91,11 @@ public class MoaAuthHelper {
     }
 
     public String getAutoLoginInfo() {
-        String content = autoLogin.getAutoInfo();
-        StringTokenizer stringTokenizer = new StringTokenizer(content, "$");
-        String type = stringTokenizer.nextToken();
-        String info = stringTokenizer.nextToken();
-        if (type.equals("0xA1"))
-            return info;
-        else
-            return "";
+        return autoLogin.get();
     }
 
     public void setAutoLoginInfo(String password) {
-        autoLogin.setAutoInfo(password);
+        autoLogin.set(password);
     }
 
     public String getBasePrimaryInfo() {
