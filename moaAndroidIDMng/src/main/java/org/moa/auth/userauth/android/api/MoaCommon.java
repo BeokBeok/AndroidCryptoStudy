@@ -1,7 +1,6 @@
 package org.moa.auth.userauth.android.api;
 
 import android.util.Base64;
-import android.util.Log;
 
 import org.moa.android.crypto.coreapi.SymmetricCrypto;
 import org.moa.auth.userauth.client.api.MoaClientMsgPacketLib;
@@ -80,9 +79,8 @@ public class MoaCommon {
             messageDigest.update(targetData);
             return messageDigest.digest();
         } catch (NoSuchAlgorithmException e) {
-            Log.d("MoaLib", "[MoaCommon] " + e.getMessage());
+            throw new RuntimeException(getClassAndMethodName() + e.getMessage());
         }
-        return new byte[0];
     }
 
     private byte[] hmacDigest(String algorithmName, byte[] targetData, byte[] key) {
@@ -95,9 +93,8 @@ public class MoaCommon {
             mac.update(targetData);
             return mac.doFinal();
         } catch (NoSuchAlgorithmException | InvalidKeyException e) {
-            Log.d("MoaLib", "[MoaCommon] " + e.getMessage());
+            throw new RuntimeException(getClassAndMethodName() + e.getMessage());
         }
-        return new byte[0];
     }
 
     private byte[] hexStringToByteArray(String s) {

@@ -2,7 +2,6 @@ package org.moa.auth.userauth.manager;
 
 import android.content.Context;
 import android.util.Base64;
-import android.util.Log;
 
 import org.moa.android.crypto.coreapi.SymmetricCrypto;
 import org.moa.auth.userauth.android.api.MoaCommon;
@@ -16,10 +15,8 @@ abstract class PINAuth {
     SymmetricCrypto symmetricCrypto;
 
     public void init(Context context, String uniqueDeviceID) {
-        if (context == null || uniqueDeviceID == null) {
-            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "Context or unique device id is null");
-            return;
-        }
+        if (context == null || uniqueDeviceID == null)
+            throw new RuntimeException(MoaCommon.getInstance().getClassAndMethodName() + "Context or unique device id is null");
         this.context = context;
         this.uniqueDeviceID = uniqueDeviceID;
         setSymmetricCryptoInstance();
