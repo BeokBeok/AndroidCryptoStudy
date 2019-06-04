@@ -1,6 +1,7 @@
 package org.moa.auth.userauth.android.api;
 
 import android.util.Base64;
+import android.util.Log;
 
 import org.moa.android.crypto.coreapi.SymmetricCrypto;
 import org.moa.auth.userauth.client.api.MoaClientMsgPacketLib;
@@ -14,12 +15,17 @@ import javax.crypto.Cipher;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 
-class MoaCommon {
+public class MoaCommon {
     private MoaCommon() {
     }
 
-    static MoaCommon getInstance() {
+    public static MoaCommon getInstance() {
         return Singleton.instance;
+    }
+
+    public String getClassAndMethodName() {
+        return "[" + Thread.currentThread().getStackTrace()[1].getClassName() + "]" +
+                "[" + Thread.currentThread().getStackTrace()[1].getMethodName() + "]";
     }
 
     String generateRegisterMessage(String id, String password) {
@@ -67,20 +73,21 @@ class MoaCommon {
     }
 
     private byte[] hashDigest(String algorithmName, byte[] targetData) {
-        assert algorithmName != null && targetData != null;
-
+        if (algorithmName == null || targetData == null)
+            return new byte[0];
         try {
             MessageDigest messageDigest = MessageDigest.getInstance(algorithmName);
             messageDigest.update(targetData);
             return messageDigest.digest();
         } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(algorithmName + " not found", e);
+            Log.d("MoaLib", "[MoaCommon] " + e.getMessage());
         }
+        return new byte[0];
     }
 
     private byte[] hmacDigest(String algorithmName, byte[] targetData, byte[] key) {
-        assert algorithmName != null && targetData != null && key != null;
-
+        if (algorithmName == null || targetData == null || key == null)
+            return new byte[0];
         try {
             SecretKeySpec secretKeySpec = new SecretKeySpec(key, algorithmName);
             Mac mac = Mac.getInstance(algorithmName);
@@ -88,13 +95,14 @@ class MoaCommon {
             mac.update(targetData);
             return mac.doFinal();
         } catch (NoSuchAlgorithmException | InvalidKeyException e) {
-            throw new RuntimeException(algorithmName + " not found", e);
+            Log.d("MoaLib", "[MoaCommon] " + e.getMessage());
         }
+        return new byte[0];
     }
 
     private byte[] hexStringToByteArray(String s) {
-        assert s != null;
-
+        if (s == null)
+            return new byte[0];
         int len = s.length();
         byte[] data = new byte[len / 2];
         for (int i = 0; i < len; i += 2) {

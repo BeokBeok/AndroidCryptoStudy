@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
+import android.util.Log;
 
 import org.moa.auth.userauth.manager.AuthToken;
 import org.moa.auth.userauth.manager.AutoLogin;
@@ -12,7 +13,6 @@ import org.moa.auth.userauth.manager.UserControl;
 
 import java.security.PublicKey;
 import java.util.Map;
-import java.util.StringTokenizer;
 
 public class MoaAuthHelper {
     private Context context;
@@ -20,13 +20,18 @@ public class MoaAuthHelper {
     private AutoLogin autoLogin;
 
     private MoaAuthHelper(Builder builder) {
-        assert builder != null && builder.context != null;
+        if (builder == null) {
+            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "Builder is null");
+            return;
+        }
         this.context = builder.context;
     }
 
     public void setUniqueDeviceID(String uniqueDeviceID) {
-        if (uniqueDeviceID == null || uniqueDeviceID.length() < 1)
-            throw new RuntimeException("Unique Device ID not exist");
+        if (uniqueDeviceID == null || uniqueDeviceID.length() < 1) {
+            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "Unique Device ID not exist");
+            return;
+        }
         userControl = UserControl.getInstance();
         autoLogin = AutoLogin.getInstance();
         userControl.init(context, uniqueDeviceID);
@@ -34,22 +39,27 @@ public class MoaAuthHelper {
     }
 
     public void setNonMemberPIN(String nonMemberId) {
-        if (userControl != null)
-            userControl.setMemberInfo(nonMemberId, MoaMember.NON_MEMBER);
+        if (userControl == null) {
+            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "User Control is null");
+            return;
+        }
+        userControl.setMemberInfo(nonMemberId, MoaMember.NON_MEMBER);
     }
 
     public boolean existControlInfo() {
-        if (userControl != null)
-            return userControl.existPreferences();
-        else
+        if (userControl == null) {
+            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "User Control is null");
             return false;
+        }
+        return userControl.existPreferences();
     }
 
     public String getMemberInfo(int type) {
-        if (userControl != null)
-            return userControl.getMemberInfo(type);
-        else
+        if (userControl == null) {
+            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "User Control is null");
             return "";
+        }
+        return userControl.getMemberInfo(type);
     }
 
     public String generatePINRegisterMessage(String id, String password) {
@@ -93,8 +103,10 @@ public class MoaAuthHelper {
     }
 
     public void setControlInfoData(String id, MoaMember moaMember) {
-        if (userControl == null)
-            throw new RuntimeException("User Control is null");
+        if (userControl == null) {
+            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "User Control is null");
+            return;
+        }
         userControl.setMemberInfo(id, moaMember);
     }
 
@@ -105,34 +117,42 @@ public class MoaAuthHelper {
     }
 
     public String getAutoLoginInfo() {
-        if (autoLogin != null)
-            return autoLogin.get();
-        else
+        if (autoLogin == null) {
+            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "Auto Login is null");
             return "";
+        }
+        return autoLogin.get();
     }
 
     public void setAutoLoginInfo(String password) {
-        if (autoLogin == null)
-            throw new RuntimeException("Auto Login is null");
+        if (autoLogin == null) {
+            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "Auto Login is null");
+            return;
+        }
         autoLogin.set(password);
     }
 
     public String getBasePrimaryInfo() {
-        if (userControl != null)
-            return userControl.getBasePrimaryInfo();
-        else
+        if (userControl == null) {
+            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "User Control is null");
             return "";
+        }
+        return userControl.getBasePrimaryInfo();
     }
 
     public void setBasePrimaryInfo(String userSequenceIndex) {
-        if (userControl == null)
-            throw new RuntimeException("User Control is null");
+        if (userControl == null) {
+            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "User Control is null");
+            return;
+        }
         userControl.setBasePrimaryInfo(userSequenceIndex);
     }
 
     public void removeAllControlInfo() {
-        if (userControl == null)
-            throw new RuntimeException("User Control is null");
+        if (userControl == null) {
+            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "User Control is null");
+            return;
+        }
         userControl.removeAllMemberInfo();
     }
 
@@ -146,7 +166,7 @@ public class MoaAuthHelper {
         }
 
         public MoaAuthHelper build() {
-            if (instance == null)
+            if (instance == null && context != null)
                 instance = new MoaAuthHelper(this);
             return instance;
         }

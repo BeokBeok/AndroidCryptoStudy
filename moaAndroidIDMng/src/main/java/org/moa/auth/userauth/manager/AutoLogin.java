@@ -9,6 +9,7 @@ import android.util.Log;
 
 import org.moa.android.crypto.coreapi.PBKDF2;
 import org.moa.android.crypto.coreapi.SymmetricCrypto;
+import org.moa.auth.userauth.android.api.MoaCommon;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -56,7 +57,7 @@ public class AutoLogin extends PINAuth {
             if (!keyStore.containsAlias(keyAlias))
                 generateKey();
         } catch (KeyStoreException e) {
-            Log.d("MoaLib", "[AutoLogin] failed to check key alias");
+            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "Failed to check key alias");
         }
     }
 
@@ -87,7 +88,7 @@ public class AutoLogin extends PINAuth {
             super.keyStore = KeyStore.getInstance("AndroidKeyStore");
             super.keyStore.load(null);
         } catch (KeyStoreException | IOException | NoSuchAlgorithmException | CertificateException e) {
-            Log.d("MoaLib", "[AutoLogin][initKeyStore] failed to init keystore");
+            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "Failed to init keystore");
         }
     }
 
@@ -108,13 +109,15 @@ public class AutoLogin extends PINAuth {
             );
             keyPairGenerator.generateKeyPair();
         } catch (NoSuchAlgorithmException | NoSuchProviderException | InvalidAlgorithmParameterException e) {
-            Log.d("MoaLib", "[AutoLogin][generateKey] Failed to create auto login key pair");
+            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "Failed to create auto login key pair");
         }
     }
 
     private void setValuesInPreferences(String key, String value) {
-        assert key != null && value != null;
-
+        if (key == null || value == null) {
+            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "Key or value is null");
+            return;
+        }
         String encryptValue = "";
         if (key.equals("Auto.Info"))
             encryptValue = getEncryptContent(value);
@@ -130,12 +133,16 @@ public class AutoLogin extends PINAuth {
     }
 
     private String getValuesInPreferences(String key) {
-        assert key != null;
-
+        if (key == null) {
+            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "Key is null");
+            return "";
+        }
         SharedPreferences pref = context.getSharedPreferences("androidIDManager", Context.MODE_PRIVATE);
         String value = pref.getString(key, "");
-        if (value == null || value.length() == 0)
+        if (value == null || value.length() == 0) {
+            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "Value not validate");
             return "";
+        }
         if (key.equals("Auto.Info"))
             return getDecryptContent(value);
         else if (key.equals("Salt.Info")) {
@@ -158,23 +165,26 @@ public class AutoLogin extends PINAuth {
     }
 
     private byte[] getPBKDF2Data(int encOrDecMode, byte[] data) {
-        if (encOrDecMode != Cipher.ENCRYPT_MODE && encOrDecMode != Cipher.DECRYPT_MODE)
-            throw new AssertionError();
-        assert data != null;
-
-        byte[] resultData = {0,};
+        if (encOrDecMode != Cipher.ENCRYPT_MODE && encOrDecMode != Cipher.DECRYPT_MODE) {
+            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "Cipher mode not validate");
+            return new byte[0];
+        }
+        if (data == null) {
+            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "Data is null");
+            return new byte[0];
+        }
         byte[] derivedKey = generateDerivedKey();
-        if (derivedKey.length != 48)
-            return resultData;
-
+        if (derivedKey.length != 48) {
+            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "Derived key length not validate");
+            return new byte[0];
+        }
         String transformationAES = "AES/CBC/PKCS7Padding";
         byte[] key = new byte[32];
         System.arraycopy(derivedKey, 0, key, 0, key.length);
         byte[] iv = new byte[16];
         System.arraycopy(derivedKey, key.length, iv, 0, iv.length);
         SymmetricCrypto symmetricCrypto = new SymmetricCrypto(transformationAES, iv, key);
-        resultData = symmetricCrypto.getSymmetricData(encOrDecMode, data);
-        return resultData;
+        return symmetricCrypto.getSymmetricData(encOrDecMode, data);
     }
 
     private byte[] generateDerivedKey() {
@@ -186,11 +196,14 @@ public class AutoLogin extends PINAuth {
     }
 
     private byte[] getRSAData(int encOrDecMode, byte[] data) {
-        if (encOrDecMode != Cipher.ENCRYPT_MODE && encOrDecMode != Cipher.DECRYPT_MODE)
-            throw new AssertionError();
-        assert data != null;
-
-        byte[] resultData = {0,};
+        if (encOrDecMode != Cipher.ENCRYPT_MODE && encOrDecMode != Cipher.DECRYPT_MODE) {
+            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "Cipher mode not validate");
+            return new byte[0];
+        }
+        if (data == null) {
+            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "Data is null");
+            return new byte[0];
+        }
         try {
             if (!keyStore.containsAlias(keyAlias))
                 generateKey();
@@ -199,48 +212,48 @@ public class AutoLogin extends PINAuth {
             if (encOrDecMode == Cipher.ENCRYPT_MODE) {
                 PublicKey publicKey = keyStore.getCertificate(keyAlias).getPublicKey();
                 if (publicKey == null) {
-                    Log.d("MoaLib", "[AutoLogin][getRSAData] public key is null");
-                    return resultData;
+                    Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "Public key is null");
+                    return new byte[0];
                 }
                 cipher.init(encOrDecMode, publicKey);
             } else {
                 PrivateKey privateKey = (PrivateKey) keyStore.getKey(keyAlias, null);
                 if (privateKey == null) {
-                    Log.d("MoaLib", "[AutoLogin][getRSAData] private key is null");
-                    return resultData;
+                    Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "Private key is null");
+                    return new byte[0];
                 }
                 cipher.init(encOrDecMode, privateKey);
             }
-            resultData = cipher.doFinal(data);
+            return cipher.doFinal(data);
         } catch (KeyStoreException | NoSuchAlgorithmException | NoSuchPaddingException |
                 InvalidKeyException | BadPaddingException | IllegalBlockSizeException | UnrecoverableKeyException e) {
-            Log.d("MoaLib", "[AutoLogin][getRSAData] failed to get RSA data");
+            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "Failed to get RSA data");
         }
-        return resultData;
+        return new byte[0];
     }
 
     private String getEncryptContent(String content) {
-        assert content != null;
-
-        String encryptedData;
+        if (content == null) {
+            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "Content is null");
+            return "";
+        }
         int cipherMode = Cipher.ENCRYPT_MODE;
         byte[] encode = content.getBytes(StandardCharsets.UTF_8);
         byte[] firstEncrypt = getPBKDF2Data(cipherMode, encode);
         byte[] lastEncrypt = getRSAData(cipherMode, firstEncrypt);
-        encryptedData = Base64.encodeToString(lastEncrypt, Base64.NO_WRAP);
-        return encryptedData;
+        return Base64.encodeToString(lastEncrypt, Base64.NO_WRAP);
     }
 
     private String getDecryptContent(String content) {
-        assert content != null;
-
-        String decryptedData;
+        if (content == null) {
+            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "Content is null");
+            return "";
+        }
         int cipherMode = Cipher.DECRYPT_MODE;
         byte[] decode = Base64.decode(content, Base64.NO_WRAP);
         byte[] firstDecrypt = getRSAData(cipherMode, decode);
         byte[] lastDecrypt = getPBKDF2Data(cipherMode, firstDecrypt);
-        decryptedData = new String(lastDecrypt, StandardCharsets.UTF_8);
-        return decryptedData;
+        return new String(lastDecrypt, StandardCharsets.UTF_8);
     }
 
     private static class Singleton {
