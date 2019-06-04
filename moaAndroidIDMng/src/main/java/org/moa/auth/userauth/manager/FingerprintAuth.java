@@ -5,7 +5,6 @@ import android.security.keystore.KeyGenParameterSpec;
 import android.security.keystore.KeyProperties;
 import android.support.annotation.RequiresApi;
 import android.util.Base64;
-import android.util.Log;
 
 import org.moa.auth.userauth.android.api.MoaCommon;
 
@@ -49,7 +48,7 @@ public class FingerprintAuth {
             if (!keyStore.containsAlias(keyAlias))
                 generateKey();
         } catch (KeyStoreException e) {
-            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "Failed to check key alias");
+            throw new RuntimeException(MoaCommon.getInstance().getClassAndMethodName() + "Failed to check key alias");
         }
     }
 
@@ -65,9 +64,8 @@ public class FingerprintAuth {
             byte[] combineAuthTokenWithPublicKey = getMergedByteArray(authToken, publicKey.getEncoded());
             return getSignedData(privateKey, combineAuthTokenWithPublicKey);
         } catch (NoSuchAlgorithmException | KeyStoreException | UnrecoverableKeyException e) {
-            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "Failed to get register signature data");
+            throw new RuntimeException(MoaCommon.getInstance().getClassAndMethodName() + "Failed to get register signature data");
         }
-        return new byte[0];
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)
@@ -82,23 +80,19 @@ public class FingerprintAuth {
             PrivateKey privateKey = (PrivateKey) keyStore.getKey(keyAlias, null);
             return getSignedData(privateKey, combineNonceOTPWithAuthToken);
         } catch (KeyStoreException | NoSuchAlgorithmException | UnrecoverableKeyException e) {
-            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "Failed to get login signature data");
+            throw new RuntimeException(MoaCommon.getInstance().getClassAndMethodName() + "Failed to get login signature data");
         }
-        return new byte[0];
     }
 
     public PublicKey getPublicKey() {
         try {
             Certificate certificate = keyStore.getCertificate(keyAlias);
-            if (certificate == null) {
-                Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "Certificate not validate");
-                return null;
-            }
+            if (certificate == null)
+                throw new RuntimeException(MoaCommon.getInstance().getClassAndMethodName() + "Certificate not validate");
             return certificate.getPublicKey();
         } catch (KeyStoreException e) {
-            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "Failed to get public key");
+            throw new RuntimeException(MoaCommon.getInstance().getClassAndMethodName() + "Failed to get public key");
         }
-        return null;
     }
 
     private void initKeyStore() {
@@ -106,7 +100,7 @@ public class FingerprintAuth {
             this.keyStore = KeyStore.getInstance("AndroidKeyStore");
             this.keyStore.load(null);
         } catch (KeyStoreException | IOException | NoSuchAlgorithmException | CertificateException e) {
-            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "Failed to init keystore");
+            throw new RuntimeException(MoaCommon.getInstance().getClassAndMethodName() + "Failed to init keystore");
         }
     }
 
@@ -124,15 +118,13 @@ public class FingerprintAuth {
             );
             keyPairGenerator.generateKeyPair();
         } catch (NoSuchAlgorithmException | NoSuchProviderException | InvalidAlgorithmParameterException e) {
-            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "Failed to create fingerprint key pair");
+            throw new RuntimeException(MoaCommon.getInstance().getClassAndMethodName() + "Failed to create fingerprint key pair");
         }
     }
 
     private byte[] getMergedByteArray(byte[] first, byte[] second) {
-        if (first == null || second == null) {
-            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "First or second is null");
-            return new byte[0];
-        }
+        if (first == null || second == null)
+            throw new RuntimeException(MoaCommon.getInstance().getClassAndMethodName() + "First or second is null");
         byte[] targetByteArr = new byte[first.length + second.length];
         System.arraycopy(first, 0, targetByteArr, 0, first.length);
         System.arraycopy(second, 0, targetByteArr, first.length, second.length);
@@ -140,19 +132,16 @@ public class FingerprintAuth {
     }
 
     private byte[] getSignedData(PrivateKey privateKey, byte[] targetData) {
-        if (privateKey == null || targetData == null) {
-            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "Private key or target data is null");
-            return new byte[0];
-        }
+        if (privateKey == null || targetData == null)
+            throw new RuntimeException(MoaCommon.getInstance().getClassAndMethodName() + "Private key or target data is null");
         try {
             Signature signature = Signature.getInstance(signAlgorithmSuite);
             signature.initSign(privateKey);
             signature.update(targetData);
             return signature.sign();
         } catch (NoSuchAlgorithmException | InvalidKeyException | SignatureException e) {
-            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "Failed to get sign data");
+            throw new RuntimeException(MoaCommon.getInstance().getClassAndMethodName() + "Failed to get sign data");
         }
-        return new byte[0];
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)
