@@ -2,8 +2,10 @@ package org.moa.auth.userauth.manager;
 
 import android.content.Context;
 import android.util.Base64;
+import android.util.Log;
 
 import org.moa.android.crypto.coreapi.SymmetricCrypto;
+import org.moa.auth.userauth.android.api.MoaCommon;
 
 import java.security.KeyStore;
 
@@ -14,18 +16,16 @@ abstract class PINAuth {
     SymmetricCrypto symmetricCrypto;
 
     public void init(Context context, String uniqueDeviceID) {
-        boolean isContext = (context != null);
-        boolean isUniqueDeviceID = (uniqueDeviceID != null && uniqueDeviceID.length() > 0);
-        if (isContext && isUniqueDeviceID) {
-            this.context = context;
-            this.uniqueDeviceID = uniqueDeviceID;
-            setSymmetricCryptoInstance();
+        if (context == null || uniqueDeviceID == null) {
+            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "Context or unique device id is null");
+            return;
         }
+        this.context = context;
+        this.uniqueDeviceID = uniqueDeviceID;
+        setSymmetricCryptoInstance();
     }
 
     private void setSymmetricCryptoInstance() {
-        assert symmetricCrypto != null;
-
         String transformation = "AES/CBC/PKCS7Padding";
         byte[] src = Base64.decode(uniqueDeviceID, Base64.NO_WRAP);
         byte[] key = new byte[32];

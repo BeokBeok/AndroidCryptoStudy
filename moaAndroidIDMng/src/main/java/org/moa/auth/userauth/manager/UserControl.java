@@ -6,6 +6,7 @@ import android.content.SharedPreferences;
 import android.util.Base64;
 import android.util.Log;
 
+import org.moa.auth.userauth.android.api.MoaCommon;
 import org.moa.auth.userauth.android.api.MoaMember;
 
 import java.nio.charset.StandardCharsets;
@@ -25,9 +26,12 @@ public class UserControl extends PINAuth {
 
     @Override
     public void init(Context context, String uniqueDeviceID) {
+        if (context == null || uniqueDeviceID == null) {
+            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "Context or unique device id is null");
+            return;
+        }
         super.init(context, uniqueDeviceID);
-        if (uniqueDeviceID != null && uniqueDeviceID.length() > 0)
-            setValuesInPreferences("UniqueDevice.Info", uniqueDeviceID);
+        setValuesInPreferences("UniqueDevice.Info", uniqueDeviceID);
     }
 
     public boolean existPreferences() {
@@ -36,6 +40,10 @@ public class UserControl extends PINAuth {
     }
 
     public void setMemberInfo(String id, MoaMember moaMember) {
+        if (id == null || moaMember == null) {
+            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "ID or moaMember is null");
+            return;
+        }
         String controlDataForm = moaMember.getMemberType() + "$" +
                 Base64.encodeToString(id.getBytes(StandardCharsets.UTF_8), Base64.NO_WRAP) + "$" +
                 moaMember.getAuthType() + "$" +
@@ -44,6 +52,10 @@ public class UserControl extends PINAuth {
     }
 
     public String getMemberInfo(int type) {
+        if (type < 0 || type > 3) {
+            Log.d("MoaLIb", MoaCommon.getInstance().getClassAndMethodName() + "Type not validate");
+            return "";
+        }
         String idManagerContent = getValuesInPreferences("Control.Info");
         String result = "";
         if (!checkData(idManagerContent))
@@ -84,42 +96,46 @@ public class UserControl extends PINAuth {
     }
 
     private void setValuesInPreferences(String key, String value) {
-        assert key != null && value != null;
-
-        String encodedBase64Encryption;
+        if (key == null || value == null) {
+            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "Key or value is null");
+            return;
+        }
         byte[] encodedUtf8Content = value.getBytes(StandardCharsets.UTF_8);
         byte[] encryption = symmetricCrypto.getSymmetricData(Cipher.ENCRYPT_MODE, encodedUtf8Content);
-        encodedBase64Encryption = Base64.encodeToString(encryption, Base64.NO_WRAP);
-        if (encodedBase64Encryption.length() == 0)
-            return;
         SharedPreferences pref = context.getSharedPreferences("androidIDManager", Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = pref.edit();
-        editor.putString(key, encodedBase64Encryption);
+        editor.putString(key, Base64.encodeToString(encryption, Base64.NO_WRAP));
         editor.apply();
     }
 
     private String getValuesInPreferences(String key) {
-        assert key != null;
-
+        if (key == null) {
+            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "Key is null");
+            return "";
+        }
         SharedPreferences pref = context.getSharedPreferences("androidIDManager", Context.MODE_PRIVATE);
         String value = pref.getString(key, "");
-        if (value == null || value.length() == 0)
+        if (value == null || value.length() == 0) {
+            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "Value not validate");
             return "";
+        }
         byte[] decodedBase64Value = Base64.decode(value, Base64.NO_WRAP);
         byte[] decryption = symmetricCrypto.getSymmetricData(Cipher.DECRYPT_MODE, decodedBase64Value);
         return new String(decryption, StandardCharsets.UTF_8);
     }
 
     private boolean checkData(String data) {
-        assert data != null;
-
+        if (data == null) {
+            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "Data is null");
+            return false;
+        }
         StringTokenizer stringTokenizer = new StringTokenizer(data, "$");
         ArrayList<String> controlInfoArray = new ArrayList<>();
         while (stringTokenizer.hasMoreElements()) {
             controlInfoArray.add(stringTokenizer.nextToken());
         }
         if (controlInfoArray.size() != 4) {
-            Log.d("MoaLib", "[UserControl][checkData] Data not validate");
+            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "Data not validate");
             return false;
         }
         return true;
