@@ -455,8 +455,6 @@ public class Wallet implements MoaECDSAReceiver {
     }
 
     public static class Builder {
-        @SuppressLint("StaticFieldLeak")
-        private static Wallet instance;
         private Context context;
         private MoaWalletLibReceiver receiver;
 
@@ -470,9 +468,7 @@ public class Wallet implements MoaECDSAReceiver {
         }
 
         public Wallet build() {
-            if (instance == null)
-                instance = new Wallet(this);
-            return instance;
+            return new Wallet(this);
         }
     }
 }

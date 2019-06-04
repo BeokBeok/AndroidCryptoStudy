@@ -176,9 +176,7 @@ public class MoaWalletHelper {
          * @return 생성된 MoaWalletHelper 인스턴스
          */
         public MoaWalletHelper build() {
-            if (instance == null && context != null)
-                instance = new MoaWalletHelper(this);
-            return instance;
+            return new MoaWalletHelper(this);
         }
     }
 }

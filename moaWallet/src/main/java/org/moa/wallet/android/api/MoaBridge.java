@@ -20,11 +20,4 @@ public class MoaBridge {
         if (moaECDSAReceiver != null)
             moaECDSAReceiver.onSuccessSign(sign);
     }
-
-    @Deprecated
-    @JavascriptInterface
-    public void verifySign(String verificationResult) {
-        if (moaECDSAReceiver != null)
-            moaECDSAReceiver.onSuccessVerify(Boolean.parseBoolean(verificationResult));
-    }
 }
