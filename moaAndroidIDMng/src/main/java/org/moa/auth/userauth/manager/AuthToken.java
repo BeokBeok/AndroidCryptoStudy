@@ -8,6 +8,7 @@ import android.security.keystore.KeyGenParameterSpec;
 import android.security.keystore.KeyProperties;
 import android.support.annotation.RequiresApi;
 import android.util.Base64;
+import android.util.Log;
 
 import org.moa.auth.userauth.android.api.MoaCommon;
 
@@ -42,7 +43,7 @@ public class AuthToken {
             if (!keyStore.containsAlias(keyAlias))
                 generateKey();
         } catch (KeyStoreException e) {
-            throw new RuntimeException(MoaCommon.getInstance().getClassAndMethodName() + "Failed to check key alias");
+            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + e.getMessage());
         }
     }
 
@@ -63,8 +64,10 @@ public class AuthToken {
 
     @RequiresApi(api = Build.VERSION_CODES.M)
     public void set(String value) {
-        if (value == null)
-            throw new RuntimeException(MoaCommon.getInstance().getClassAndMethodName() + "Value is null");
+        if (value == null) {
+            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "value is null");
+            return;
+        }
         String encryptedData = getEncryptContent(value);
         SharedPreferences pref = context.getSharedPreferences("androidAuthToken", Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = pref.edit();
@@ -77,7 +80,7 @@ public class AuthToken {
             this.keyStore = KeyStore.getInstance("AndroidKeyStore");
             this.keyStore.load(null);
         } catch (KeyStoreException | IOException | NoSuchAlgorithmException | CertificateException e) {
-            throw new RuntimeException(MoaCommon.getInstance().getClassAndMethodName() + "Failed to init keystore");
+            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + e.getMessage());
         }
     }
 
@@ -95,46 +98,56 @@ public class AuthToken {
             );
             keyGenerator.generateKey();
         } catch (NoSuchAlgorithmException | NoSuchProviderException | InvalidAlgorithmParameterException e) {
-            throw new RuntimeException(MoaCommon.getInstance().getClassAndMethodName() + "Failed to generate key");
+            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + e.getMessage());
         }
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)
     private String getEncryptContent(String content) {
-        if (content == null)
-            throw new RuntimeException(MoaCommon.getInstance().getClassAndMethodName() + "Content is null");
+        if (content == null) {
+            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "content is null");
+            return "";
+        }
         try {
             if (!keyStore.containsAlias(keyAlias))
                 generateKey();
 
             KeyStore.SecretKeyEntry secretKeyEntry = ((KeyStore.SecretKeyEntry) keyStore.getEntry(keyAlias, null));
-            if (secretKeyEntry == null)
-                throw new RuntimeException(MoaCommon.getInstance().getClassAndMethodName() + "Secret key is null");
+            if (secretKeyEntry == null) {
+                Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "Secret key is null");
+                return "";
+            }
             Cipher cipher = Cipher.getInstance(transformation);
             cipher.init(Cipher.ENCRYPT_MODE, secretKeyEntry.getSecretKey());
             setIV(cipher.getIV());
             return Base64.encodeToString(cipher.doFinal(content.getBytes(StandardCharsets.UTF_8)), Base64.NO_WRAP);
         } catch (InvalidKeyException | NoSuchAlgorithmException | KeyStoreException | UnrecoverableEntryException
                 | NoSuchPaddingException | BadPaddingException | IllegalBlockSizeException e) {
-            throw new RuntimeException(MoaCommon.getInstance().getClassAndMethodName() + "Failed to get encrypted content");
+            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + e.getMessage());
         }
+        return "";
     }
 
     private String getDecryptContent(byte[] content) {
-        if (content == null)
-            throw new RuntimeException(MoaCommon.getInstance().getClassAndMethodName() + "Content is null");
+        if (content == null) {
+            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "content is null");
+            return "";
+        }
         try {
             Cipher cipher = Cipher.getInstance(transformation);
             KeyStore.SecretKeyEntry secretKeyEntry = (KeyStore.SecretKeyEntry) keyStore.getEntry(keyAlias, null);
-            if (secretKeyEntry == null)
-                throw new RuntimeException(MoaCommon.getInstance().getClassAndMethodName() + "SecretKeyEntry is null");
+            if (secretKeyEntry == null) {
+                Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "SecretKeyEntry is null");
+                return "";
+            }
             cipher.init(Cipher.DECRYPT_MODE, secretKeyEntry.getSecretKey(), new GCMParameterSpec(128, getIV()));
             byte[] decryptData = cipher.doFinal(content);
             return new String(decryptData, StandardCharsets.UTF_8);
         } catch (NoSuchPaddingException | NoSuchAlgorithmException | InvalidAlgorithmParameterException | InvalidKeyException |
                 KeyStoreException | UnrecoverableEntryException | IllegalBlockSizeException | BadPaddingException e) {
-            throw new RuntimeException(MoaCommon.getInstance().getClassAndMethodName() + "Failed to get decrypt content");
+            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + e.getMessage());
         }
+        return "";
     }
 
     private byte[] getIV() {
@@ -143,8 +156,10 @@ public class AuthToken {
     }
 
     private void setIV(byte[] iv) {
-        if (iv == null)
-            throw new RuntimeException(MoaCommon.getInstance().getClassAndMethodName() + "Iv is null");
+        if (iv == null) {
+            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "iv is null");
+            return;
+        }
         SharedPreferences pref = context.getSharedPreferences("IV_AuthToken", Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = pref.edit();
         editor.putString("iv", Base64.encodeToString(iv, Base64.NO_WRAP));
