@@ -25,7 +25,7 @@ public interface MoaCommonable {
             messageDigest.update(targetData);
             return messageDigest.digest();
         } catch (NoSuchAlgorithmException e) {
-            Log.d("MoaLib", algorithmName + " not found", e);
+            throw new RuntimeException(algorithmName + " not found", e);
         }
     }
 
@@ -37,7 +37,7 @@ public interface MoaCommonable {
             mac.update(targetData);
             return mac.doFinal();
         } catch (NoSuchAlgorithmException | InvalidKeyException e) {
-            Log.d("MoaLib", algorithmName + " not found", e);
+            throw new RuntimeException(algorithmName + " not found", e);
         }
     }
 
@@ -62,7 +62,7 @@ public interface MoaCommonable {
                     pswDigestBytes.length, pswDigestBytes, idPswHmacDigestBytes.length, idPswHmacDigestBytes);
         } catch (UnsupportedEncodingException e) {
             Log.d("MoaLib", "[generateRegisterMessage] failed to generate PIN register message");
-            Log.d("MoaLib", "Failed to generate PIN register message", e);
+            throw new RuntimeException("Failed to generate PIN register message", e);
         }
         return Base64.encodeToString(idPswRegistMsgGen, Base64.NO_WRAP);
     }
@@ -90,7 +90,7 @@ public interface MoaCommonable {
                     nonceOTPBytes.length, nonceOTPBytes);
         } catch (UnsupportedEncodingException e) {
             Log.d("MoaLib", "[generateLoginRequestMessage] failed to generate PIN login request message");
-            Log.d("MoaLib", "Failed to generate PIN login request message", e);
+            throw new RuntimeException("Failed to generate PIN login request message", e);
         }
         return Base64.encodeToString(pinLoginRequestMsgGen, Base64.NO_WRAP);
     }

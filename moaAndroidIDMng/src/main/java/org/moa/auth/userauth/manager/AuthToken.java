@@ -65,7 +65,7 @@ public class AuthToken implements MoaTEEUsable, MoaConfigurable {
             this.keyStore.load(null);
         } catch (KeyStoreException | IOException | NoSuchAlgorithmException | CertificateException e) {
             Log.d("MoaLib", "[AuthToken][initKeyStore] failed to init keystore");
-            Log.d("MoaLib", "Failed to init keystore", e);
+            throw new RuntimeException("Failed to init keystore", e);
         }
     }
 
@@ -85,7 +85,7 @@ public class AuthToken implements MoaTEEUsable, MoaConfigurable {
             keyGenerator.generateKey();
         } catch (NoSuchAlgorithmException | NoSuchProviderException | InvalidAlgorithmParameterException e) {
             Log.d("MoaLib", "[AuthToken][generateKey] failed to generate key");
-            Log.d("MoaLib", "Failed to generate key", e);
+            throw new RuntimeException("Failed to generate key", e);
         }
     }
 
@@ -126,7 +126,7 @@ public class AuthToken implements MoaTEEUsable, MoaConfigurable {
         } catch (InvalidKeyException | NoSuchAlgorithmException | KeyStoreException | UnrecoverableEntryException
                 | NoSuchPaddingException | BadPaddingException | UnsupportedEncodingException | IllegalBlockSizeException e) {
             Log.d("MoaLib", "[AuthToken][getEncryptContent] failed to get encrypted content");
-            Log.d("MoaLib", "Failed to get encrypted content", e);
+            throw new RuntimeException("Failed to get encrypted content", e);
         }
         return resultData;
     }
@@ -148,7 +148,7 @@ public class AuthToken implements MoaTEEUsable, MoaConfigurable {
                 KeyStoreException | UnrecoverableEntryException | IllegalBlockSizeException | BadPaddingException |
                 UnsupportedEncodingException e) {
             Log.d("MoaLib", "[AuthToken][getDecryptContent] failed to get decrypt content");
-            Log.d("MoaLib", "Failed to get decrypt content", e);
+            throw new RuntimeException("Failed to get decrypt content", e);
         }
         return result;
     }

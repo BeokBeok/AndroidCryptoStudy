@@ -28,14 +28,14 @@ public class SymmetricCrypto {
             int keySize = keyBytes.length;
 
             if (blockSize != keySize && blockSize + 8 != keySize && blockSize + 16 != keySize)
-                Log.d("MoaLib", "Invalid key size error -> using 128/192/256bit");
+                throw new RuntimeException("Invalid key size error -> using 128/192/256bit");
 
             keySpec = new SecretKeySpec(keyBytes, cryptoAlgName);
             if (!modeType.equals("ECB"))
                 ivSpec = new IvParameterSpec(ivBytes);
 
         } catch (NoSuchPaddingException | NoSuchAlgorithmException e) {
-            Log.d("MoaLib", "[*] --- Error message : " + e.getMessage());
+            throw new RuntimeException("[*] --- Error message : " + e.getMessage());
         }
     }
 
@@ -51,7 +51,7 @@ public class SymmetricCrypto {
             result = cipher.doFinal(data);
             return result;
         } catch (InvalidKeyException | InvalidAlgorithmParameterException | BadPaddingException | IllegalBlockSizeException e) {
-            Log.d("MoaLib", "[*] --- Error message : " + e.getMessage());
+            throw new RuntimeException("[*] --- Error message : " + e.getMessage());
         }
     }
 }

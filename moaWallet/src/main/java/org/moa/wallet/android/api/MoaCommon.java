@@ -1,7 +1,5 @@
 package org.moa.wallet.android.api;
 
-import android.util.Log;
-
 import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -23,37 +21,20 @@ public class MoaCommon {
     }
 
     public byte[] hashDigest(String algorithmName, byte[] targetData) {
-        if (algorithmName == null) {
-            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "algorithmName is null");
-            return new byte[0];
-        }
-        if (targetData == null) {
-            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "targetData is null");
-            return new byte[0];
-        }
+        if (algorithmName == null || targetData == null)
+            throw new RuntimeException(MoaCommon.getInstance().getClassAndMethodName() + "AlgorithmName or targetData is null");
         try {
             MessageDigest messageDigest = MessageDigest.getInstance(algorithmName);
             messageDigest.update(targetData);
             return messageDigest.digest();
         } catch (NoSuchAlgorithmException e) {
-            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + e.getMessage());
+            throw new RuntimeException(MoaCommon.getInstance().getClassAndMethodName() + "Failed to hash", e);
         }
-        return new byte[0];
     }
 
     public byte[] hmacDigest(String algorithmName, byte[] targetData, byte[] key) {
-        if (algorithmName == null) {
-            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "algorithmName is null");
-            return new byte[0];
-        }
-        if (targetData == null) {
-            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "targetData is null");
-            return new byte[0];
-        }
-        if (key == null) {
-            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "key is null");
-            return new byte[0];
-        }
+        if (algorithmName == null || targetData == null || key == null)
+            throw new RuntimeException(MoaCommon.getInstance().getClassAndMethodName() + "AlgorithmName or targetData or key is null");
         try {
             SecretKeySpec secretKeySpec = new SecretKeySpec(key, algorithmName);
             Mac mac = Mac.getInstance(algorithmName);
@@ -61,9 +42,8 @@ public class MoaCommon {
             mac.update(targetData);
             return mac.doFinal();
         } catch (NoSuchAlgorithmException | InvalidKeyException e) {
-            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + e.getMessage());
+            throw new RuntimeException(MoaCommon.getInstance().getClassAndMethodName() + "Failed to hmac", e);
         }
-        return new byte[0];
     }
 
     private static class Singleton {
