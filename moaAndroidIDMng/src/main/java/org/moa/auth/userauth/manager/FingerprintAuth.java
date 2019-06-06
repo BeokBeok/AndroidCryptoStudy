@@ -60,7 +60,7 @@ public class FingerprintAuth implements MoaTEEUsable {
             this.keyStore.load(null);
         } catch (KeyStoreException | IOException | NoSuchAlgorithmException | CertificateException e) {
             Log.d("MoaLib", "[FingerprintAuthManager][initKeyStore] failed to init keystore");
-            throw new RuntimeException("Failed to init keystore", e);
+            Log.d("MoaLib", "Failed to init keystore", e);
         }
     }
 
@@ -80,7 +80,7 @@ public class FingerprintAuth implements MoaTEEUsable {
             keyPairGenerator.generateKeyPair();
         } catch (NoSuchAlgorithmException | NoSuchProviderException | InvalidAlgorithmParameterException e) {
             Log.d("MoaLib", "[FingerprintAuthManager][generateKey] Failed to create fingerprint key pair");
-            throw new RuntimeException("Failed to create fingerprint key pair", e);
+            Log.d("MoaLib", "Failed to create fingerprint key pair", e);
         }
     }
 
@@ -99,7 +99,7 @@ public class FingerprintAuth implements MoaTEEUsable {
             resultData = getSignedData(privateKey, combineAuthTokenWithPublicKey);
         } catch (NoSuchAlgorithmException | KeyStoreException | UnrecoverableKeyException e) {
             Log.d("MoaLib", "[FingerprintAuthManager][getRegisterSignature] Failed to get register signature data");
-            throw new RuntimeException("Failed to get register signature data", e);
+            Log.d("MoaLib", "Failed to get register signature data", e);
         }
         return resultData;
     }
@@ -118,7 +118,7 @@ public class FingerprintAuth implements MoaTEEUsable {
             resultData = getSignedData(privateKey, combineNonceOTPWithAuthToken);
         } catch (KeyStoreException | NoSuchAlgorithmException | UnrecoverableKeyException e) {
             Log.d("MoaLib", "[FingerprintAuthManager][getLoginSignature] Failed to get login signature data");
-            throw new RuntimeException("Failed to get login signature data", e);
+            Log.d("MoaLib", "Failed to get login signature data", e);
         }
         return resultData;
     }
@@ -134,7 +134,7 @@ public class FingerprintAuth implements MoaTEEUsable {
             publicKey = certificate.getPublicKey();
         } catch (KeyStoreException e) {
             Log.d("MoaLib", "[FingerprintAuthManager][getPublicKey] failed to get public key");
-            throw new RuntimeException("Failed to get public key", e);
+            Log.d("MoaLib", "Failed to get public key", e);
         }
         return publicKey;
     }
@@ -155,7 +155,7 @@ public class FingerprintAuth implements MoaTEEUsable {
             resultData = signature.sign();
         } catch (NoSuchAlgorithmException | InvalidKeyException | SignatureException e) {
             Log.d("MoaLib", "[FingerprintAuthManager][getSignedData] Failed to get sign data");
-            throw new RuntimeException("Failed to get sign data", e);
+            Log.d("MoaLib", "Failed to get sign data", e);
         }
         return resultData;
     }

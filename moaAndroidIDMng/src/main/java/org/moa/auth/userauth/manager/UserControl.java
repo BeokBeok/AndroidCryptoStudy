@@ -92,7 +92,7 @@ public class UserControl extends PINAuth implements MoaCommonable {
             setValuesInPreferences(MoaConfigurable.KEY_CONTROL_INFO, controlDataForm);
         } catch (UnsupportedEncodingException e) {
             Log.d("MoaLib", "[UserControl][setMemberInfo] failed to set member info");
-            throw new RuntimeException("Failed to set member info", e);
+            Log.d("MoaLib", "Failed to set member info", e);
         }
     }
 
@@ -122,7 +122,7 @@ public class UserControl extends PINAuth implements MoaCommonable {
                 result = memberCoinKeyMgrType;
         } catch (UnsupportedEncodingException e) {
             Log.d("MoaLib", "[UserControl][getMemberInfo] failed to get member info");
-            throw new RuntimeException("Failed to get member info", e);
+            Log.d("MoaLib", "Failed to get member info", e);
         }
         return result;
     }
