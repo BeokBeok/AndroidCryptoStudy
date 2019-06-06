@@ -280,7 +280,8 @@ public class MoaAuthHelper {
     /**
      * 빌더를 통하여 인스턴스 생성을 도와준다.
      *
-     * <p>Inner class 를 활용하여 인스턴스를 생성하므로 스레드에 안전하다.</p>
+     * <p>MoaAuthHelper 인스턴스가 <i>하나</i>만 생성된다. (싱글턴)</br>
+     * Inner class 를 활용하여 인스턴스를 생성하므로 스레드에 안전하다.</p>
      * <p>
      * Example:</br>
      * {@code new MoaAuthHelper.Builder(this).build()}
@@ -307,7 +308,9 @@ public class MoaAuthHelper {
          * @return 생성된 MoaWalletHelper 인스턴스
          */
         public MoaAuthHelper build() {
-            return new MoaAuthHelper(this);
+            if (instance == null && context != null)
+                instance = new MoaAuthHelper(this);
+            return instance;
         }
     }
 }
