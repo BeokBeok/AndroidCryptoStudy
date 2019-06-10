@@ -53,13 +53,6 @@ public class Wallet implements MoaECDSAReceiver {
 
     private Wallet() {
         initKeyStore();
-        initProperties();
-        try {
-            if (!keyStore.containsAlias(keyAlias))
-                generateKey();
-        } catch (KeyStoreException e) {
-            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + e.getMessage());
-        }
     }
 
     public static Wallet getInstance() {
@@ -122,7 +115,8 @@ public class Wallet implements MoaECDSAReceiver {
 
     public void setContext(Context context) {
         this.context = context;
-        pbkdf2 = new PBKDF2(getValuesInPreferences("Hash.Alg"));
+        initProperties();
+        initUsingKeys();
     }
 
     public void setReceiver(MoaWalletLibReceiver receiver) {
@@ -268,6 +262,16 @@ public class Wallet implements MoaECDSAReceiver {
         editor.remove("Wallet.Addr");
         editor.remove("MAC.Data");
         editor.apply();
+    }
+
+    private void initUsingKeys() {
+        try {
+            if (!keyStore.containsAlias(keyAlias))
+                generateKey();
+        } catch (KeyStoreException e) {
+            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + e.getMessage());
+        }
+        pbkdf2 = new PBKDF2(getValuesInPreferences("Hash.Alg"));
     }
 
     private void initProperties() {
@@ -574,7 +578,7 @@ public class Wallet implements MoaECDSAReceiver {
         receiver.onLibCompleteSign(sign);
     }
 
-    public static class Singleton {
+    private static class Singleton {
         @SuppressLint("StaticFieldLeak")
         private static Wallet instance = new Wallet();
     }
