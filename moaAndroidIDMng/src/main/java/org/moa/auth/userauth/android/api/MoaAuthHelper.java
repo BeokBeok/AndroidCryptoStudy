@@ -163,6 +163,59 @@ public class MoaAuthHelper {
     }
 
     /**
+     * PIN 초기화 시 서버에 요청하는 메시지를 생성하여 리턴한다.
+     *
+     * <p>Pie(9) 버전부터 Bouncy Castle Provider 미지원으로 인하여,</br>
+     * Bouncy Castle Provider 를 제거하여 동작하도록 구현했다.</p>
+     *
+     * <p><strong>주의사항</strong></br>
+     * (@{code id == null || resetPw == null}) 이면 안된다.</p>
+     *
+     * @param id      회원 ID
+     * @param resetPw 초기화 할 패스워드
+     */
+    public String generatePINResetRequestMessage(String id, String resetPw) {
+        if (id == null) {
+            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "id is null");
+            return "";
+        }
+        if (resetPw == null) {
+            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "resetPw is null");
+            return "";
+        }
+        return MoaCommon.getInstance().generatePINResetRequestMessage(id, resetPw);
+    }
+
+    /**
+     * PIN 변경 시 서버에 요청하는 메시지를 생성하여 리턴한다.
+     *
+     * <p>Pie(9) 버전부터 Bouncy Castle Provider 미지원으로 인하여,</br>
+     * Bouncy Castle Provider 를 제거하여 동작하도록 구현했다.</p>
+     *
+     * <p><strong>주의사항</strong></br>
+     * (@{code id == null || resetPw == null}) 이면 안된다.</p>
+     *
+     * @param id        회원 ID
+     * @param currentPw 현재 패스워드
+     * @param newPw     새 패스워드
+     */
+    public String generatePINChangeRequestMessage(String id, String currentPw, String newPw) {
+        if (id == null) {
+            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "id is null");
+            return "";
+        }
+        if (currentPw == null) {
+            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "currentPw is null");
+            return "";
+        }
+        if (newPw == null) {
+            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "newPw is null");
+            return "";
+        }
+        return MoaCommon.getInstance().generatePINChangeRequestMessage(id, currentPw, newPw);
+    }
+
+    /**
      * 지문 등록 시 서버에 요청하는 메시지를 생성하여 리턴한다.
      *
      * <p><strong>주의사항</strong></br>
