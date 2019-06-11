@@ -416,6 +416,34 @@ public class MoaAuthHelper {
     }
 
     /**
+     * 회원 ID 정보를 조회한다.
+     *
+     * <p><strong>주의사항</strong></br>
+     * (@{code context == null || uniqueDeviceID == null}) 인 상태에서 setUniqueDeviceID 함수가 호출된 상태이면 안된다.</p>
+     */
+    public String getMemberID() {
+        if (userControl == null) {
+            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "userControl is null");
+            return "";
+        }
+        return userControl.getMemberID();
+    }
+
+    /**
+     * 비회원 ID 정보를 조회한다.
+     *
+     * <p><strong>주의사항</strong></br>
+     * (@{code context == null || uniqueDeviceID == null}) 인 상태에서 setUniqueDeviceID 함수가 호출된 상태이면 안된다.</p>
+     */
+    public String getNonMemberID() {
+        if (userControl == null) {
+            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "userControl is null");
+            return "";
+        }
+        return userControl.getNonMemberID();
+    }
+
+    /**
      * 싱글턴 인스턴스 생성을 도와준다.
      *
      * <p>MoaAuthHelper 인스턴스를 한 번만 생성한다.</br>

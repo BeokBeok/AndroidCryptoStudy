@@ -47,11 +47,24 @@ public class UserControl extends PINAuth {
             Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "moaMember is null");
             return;
         }
+        if (moaMember.getAuthType() == MoaMember.NON_MEMBER.getAuthType()) {
+            setValuesInPreferences("NonMemberID", id);
+        } else {
+            setValuesInPreferences("MemberID", id);
+        }
         String controlDataForm = moaMember.getMemberType() + "$" +
                 Base64.encodeToString(id.getBytes(StandardCharsets.UTF_8), Base64.NO_WRAP) + "$" +
                 moaMember.getAuthType() + "$" +
                 moaMember.getWalletType();
         setValuesInPreferences("Control.Info", controlDataForm);
+    }
+
+    public String getNonMemberID() {
+        return getValuesInPreferences("NonMemberID");
+    }
+
+    public String getMemberID() {
+        return getValuesInPreferences("MemberID");
     }
 
     public String getMemberInfo(int type) {
