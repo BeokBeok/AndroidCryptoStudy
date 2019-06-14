@@ -1,5 +1,7 @@
 package org.moa.android.crypto.coreapi;
 
+import android.util.Log;
+
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -27,15 +29,17 @@ public class SymmetricCrypto {
             int blockSize = cipher.getBlockSize();
             int keySize = keyBytes.length;
 
-            if (blockSize != keySize && blockSize + 8 != keySize && blockSize + 16 != keySize)
-                throw new RuntimeException("Invalid key size error -> using 128/192/256bit");
+            if (blockSize != keySize && blockSize + 8 != keySize && blockSize + 16 != keySize) {
+                Log.d("MoaLib", "[SymmetricCrypto]" + "Invalid key size error -> using 128/192/256bit");
+                return;
+            }
 
             keySpec = new SecretKeySpec(keyBytes, cryptoAlgName);
             if (!modeType.equals("ECB"))
                 ivSpec = new IvParameterSpec(ivBytes);
 
         } catch (NoSuchPaddingException | NoSuchAlgorithmException e) {
-            throw new RuntimeException("[*] --- Error message : " + e.getMessage());
+            Log.d("MoaLib", "[SymmetricCrypto]" + e.getMessage());
         }
     }
 
@@ -51,7 +55,8 @@ public class SymmetricCrypto {
             result = cipher.doFinal(data);
             return result;
         } catch (InvalidKeyException | InvalidAlgorithmParameterException | BadPaddingException | IllegalBlockSizeException e) {
-            throw new RuntimeException("[*] --- Error message : " + e.getMessage());
+            Log.d("MoaLib", "[SymmetricCrypto][getSymmetricData]" + e.getMessage());
+            return new byte[0];
         }
     }
 }

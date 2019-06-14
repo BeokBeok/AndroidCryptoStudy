@@ -1,5 +1,7 @@
 package org.moa.android.crypto.coreapi;
 
+import android.util.Log;
+
 import java.math.BigInteger;
 
 public class MoaBase58 {
@@ -65,8 +67,10 @@ public class MoaBase58 {
         // Work backwards through the string.
         for (int i = input.length() - 1; i >= 0; i--) {
             int alphaIndex = ALPHABET.indexOf(input.charAt(i));
-            if (alphaIndex == -1)
-                throw new IllegalArgumentException("In MoaBase58.decodeToBigInteger(), Illegal character " + input.charAt(i) + " at index " + i + ". Throwing new IlleglArgumentException.");
+            if (alphaIndex == -1) {
+                Log.d("MoaLib", "[MoaBase58][decodeToBigInteger] alpha index is -1");
+                return BigInteger.ZERO;
+            }
             bigInteger = bigInteger.add(BigInteger.valueOf(alphaIndex).multiply(BASE.pow(input.length() - 1 - i)));
         }
         return bigInteger;
