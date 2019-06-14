@@ -1,5 +1,7 @@
 package org.moa.android.crypto.coreapi;
 
+import android.util.Log;
+
 import java.nio.ByteBuffer;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -22,7 +24,8 @@ public class PBKDF2 {
         try {
             hmacSHAn = Mac.getInstance("Hmac" + hashAlg);    // HmacSHAn Instance Gen
         } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
+            Log.d("MoaLib", "[PBKDF2]" + e.getMessage());
+            return;
         }
 
         switch (hashAlg) {
@@ -42,7 +45,7 @@ public class PBKDF2 {
     }
 
     /**
-     * kdfGen Method : hashFunction, password, salt, iteration, dklen�� �Է� �޾� dkLen �濡 �ش��ϴ� DK�� �����Ѵ�.
+     * kdfGen Method : hashFunction, password, salt, iteration, dklen
      *
      * @param password   - PSW Bytes Data Input
      * @param salt       - Salt Bytes Data Input
@@ -55,7 +58,8 @@ public class PBKDF2 {
         try {
             hmacSHAn.init(new SecretKeySpec(password, "Hmac" + hashAlg));    // Only Perform one Hmac initialization(Speed Up)
         } catch (InvalidKeyException e) {
-            e.printStackTrace();
+            Log.d("MoaLib", "[PBKDF2][kdfGen]" + e.getMessage());
+            return new byte[0];
         }
 
         int l = (int) Math.ceil((double) dkLen / (double) hLen);
@@ -70,7 +74,7 @@ public class PBKDF2 {
     }
 
     /**
-     * F Method : HashFunction,Password, salt, iterationCount, index�� �Է¹޾� ����� ����Ʈ ������ ��ȯ�Ѵ�.
+     * F Method : HashFunction,Password, salt, iterationCount, index
      *
      * @param salt       - Random Number Info each User
      * @param iterations - Repeat Count
