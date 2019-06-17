@@ -1,4 +1,4 @@
-package org.moa.android.crypto.coreapi;
+package org.moa.android.crypto.coreapi.manager;
 
 import android.util.Log;
 
@@ -19,7 +19,14 @@ public class PBKDF2 {
     private String hashAlg;
     private int hLen = 64;
 
-    public PBKDF2(String hashAlg) {
+    private PBKDF2() {
+    }
+
+    public static PBKDF2 getInstance() {
+        return Singleton.instance;
+    }
+
+    public void setHashAlg(String hashAlg) {
         this.hashAlg = hashAlg;                            // SHA Alg Declaration
         try {
             hmacSHAn = Mac.getInstance("Hmac" + hashAlg);    // HmacSHAn Instance Gen
@@ -96,5 +103,9 @@ public class PBKDF2 {
 
     private byte[] hmacPRF(byte[] mdTarget) {
         return hmacSHAn.doFinal(mdTarget);    // Only Perform Integrity Operations(Speed Up)
+    }
+
+    private static class Singleton {
+        private static PBKDF2 instance = new PBKDF2();
     }
 }

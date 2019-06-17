@@ -1,4 +1,4 @@
-package org.moa.android.crypto.coreapi;
+package org.moa.android.crypto.coreapi.manager;
 
 import android.util.Log;
 
@@ -8,13 +8,20 @@ public class MoaBase58 {
     private static final String ALPHABET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
     private static final BigInteger BASE = BigInteger.valueOf(58);
 
+    private MoaBase58() {
+    }
+
+    public static MoaBase58 getInstance() {
+        return Singleton.instance;
+    }
+
     /**
      * 바이트 배열을 입력 받아 Base58로 엔코딩하여 문자열로 반환한다.
      *
      * @param input MoaBase58 문자열로 변환할 바이트 배열 입력
      * @return String MoaBase58 변환 문자열 반환
      */
-    public static String encode(byte[] input) {
+    public String encode(byte[] input) {
         // This could be a lot more efficient.
         BigInteger bigInteger = new BigInteger(1, input);
         StringBuilder stringBuilder = new StringBuilder();
@@ -44,7 +51,7 @@ public class MoaBase58 {
      * @param input Base58로 엔코딩된 문자열 입력
      * @return byte[] Base58로 디코딩된 바이트 배열 반환
      */
-    public static byte[] decode(String input) {
+    public byte[] decode(String input) {
         byte[] bytes = decodeToBigInteger(input).toByteArray();
 
         boolean stripSignByte = bytes.length > 1 && bytes[0] == 0 && bytes[1] < 0;
@@ -61,7 +68,7 @@ public class MoaBase58 {
         return tmp;
     }
 
-    private static BigInteger decodeToBigInteger(String input) {
+    private BigInteger decodeToBigInteger(String input) {
         BigInteger bigInteger = BigInteger.valueOf(0);
 
         // Work backwards through the string.
@@ -74,5 +81,9 @@ public class MoaBase58 {
             bigInteger = bigInteger.add(BigInteger.valueOf(alphaIndex).multiply(BASE.pow(input.length() - 1 - i)));
         }
         return bigInteger;
+    }
+
+    private static class Singleton {
+        private static MoaBase58 instance = new MoaBase58();
     }
 }

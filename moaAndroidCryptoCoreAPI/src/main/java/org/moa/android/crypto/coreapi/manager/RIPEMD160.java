@@ -1,4 +1,4 @@
-package org.moa.android.crypto.coreapi;
+package org.moa.android.crypto.coreapi.manager;
 
 import android.annotation.SuppressLint;
 
@@ -11,7 +11,7 @@ import static java.lang.Integer.rotateLeft;
 /**
  * Computes the RIPEMD-160 hash of an array of bytes. Not instantiable.
  */
-public final class RIPEMD160 {
+public class RIPEMD160 {
 
     private static final int BLOCK_LEN = 64;  // In bytes
 
@@ -49,6 +49,13 @@ public final class RIPEMD160 {
             15, 5, 8, 11, 14, 14, 6, 14, 6, 9, 12, 9, 12, 5, 15, 8,
             8, 5, 12, 9, 12, 5, 14, 6, 8, 13, 6, 5, 15, 13, 11, 11};
 
+    private RIPEMD160() {
+    }
+
+    public static RIPEMD160 getInstance() {
+        return Singleton.instance;
+    }
+
     /**
      * Computes and returns a 20-byte (160-bit) hash of the specified binary message.
      * Each call will return a new byte array object instance.
@@ -57,7 +64,7 @@ public final class RIPEMD160 {
      * @return a 20-byte array representing the message's RIPEMD-160 hash
      * @throws NullPointerException if the message is {@code null}
      */
-    public static byte[] getHash(byte[] msg) {
+    public byte[] getHash(byte[] msg) {
 
         // Compress whole message blocks
         Objects.requireNonNull(msg);
@@ -89,7 +96,7 @@ public final class RIPEMD160 {
 
     }
 
-    private static void compress(int[] state, byte[] blocks, int len) {
+    private void compress(int[] state, byte[] blocks, int len) {
 
         if (len % BLOCK_LEN != 0)
             throw new IllegalArgumentException();
@@ -131,7 +138,7 @@ public final class RIPEMD160 {
     }
 
     @SuppressLint("Assert")
-    private static int f(int i, int x, int y, int z) {
+    private int f(int i, int x, int y, int z) {
 
         assert 0 <= i && i < 80;
         if (i < 16) return x ^ y ^ z;
@@ -139,5 +146,9 @@ public final class RIPEMD160 {
         if (i < 48) return (x | ~y) ^ z;
         if (i < 64) return (x & z) | (y & ~z);
         return x ^ (y | ~z);
+    }
+
+    private static class Singleton {
+        private static RIPEMD160 instance = new RIPEMD160();
     }
 }

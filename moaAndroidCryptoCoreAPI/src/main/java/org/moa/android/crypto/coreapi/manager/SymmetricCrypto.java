@@ -1,4 +1,4 @@
-package org.moa.android.crypto.coreapi;
+package org.moa.android.crypto.coreapi.manager;
 
 import android.util.Log;
 
@@ -20,12 +20,19 @@ public class SymmetricCrypto {
     private SecretKeySpec keySpec;
     private String modeType;
 
-    public SymmetricCrypto(String CryptoNameModePadType, byte[] ivBytes, byte[] keyBytes) {
+    private SymmetricCrypto() {
+    }
+
+    public static SymmetricCrypto getInstance() {
+        return Singleton.instance;
+    }
+
+    public void initSymmetricCrypto(String cryptoNameModePadType, byte[] ivBytes, byte[] keyBytes) {
         try {
-            StringTokenizer stringTokenizer = new StringTokenizer(CryptoNameModePadType, "/");
+            StringTokenizer stringTokenizer = new StringTokenizer(cryptoNameModePadType, "/");
             String cryptoAlgName = stringTokenizer.nextToken();
             modeType = stringTokenizer.nextToken();
-            cipher = Cipher.getInstance(CryptoNameModePadType);
+            cipher = Cipher.getInstance(cryptoNameModePadType);
             int blockSize = cipher.getBlockSize();
             int keySize = keyBytes.length;
 
@@ -58,5 +65,9 @@ public class SymmetricCrypto {
             Log.d("MoaLib", "[SymmetricCrypto][getSymmetricData]" + e.getMessage());
             return new byte[0];
         }
+    }
+
+    private static class Singleton {
+        private static SymmetricCrypto instance = new SymmetricCrypto();
     }
 }
