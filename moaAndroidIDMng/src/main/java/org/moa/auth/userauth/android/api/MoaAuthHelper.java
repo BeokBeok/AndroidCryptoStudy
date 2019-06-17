@@ -407,12 +407,12 @@ public class MoaAuthHelper {
      * <p><strong>주의사항</strong></br>
      * (@{code context == null || uniqueDeviceID == null}) 인 상태에서 setUniqueDeviceID 함수가 호출된 상태이면 안된다.</p>
      */
-    public void removeAllControlInfo() {
+    public void removeControlInfo() {
         if (userControl == null) {
             Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "userControl is null");
             return;
         }
-        userControl.removeAllMemberInfo();
+        userControl.removeControlInfo();
     }
 
     /**

@@ -107,9 +107,9 @@ public class UserControl extends PINAuth {
         setValuesInPreferences("BasePrimary.Info", basePrimaryInfo);
     }
 
-    public void removeAllMemberInfo() {
+    public void removeControlInfo() {
         SharedPreferences pref = context.getSharedPreferences("androidIDManager", Context.MODE_PRIVATE);
-        pref.edit().clear().apply();
+        pref.edit().remove("Control.Info").apply();
     }
 
     private void setValuesInPreferences(String key, String value) {
