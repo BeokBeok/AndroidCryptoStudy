@@ -10,7 +10,7 @@ import android.webkit.WebView;
 
 import org.moa.android.crypto.coreapi.MoaBase58;
 import org.moa.android.crypto.coreapi.PBKDF2;
-import org.moa.android.crypto.coreapi.SymmetricCrypto;
+import org.moa.android.crypto.coreapi.Symmetric;
 import org.moa.wallet.android.api.MoaBridge;
 import org.moa.wallet.android.api.MoaCommon;
 import org.moa.wallet.android.api.MoaECDSAReceiver;
@@ -147,10 +147,10 @@ public class Wallet implements MoaECDSAReceiver {
         StringTokenizer st = new StringTokenizer(msg, "$");
         byte[] encPrk = Base64.decode(st.nextToken(), Base64.NO_WRAP);
         byte[] encPuk = Base64.decode(st.nextToken(), Base64.NO_WRAP);
-        setValuesInPreferences("Salt.Value", MoaBase58.encode(Base64.decode(st.nextToken(), Base64.NO_WRAP)));
+        setValuesInPreferences("Salt.Value", MoaBase58.getInstance().encode(Base64.decode(st.nextToken(), Base64.NO_WRAP)));
         this.password = password;
         byte[] puk = getPBKDF2Data(Cipher.DECRYPT_MODE, password, encPuk);
-        String base58Puk = MoaBase58.encode(puk);
+        String base58Puk = MoaBase58.getInstance().encode(puk);
 
         byte[] walletAddress = generateAddress(puk);
         if (walletAddress.length == 0) {
@@ -158,7 +158,7 @@ public class Wallet implements MoaECDSAReceiver {
             this.password = "";
             return;
         }
-        String base58Address = MoaBase58.encode(walletAddress);
+        String base58Address = MoaBase58.getInstance().encode(walletAddress);
 
         byte[] lastEncryptedPrk = getRSAData(Cipher.ENCRYPT_MODE, encPrk);
         if (lastEncryptedPrk.length == 0) {
@@ -166,7 +166,7 @@ public class Wallet implements MoaECDSAReceiver {
             this.password = "";
             return;
         }
-        String base58CipheredPrk = MoaBase58.encode(lastEncryptedPrk);
+        String base58CipheredPrk = MoaBase58.getInstance().encode(lastEncryptedPrk);
 
         WeakHashMap<String, String> requiredDataForMAC = new WeakHashMap<>();
         requiredDataForMAC.put("cipheredPrk", base58CipheredPrk);
@@ -246,7 +246,7 @@ public class Wallet implements MoaECDSAReceiver {
 
     public String getPublicKey() {
         String base58Puk = getValuesInPreferences("Wallet.PublicKey");
-        byte[] decode = MoaBase58.decode(base58Puk);
+        byte[] decode = MoaBase58.getInstance().decode(base58Puk);
         return byteArrayToHexString(decode);
     }
 
@@ -293,10 +293,10 @@ public class Wallet implements MoaECDSAReceiver {
         if (base58Salt == null || base58Salt.length() == 0) {
             byte[] salt = new byte[32];
             new SecureRandom().nextBytes(salt);
-            setValuesInPreferences("Salt.Value", MoaBase58.encode(salt));
+            setValuesInPreferences("Salt.Value", MoaBase58.getInstance().encode(salt));
             return salt;
         } else
-            return MoaBase58.decode(base58Salt);
+            return MoaBase58.getInstance().decode(base58Salt);
     }
 
     private byte[] generateDerivedKey(String psw) {
@@ -335,8 +335,8 @@ public class Wallet implements MoaECDSAReceiver {
         System.arraycopy(derivedKey, 0, key, 0, key.length);
         byte[] iv = new byte[16];
         System.arraycopy(derivedKey, key.length, iv, 0, iv.length);
-        SymmetricCrypto symmetricCrypto = new SymmetricCrypto(transformationAES, iv, key);
-        return symmetricCrypto.getSymmetricData(encOrDecMode, data);
+        Symmetric symmetric = new Symmetric(transformationAES, iv, key);
+        return symmetric.getSymmetricData(encOrDecMode, data);
     }
 
     private byte[] generateAddress(byte[] publicKey) {
@@ -366,10 +366,10 @@ public class Wallet implements MoaECDSAReceiver {
         }
         String hmacAlg = getValuesInPreferences("MAC.Alg");
         String hashAlg = getValuesInPreferences("Hash.Alg");
-        byte[] saltPassword = getMergedByteArray(MoaBase58.decode(base58Salt), psw.getBytes());
+        byte[] saltPassword = getMergedByteArray(MoaBase58.getInstance().decode(base58Salt), psw.getBytes());
         byte[] hmacKey = MoaCommon.getInstance().hashDigest(hashAlg, saltPassword);
         byte[] macDataBytes = MoaCommon.getInstance().hmacDigest(hmacAlg, targetMacData.getBytes(), hmacKey);
-        return MoaBase58.encode(macDataBytes);
+        return MoaBase58.getInstance().encode(macDataBytes);
     }
 
     private byte[] getMergedByteArray(byte[] first, byte[] second) {
@@ -480,7 +480,7 @@ public class Wallet implements MoaECDSAReceiver {
             return new byte[0];
         }
         int cipherMode = Cipher.DECRYPT_MODE;
-        byte[] decode = MoaBase58.decode(lastEncryptedPrk);
+        byte[] decode = MoaBase58.getInstance().decode(lastEncryptedPrk);
         byte[] firstEncryptedPrk = getRSAData(cipherMode, decode);
         return getPBKDF2Data(cipherMode, psw, firstEncryptedPrk);
     }
@@ -490,14 +490,14 @@ public class Wallet implements MoaECDSAReceiver {
             Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "walletKeyPair not validate");
             return;
         }
-        String base58Puk = MoaBase58.encode(walletKeyPair[1]);
+        String base58Puk = MoaBase58.getInstance().encode(walletKeyPair[1]);
 
         byte[] walletAddress = generateAddress(walletKeyPair[1]);
         if (walletAddress.length == 0) {
             Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "Wallet address not validate");
             return;
         }
-        String base58Address = MoaBase58.encode(walletAddress);
+        String base58Address = MoaBase58.getInstance().encode(walletAddress);
 
         int cipherMode = Cipher.ENCRYPT_MODE;
         byte[] firstEncryptedPrk = getPBKDF2Data(cipherMode, password, walletKeyPair[0]);
@@ -510,7 +510,7 @@ public class Wallet implements MoaECDSAReceiver {
             Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "last encryption prk not validate");
             return;
         }
-        String base58CipheredPrk = MoaBase58.encode(lastEncryptedPrk);
+        String base58CipheredPrk = MoaBase58.getInstance().encode(lastEncryptedPrk);
 
         WeakHashMap<String, String> requiredDataForMAC = new WeakHashMap<>();
         requiredDataForMAC.put("cipheredPrk", base58CipheredPrk);
