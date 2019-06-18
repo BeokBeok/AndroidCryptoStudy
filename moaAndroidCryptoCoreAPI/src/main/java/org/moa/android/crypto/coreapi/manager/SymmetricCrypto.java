@@ -14,13 +14,20 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
-public class Symmetric {
+public class SymmetricCrypto {
     private Cipher cipher;
     private IvParameterSpec ivSpec;
     private SecretKeySpec keySpec;
     private String modeType;
 
-    public Symmetric(String cryptoNameModePadType, byte[] ivBytes, byte[] keyBytes) {
+    private SymmetricCrypto() {
+    }
+
+    public static SymmetricCrypto getInstance() {
+        return Singleton.instance;
+    }
+
+    public void initSymmetricCrypto(String cryptoNameModePadType, byte[] ivBytes, byte[] keyBytes) {
         try {
             StringTokenizer stringTokenizer = new StringTokenizer(cryptoNameModePadType, "/");
             String cryptoAlgName = stringTokenizer.nextToken();
@@ -30,7 +37,7 @@ public class Symmetric {
             int keySize = keyBytes.length;
 
             if (blockSize != keySize && blockSize + 8 != keySize && blockSize + 16 != keySize) {
-                Log.d("MoaLib", "[Symmetric]" + "Invalid key size error -> using 128/192/256bit");
+                Log.d("MoaLib", "[SymmetricCrypto]" + "Invalid key size error -> using 128/192/256bit");
                 return;
             }
 
@@ -39,7 +46,7 @@ public class Symmetric {
                 ivSpec = new IvParameterSpec(ivBytes);
 
         } catch (NoSuchPaddingException | NoSuchAlgorithmException e) {
-            Log.d("MoaLib", "[Symmetric]" + e.getMessage());
+            Log.d("MoaLib", "[SymmetricCrypto]" + e.getMessage());
         }
     }
 
@@ -55,8 +62,12 @@ public class Symmetric {
             result = cipher.doFinal(data);
             return result;
         } catch (InvalidKeyException | InvalidAlgorithmParameterException | BadPaddingException | IllegalBlockSizeException e) {
-            Log.d("MoaLib", "[Symmetric][getSymmetricData]" + e.getMessage());
+            Log.d("MoaLib", "[SymmetricCrypto][getSymmetricData]" + e.getMessage());
             return new byte[0];
         }
+    }
+
+    private static class Singleton {
+        private static SymmetricCrypto instance = new SymmetricCrypto();
     }
 }

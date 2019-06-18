@@ -3,7 +3,7 @@ package org.moa.android.crypto.coreapi;
 import org.moa.android.crypto.coreapi.manager.MoaBase58;
 import org.moa.android.crypto.coreapi.manager.PBKDF2;
 import org.moa.android.crypto.coreapi.manager.RIPEMD160;
-import org.moa.android.crypto.coreapi.manager.Symmetric;
+import org.moa.android.crypto.coreapi.manager.SymmetricCrypto;
 
 public class CryptoHelper {
     private CryptoHelper() {
@@ -33,8 +33,12 @@ public class CryptoHelper {
         return RIPEMD160.getInstance().getHash(msg);
     }
 
-    public Symmetric newSymmetricInstance(String cryptoNameModePadType, byte[] ivBytes, byte[] keyBytes) {
-        return new Symmetric(cryptoNameModePadType, ivBytes, keyBytes);
+    public void initSymmetricCrypto(String cryptoNameModePadType, byte[] ivBytes, byte[] keyBytes) {
+        SymmetricCrypto.getInstance().initSymmetricCrypto(cryptoNameModePadType, ivBytes, keyBytes);
+    }
+
+    public byte[] getSymmetricData(int encOrDecMode, byte[] data) {
+        return SymmetricCrypto.getInstance().getSymmetricData(encOrDecMode, data);
     }
 
     private static class Singleton {
