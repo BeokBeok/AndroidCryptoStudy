@@ -3,7 +3,7 @@ package org.moa.auth.userauth.android.api;
 import android.util.Base64;
 import android.util.Log;
 
-import org.moa.android.crypto.coreapi.CryptoHelper;
+import org.moa.android.crypto.coreapi.Symmetric;
 import org.moa.auth.userauth.client.api.MoaClientMsgPacketLib;
 
 import java.nio.charset.StandardCharsets;
@@ -41,8 +41,8 @@ public class MoaCommon {
         byte[] idBytesDigestM = hashDigest(hashAlg, idBytes);
 
         System.arraycopy(idBytesDigestM, 0, keyBytes, 0, iv.length);
-        CryptoHelper.getInstance().initSymmetric(transformation, iv, keyBytes);
-        byte[] encPswBytes = CryptoHelper.getInstance().getSymmetricData(Cipher.ENCRYPT_MODE, passwordBytes);
+        Symmetric symmetric = new Symmetric(transformation, iv, keyBytes);
+        byte[] encPswBytes = symmetric.getSymmetricData(Cipher.ENCRYPT_MODE, passwordBytes);
         byte[] pswDigestBytes = hashDigest(hashAlg, encPswBytes);
         byte[] idPswHmacDigestBytes = hmacDigest(hmacAlg, idBytes, pswDigestBytes);
         byte[] idPswRegistMsgGen = MoaClientMsgPacketLib.IdPswRegistRequestMsgGen(idBytes.length, idBytes,
@@ -57,8 +57,8 @@ public class MoaCommon {
         byte[] idBytesDigestM = hashDigest(hashAlg, idBytes);
 
         System.arraycopy(idBytesDigestM, 0, keyBytes, 0, iv.length);
-        CryptoHelper.getInstance().initSymmetric(transformation, iv, keyBytes);
-        byte[] encPswBytes = CryptoHelper.getInstance().getSymmetricData(Cipher.ENCRYPT_MODE, passwordBytes);
+        Symmetric symmetric = new Symmetric(transformation, iv, keyBytes);
+        byte[] encPswBytes = symmetric.getSymmetricData(Cipher.ENCRYPT_MODE, passwordBytes);
         byte[] pswDigestBytes = hashDigest(hashAlg, encPswBytes);
         byte[] idPswHmacDigestBytes = hmacDigest(hmacAlg, idBytes, pswDigestBytes);
         byte[] nonceOTPBytes = hexStringToByteArray(nonceOTP);
@@ -105,8 +105,8 @@ public class MoaCommon {
         byte[] keyBytes = new byte[iv.length];
         byte[] idHashBytes = hashDigest(hashAlg, idBytes);
         System.arraycopy(idHashBytes, 0, keyBytes, 0, iv.length);
-        CryptoHelper.getInstance().initSymmetric(transformation, iv, keyBytes);
-        byte[] encPswBytes = CryptoHelper.getInstance().getSymmetricData(Cipher.ENCRYPT_MODE, passwordBytes);
+        Symmetric symmetric = new Symmetric(transformation, iv, keyBytes);
+        byte[] encPswBytes = symmetric.getSymmetricData(Cipher.ENCRYPT_MODE, passwordBytes);
 
         byte[] hashPswBytes = hashDigest(hashAlg, encPswBytes);
         byte[] hmacPswBytes = hmacDigest(hmacAlg, idBytes, hashPswBytes);

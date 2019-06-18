@@ -7,7 +7,8 @@ import android.security.KeyPairGeneratorSpec;
 import android.util.Base64;
 import android.util.Log;
 
-import org.moa.android.crypto.coreapi.CryptoHelper;
+import org.moa.android.crypto.coreapi.PBKDF2;
+import org.moa.android.crypto.coreapi.Symmetric;
 import org.moa.auth.userauth.android.api.MoaCommon;
 
 import java.io.IOException;
@@ -38,10 +39,11 @@ public class AutoLogin extends PINAuth {
     private static final int NONE = 0xA0;
     private static final int AUTO_LOGIN = 0xA1;
     private final String keyAlias = "MoaAutoInfo";
+    private PBKDF2 pbkdf2;
 
     private AutoLogin() {
         initKeyStore();
-        CryptoHelper.getInstance().initKDF("SHA384");
+        pbkdf2 = new PBKDF2("SHA384");
     }
 
     public static AutoLogin getInstance() {
@@ -127,8 +129,7 @@ public class AutoLogin extends PINAuth {
             encryptValue = getEncryptContent(value);
         else if (key.equals("Salt.Info")) {
             byte[] decode = Base64.decode(value, Base64.NO_WRAP);
-            setSymmetricCryptoInstance();
-            byte[] encryptSalt = CryptoHelper.getInstance().getSymmetricData(Cipher.ENCRYPT_MODE, decode);
+            byte[] encryptSalt = symmetric.getSymmetricData(Cipher.ENCRYPT_MODE, decode);
             encryptValue = Base64.encodeToString(encryptSalt, Base64.NO_WRAP);
         }
         SharedPreferences pref = context.getSharedPreferences("androidIDManager", Context.MODE_PRIVATE);
@@ -152,8 +153,7 @@ public class AutoLogin extends PINAuth {
             return getDecryptContent(value);
         else if (key.equals("Salt.Info")) {
             byte[] decode = Base64.decode(value, Base64.NO_WRAP);
-            setSymmetricCryptoInstance();
-            byte[] decrypt = CryptoHelper.getInstance().getSymmetricData(Cipher.DECRYPT_MODE, decode);
+            byte[] decrypt = symmetric.getSymmetricData(Cipher.DECRYPT_MODE, decode);
             return Base64.encodeToString(decrypt, Base64.NO_WRAP);
         }
         return "";
@@ -189,8 +189,8 @@ public class AutoLogin extends PINAuth {
         System.arraycopy(derivedKey, 0, key, 0, key.length);
         byte[] iv = new byte[16];
         System.arraycopy(derivedKey, key.length, iv, 0, iv.length);
-        CryptoHelper.getInstance().initSymmetric(transformationAES, iv, key);
-        return CryptoHelper.getInstance().getSymmetricData(encOrDecMode, data);
+        Symmetric symmetric = new Symmetric(transformationAES, iv, key);
+        return symmetric.getSymmetricData(encOrDecMode, data);
     }
 
     private byte[] generateDerivedKey() {
@@ -198,7 +198,7 @@ public class AutoLogin extends PINAuth {
         int keySize = 48;
         byte[] salt = getSalt();
         byte[] pw = Base64.decode(uniqueDeviceID, Base64.NO_WRAP);
-        return CryptoHelper.getInstance().generateKDF(pw, salt, iterationCount, keySize);
+        return pbkdf2.kdfGen(pw, salt, iterationCount, keySize);
     }
 
     private byte[] getRSAData(int encOrDecMode, byte[] data) {
