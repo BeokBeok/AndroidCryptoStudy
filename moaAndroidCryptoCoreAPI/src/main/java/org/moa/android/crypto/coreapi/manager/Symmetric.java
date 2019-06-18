@@ -14,20 +14,20 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
-public class SymmetricCrypto {
+public class Symmetric {
     private Cipher cipher;
     private IvParameterSpec ivSpec;
     private SecretKeySpec keySpec;
     private String modeType;
 
-    private SymmetricCrypto() {
+    private Symmetric() {
     }
 
-    public static SymmetricCrypto getInstance() {
+    public static Symmetric getInstance() {
         return Singleton.instance;
     }
 
-    public void initSymmetricCrypto(String cryptoNameModePadType, byte[] ivBytes, byte[] keyBytes) {
+    public void initSymmetric(String cryptoNameModePadType, byte[] ivBytes, byte[] keyBytes) {
         try {
             StringTokenizer stringTokenizer = new StringTokenizer(cryptoNameModePadType, "/");
             String cryptoAlgName = stringTokenizer.nextToken();
@@ -37,7 +37,7 @@ public class SymmetricCrypto {
             int keySize = keyBytes.length;
 
             if (blockSize != keySize && blockSize + 8 != keySize && blockSize + 16 != keySize) {
-                Log.d("MoaLib", "[SymmetricCrypto]" + "Invalid key size error -> using 128/192/256bit");
+                Log.d("MoaLib", "[Symmetric]" + "Invalid key size error -> using 128/192/256bit");
                 return;
             }
 
@@ -46,7 +46,7 @@ public class SymmetricCrypto {
                 ivSpec = new IvParameterSpec(ivBytes);
 
         } catch (NoSuchPaddingException | NoSuchAlgorithmException e) {
-            Log.d("MoaLib", "[SymmetricCrypto]" + e.getMessage());
+            Log.d("MoaLib", "[Symmetric]" + e.getMessage());
         }
     }
 
@@ -62,12 +62,12 @@ public class SymmetricCrypto {
             result = cipher.doFinal(data);
             return result;
         } catch (InvalidKeyException | InvalidAlgorithmParameterException | BadPaddingException | IllegalBlockSizeException e) {
-            Log.d("MoaLib", "[SymmetricCrypto][getSymmetricData]" + e.getMessage());
+            Log.d("MoaLib", "[Symmetric][getSymmetricData]" + e.getMessage());
             return new byte[0];
         }
     }
 
     private static class Singleton {
-        private static SymmetricCrypto instance = new SymmetricCrypto();
+        private static Symmetric instance = new Symmetric();
     }
 }
