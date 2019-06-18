@@ -6,6 +6,7 @@ import android.content.SharedPreferences;
 import android.util.Base64;
 import android.util.Log;
 
+import org.moa.android.crypto.coreapi.CryptoHelper;
 import org.moa.auth.userauth.android.api.MoaCommon;
 import org.moa.auth.userauth.android.api.MoaMember;
 
@@ -122,7 +123,8 @@ public class UserControl extends PINAuth {
             return;
         }
         byte[] encodedUtf8Content = value.getBytes(StandardCharsets.UTF_8);
-        byte[] encryption = symmetricCrypto.getSymmetricData(Cipher.ENCRYPT_MODE, encodedUtf8Content);
+        setSymmetricCryptoInstance();
+        byte[] encryption = CryptoHelper.getInstance().getSymmetricData(Cipher.ENCRYPT_MODE, encodedUtf8Content);
         SharedPreferences pref = context.getSharedPreferences("androidIDManager", Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = pref.edit();
         editor.putString(key, Base64.encodeToString(encryption, Base64.NO_WRAP));
@@ -141,7 +143,8 @@ public class UserControl extends PINAuth {
             return "";
         }
         byte[] decodedBase64Value = Base64.decode(value, Base64.NO_WRAP);
-        byte[] decryption = symmetricCrypto.getSymmetricData(Cipher.DECRYPT_MODE, decodedBase64Value);
+        setSymmetricCryptoInstance();
+        byte[] decryption = CryptoHelper.getInstance().getSymmetricData(Cipher.DECRYPT_MODE, decodedBase64Value);
         return new String(decryption, StandardCharsets.UTF_8);
     }
 

@@ -38,19 +38,19 @@ dependencies {
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
-    implementation files('libs/moaAndroidCryptoCoreAPI-v1.0.0.jar')
+    implementation files('libs/moaAndroidCryptoCoreAPI-v2.0.0.jar')
     implementation files('libs/moaAndroidRegLogInLib-v1.0.2.jar')
 }
 
 task deleteObjectJar(type: Delete) {
-    delete 'release/moaAndroidIDMng-v1.0.0.jar'
+    delete 'release/moaAndroidIDMng-v2.0.0.jar'
 }
 
 task exportJar(type: Copy) {
     from('build/intermediates/packaged-classes/release/')
     into('release/')
     include('classes.jar')
-    rename('classes.jar', 'moaAndroidIDMng-v1.0.0.jar')
+    rename('classes.jar', 'moaAndroidIDMng-v2.0.0.jar')
 }
 
 exportJar.dependsOn(deleteObjectJar, build)
