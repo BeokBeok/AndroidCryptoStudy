@@ -33,14 +33,14 @@ dependencies {
 }
 
 task deleteObjectJar(type: Delete) {
-    delete 'release/moaAndroidCryptoCoreAPI-v1.0.0.jar'
+    delete 'release/moaAndroidCryptoCoreAPI-v2.0.0.jar'
 }
 
 task exportJar(type: Copy) {
     from('build/intermediates/packaged-classes/release/')
     into('release/')
     include('classes.jar')
-    rename('classes.jar', 'moaAndroidCryptoCoreAPI-v1.0.0.jar')
+    rename('classes.jar', 'moaAndroidCryptoCoreAPI-v2.0.0.jar')
 }
 
 exportJar.dependsOn(deleteObjectJar, build)
