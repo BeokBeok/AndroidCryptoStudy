@@ -223,9 +223,9 @@ public class MoaAuthHelper {
      * 2) (@{code fingerprintRegisterData == null || fingerprintRegisterData.size != 3}) 이면 안된다.</br>
      *
      * @param fingerprintRegisterData curve, suite, authToken 데이터</br>
-     *                                WeakHashMap 으로 키 별(curve, suite, authToken) 데이터 설정 및 전달</br>
+     *                                HashMap 으로 키 별(curve, suite, authToken) 데이터 설정 및 전달</br>
      *                                Example:</br>
-     *                                <pre>{@code Map<String, String> fingerprintRegisterData = new WeakHashMap<>();}</pre>
+     *                                <pre>{@code Map<String, String> fingerprintRegisterData = new HashMap<>();}</pre>
      *                                <pre>{@code fingerprintRegisterData.put("curve", "secp256r1");}</pre>
      *                                <pre>{@code fingerprintRegisterData.put("suite", "SHA256withECDSA");}</pre>
      *                                <pre>{@code fingerprintRegisterData.put("authToken", base64AuthToken);}}</pre>
@@ -256,9 +256,9 @@ public class MoaAuthHelper {
      * 2) (@{code fingerprintLoginData == null || fingerprintLoginData.size != 4}) 이면 안된다.</br>
      *
      * @param fingerprintLoginData curve, suite, authToken, nonce 데이터</br>
-     *                             WeakHashMap 으로 키 별(curve, suite, authToken, nonce) 데이터 설정 및 전달</br>
+     *                             HashMap 으로 키 별(curve, suite, authToken, nonce) 데이터 설정 및 전달</br>
      *                             Example:</br>
-     *                             <pre>{@code Map<String, String> fingerprintRegisterData = new WeakHashMap<>();}</pre>
+     *                             <pre>{@code Map<String, String> fingerprintRegisterData = new HashMap<>();}</pre>
      *                             <pre>{@code fingerprintRegisterData.put("curve", "secp256r1");}</pre>
      *                             <pre>{@code fingerprintRegisterData.put("suite", "SHA256withECDSA");}</pre>
      *                             <pre>{@code fingerprintRegisterData.put("authToken", base64AuthToken);}</pre>
