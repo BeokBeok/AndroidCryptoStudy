@@ -55,15 +55,40 @@ public class MoaCommon {
             return new byte[0];
         }
         try {
-            SecretKeySpec secretKeySpec = new SecretKeySpec(key, algorithmName);
             Mac mac = Mac.getInstance(algorithmName);
-            mac.init(secretKeySpec);
+            mac.init(new SecretKeySpec(key, algorithmName));
             mac.update(targetData);
             return mac.doFinal();
         } catch (NoSuchAlgorithmException | InvalidKeyException e) {
             Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + e.getMessage());
         }
         return new byte[0];
+    }
+
+    public byte[] hexStringToByteArray(String s) {
+        if (s == null) {
+            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "s is null");
+            return new byte[0];
+        }
+        int len = s.length();
+        byte[] data = new byte[len / 2];
+        for (int i = 0; i < len; i += 2) {
+            data[i / 2] = (byte) ((Character.digit(s.charAt(i), 16) << 4)
+                    + Character.digit(s.charAt(i + 1), 16));
+        }
+        return data;
+    }
+
+    public String byteArrayToHexString(byte[] bytes) {
+        if (bytes == null) {
+            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "bytes is null");
+            return "";
+        }
+        StringBuilder sb = new StringBuilder();
+        for (byte b : bytes) {
+            sb.append(String.format("%02x", b & 0xff));
+        }
+        return sb.toString();
     }
 
     private static class Singleton {
