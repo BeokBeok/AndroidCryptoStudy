@@ -205,9 +205,9 @@ public class Wallet implements MoaECDSAReceiver {
     public String generateWalletPswMsg(String id, String psw, String dateOfBirth) {
         /* hmac 생성 (14 byte);지갑 비밀번호 */
         byte[] hashPsw = MoaCommon.getInstance().
-                hashDigest("SHA256", psw.getBytes());
+                hashDigest(getValuesInPreferences("Hash.Alg"), psw.getBytes());
         byte[] hmacPsw = MoaCommon.getInstance().
-                hmacDigest("HmacSHA256", psw.getBytes(), hashPsw);
+                hmacDigest(getValuesInPreferences("MAC.Alg"), psw.getBytes(), hashPsw);
         if (hashPsw[0] % 2 == 0) {
             hmacPsw = Arrays.copyOfRange(hmacPsw, 14, 14 * 2);
         } else {
@@ -238,7 +238,7 @@ public class Wallet implements MoaECDSAReceiver {
         /* 암호화된 hmac 기반 hmac 생성 */
         byte[] hmacEncryptedHmacPsw = MoaCommon.getInstance()
                 .hmacDigest(
-                        "HmacSHA256",
+                        getValuesInPreferences("MAC.Alg"),
                         encryptedHmacPsw,
                         dateOfBirth.getBytes()
                 );
@@ -599,7 +599,7 @@ public class Wallet implements MoaECDSAReceiver {
             return "";
         }
         byte[] hmacEncryptedPuk = MoaCommon.getInstance().hmacDigest(
-                "SHA256",
+                getValuesInPreferences("MAC.Alg"),
                 encryptedPuk,
                 password.getBytes()
         );
