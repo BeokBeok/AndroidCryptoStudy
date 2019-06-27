@@ -202,17 +202,22 @@ public class Wallet implements MoaECDSAReceiver {
         this.password = password;
     }
 
-    public String generateWalletPswMsg(String id, String psw, String dateOfBirth) {
+    public byte[] getHmacPsw(String psw) {
         /* hmac 생성 (14 byte);지갑 비밀번호 */
         byte[] hashPsw = MoaCommon.getInstance().
                 hashDigest(getValuesInPreferences("Hash.Alg"), psw.getBytes());
         byte[] hmacPsw = MoaCommon.getInstance().
                 hmacDigest(getValuesInPreferences("MAC.Alg"), psw.getBytes(), hashPsw);
         if (hashPsw[0] % 2 == 0) {
-            hmacPsw = Arrays.copyOfRange(hmacPsw, 14, 14 * 2);
+            return Arrays.copyOfRange(hmacPsw, 14, 14 * 2);
         } else {
-            hmacPsw = Arrays.copyOf(hmacPsw, 14);
+            return Arrays.copyOf(hmacPsw, 14);
         }
+    }
+
+    public byte[] getEncryptedHmacPsw(String id, String psw, String dateOfBirth) {
+        /* hmac 생성 (14 byte);지갑 비밀번호 */
+        byte[] hmacPsw = getHmacPsw(psw);
 
         /* 암호화된 hmac 생성 */
         PBKDF2 pbkdf2 = new PBKDF2("SHA384");
@@ -250,12 +255,8 @@ public class Wallet implements MoaECDSAReceiver {
                     (byte) (hmacEncryptedHmacPsw[i] ^ hmacEncryptedHmacPsw[i + halfHmacEncryptedHmacPsw.length]);
         }
 
-        /* hmac $ (암호화된 hmac + 절반 크기의 hmac) */
-        return Base64.encodeToString(hmacPsw, Base64.NO_WRAP) + "$"
-                + Base64.encodeToString(
-                getMergedByteArray(encryptedHmacPsw, halfHmacEncryptedHmacPsw),
-                Base64.NO_WRAP
-        );
+        /* 암호화된 hmac + 절반 크기의 hmac */
+        return getMergedByteArray(encryptedHmacPsw, halfHmacEncryptedHmacPsw);
     }
 
     public void generateSignedTransaction(String transaction, String password) {

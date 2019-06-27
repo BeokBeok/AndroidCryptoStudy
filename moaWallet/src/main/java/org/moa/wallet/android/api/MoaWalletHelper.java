@@ -86,21 +86,14 @@ public class MoaWalletHelper {
      * 2) ({@code receiver == null}) 인 상태로 setReceiver 가 호출된 상태이면 콜백이 발생하지 않는다.</p>
      * 3) ({@code password == null}) 이면 안된다.</p>
      *
-     * @param id          지갑 생성 시 사용될 아이디
-     * @param password    지갑 생성 시 사용될 패스워드; 암호화된 지갑 패스워드 생성 시 사용된다.
-     * @param dateOfBirth 지갑 생성 시 사용될 생년월일; 지갑 패스워드 생성 시 사용된다.
+     * @param password 지갑 생성 시 사용될 패스워드
      */
-    public void createWallet(String id, String password, String dateOfBirth) {
+    public void createWallet(String password) {
         if (password == null) {
             Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "password is null");
             return;
         }
-        StringTokenizer st = new StringTokenizer(wallet.generateWalletPswMsg(id, password, dateOfBirth), "$");
-        wallet.create(MoaCommon.getInstance()
-                .byteArrayToHexString(
-                        Base64.decode(st.nextToken(), Base64.NO_WRAP)
-                )
-        );
+        wallet.create(password);
     }
 
     /**
@@ -175,6 +168,30 @@ public class MoaWalletHelper {
      */
     public void removeWallet() {
         wallet.removeWallet();
+    }
+
+    /**
+     * 패스워드를 HMAC 처리한 데이터를 리턴한다.
+     *
+     * @param psw 패스워드
+     */
+    public String getHmacPsw(String psw) {
+        return MoaCommon.getInstance()
+                .byteArrayToHexString(wallet.getHmacPsw(psw));
+    }
+
+    /**
+     * 패스워드를 HMAC 처리한 데이터를 암호화한 값을 리턴한다.
+     *
+     * @param id          사용자 id
+     * @param psw         패스워드
+     * @param dateOfBirth 생년월일; 패스워드 암호화 시 Key로 사용된다.
+     */
+    public String getEncryptedHmacPsw(String id, String psw, String dateOfBirth) {
+        return Base64.encodeToString(
+                wallet.getEncryptedHmacPsw(id, psw, dateOfBirth),
+                Base64.NO_WRAP
+        );
     }
 
     /**
