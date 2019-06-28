@@ -50,6 +50,7 @@ public class Wallet implements MoaECDSAReceiver {
     private KeyStore keyStore;
     private WebView webView;
     private String password = "";
+    private PBKDF2 pbkdf2 = new PBKDF2("SHA384");
 
     private Wallet() {
         initKeyStore();
@@ -233,7 +234,6 @@ public class Wallet implements MoaECDSAReceiver {
         byte[] hmacPsw = getHmacPsw(psw);
 
         /* 암호화된 hmac 생성 */
-        PBKDF2 pbkdf2 = new PBKDF2("SHA384");
         // 생년월일 기반 PBKDF2 생성
         byte[] dk = pbkdf2.kdfGen(
                 dateOfBirth.getBytes(),
@@ -370,7 +370,7 @@ public class Wallet implements MoaECDSAReceiver {
             Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "psw is null");
             return new byte[0];
         }
-        return new PBKDF2("SHA384").kdfGen(
+        return pbkdf2.kdfGen(
                 psw.getBytes(),
                 getSalt(),
                 Integer.parseInt(getValuesInPreferences("Iteration.Count")),
