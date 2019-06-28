@@ -30,4 +30,13 @@ public interface MoaWalletLibReceiver {
      *            Base64[E(Prk)]$Base64[E(Puk)]$Base64[Salt]
      */
     void onLibCompleteRestoreMsg(String msg);
+
+    /**
+     * 전자지갑 관련하여 실패 시 Exception 을 던진다.
+     *
+     * <p>생성된 Exception 이 파라미터로 전달된다.</p>
+     *
+     * @param t Exception</br>
+     */
+    void onLibFail(Throwable t);
 }

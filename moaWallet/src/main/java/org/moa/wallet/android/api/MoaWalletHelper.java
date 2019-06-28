@@ -8,8 +8,6 @@ import android.webkit.WebView;
 
 import org.moa.wallet.manager.Wallet;
 
-import java.util.StringTokenizer;
-
 /**
  * 전자지갑 관련 생성 및 복원을 도와준다.
  *
@@ -134,6 +132,7 @@ public class MoaWalletHelper {
      * 지갑 복구 할 때, 복구 메시지를 기반으로 복구한다.
      *
      * <p>완료 시 onLibCompleteWallet 콜백이 호출된다.</p>
+     * <p>지갑 비밀번호 불일치 시 onLibFail 콜백이 호출된다.</p>
      * <p><strong>주의사항</strong></br>
      * 1) ({@code context == null}) 인 상태로 setWebView 가 호출된 상태이면 안된다.</br>
      * 2) ({@code receiver == null}) 인 상태로 setReceiver 가 호출된 상태이면 콜백이 발생하지 않는다.</p>
@@ -151,9 +150,14 @@ public class MoaWalletHelper {
             Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "msg is null");
             return;
         }
-        StringTokenizer st = new StringTokenizer(msg, "%");
-        byte[] hmacEncryptedPuk = Base64.decode(st.nextToken(), Base64.NO_WRAP);
-        wallet.save(password, st.nextToken());
+        String[] restoreMsg = msg.split("\\%");
+        if (wallet.verifyPsw(password, msg)) {
+            wallet.save(password, restoreMsg[1]);
+        } else {
+            wallet.throwWalletException(
+                    new IllegalStateException(MoaWalletErr.RESTORE_PASSWORD_NOT_VERIFY.getType())
+            );
+        }
     }
 
     /**

@@ -202,6 +202,19 @@ public class Wallet implements MoaECDSAReceiver {
         this.password = password;
     }
 
+    public boolean verifyPsw(String password, String msg) {
+        StringTokenizer st = new StringTokenizer(msg, "%");
+        byte[] hmacEncryptedPuk = Base64.decode(st.nextToken(), Base64.NO_WRAP);
+        String[] msgSplit = st.nextToken().split("\\$");
+        byte[] newHmacEncryptedPuk = MoaCommon.getInstance()
+                .hmacDigest(
+                        getValuesInPreferences("MAC.Alg"),
+                        Base64.decode(msgSplit[1], Base64.NO_WRAP),
+                        password.getBytes()
+                );
+        return Arrays.equals(hmacEncryptedPuk, newHmacEncryptedPuk);
+    }
+
     public byte[] getHmacPsw(String psw) {
         /* hmac 생성 (14 byte);지갑 비밀번호 */
         byte[] hashPsw = MoaCommon.getInstance().
@@ -309,6 +322,12 @@ public class Wallet implements MoaECDSAReceiver {
         editor.remove("Wallet.Addr");
         editor.remove("MAC.Data");
         editor.apply();
+    }
+
+    public void throwWalletException(Throwable t) {
+        if (receiver == null)
+            return;
+        receiver.onLibFail(t);
     }
 
     private void initUsingKeys() {
