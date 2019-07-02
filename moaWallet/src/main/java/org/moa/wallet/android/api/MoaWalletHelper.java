@@ -150,8 +150,8 @@ public class MoaWalletHelper {
             Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "msg is null");
             return;
         }
-        String[] restoreMsg = msg.split("\\%");
         if (wallet.verifyPsw(password, msg)) {
+            String[] restoreMsg = msg.split("%");
             wallet.save(password, restoreMsg[1]);
         } else {
             wallet.throwWalletException(
