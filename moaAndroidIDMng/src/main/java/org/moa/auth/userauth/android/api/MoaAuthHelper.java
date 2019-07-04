@@ -92,21 +92,18 @@ public class MoaAuthHelper {
     }
 
     /**
-     * Member 정보(Member 타입 / ID / 인증 방식 / 지갑 타입)를 얻어온다.
+     * 현재 Member ID 를 얻어온다.
      *
      * <p><strong>주의사항</strong></br>
-     * 1) type 이 유효 범위 {@literal (0 ~ 3)} 이어야 한다.</br>
      * 2) (@{code context == null || uniqueDeviceID == null}) 인 상태에서 setUniqueDeviceID 함수가 호출된 상태이면 안된다.</p>
      *
-     * @param type 타입</br>
-     *             0: 비회원/회원 여부, 1: 비회원/회원 ID, 2: 인증 방식(PIN 또는 지문), 3: 복원형 지갑 타입
      */
-    public String getMemberInfo(int type) {
+    public String getCurrentMemberID() {
         if (userControl == null) {
             Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "userControl is null");
             return "";
         }
-        return userControl.getMemberInfo(type);
+        return userControl.getMemberInfo(1);
     }
 
     /**
