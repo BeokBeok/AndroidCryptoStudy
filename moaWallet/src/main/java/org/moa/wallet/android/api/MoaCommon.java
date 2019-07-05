@@ -17,18 +17,13 @@ public class MoaCommon {
         return Singleton.instance;
     }
 
-    public String getClassAndMethodName() {
-        return "[" + Thread.currentThread().getStackTrace()[1].getClassName() + "]" +
-                "[" + Thread.currentThread().getStackTrace()[1].getMethodName() + "]";
-    }
-
     public byte[] hashDigest(String algorithmName, byte[] targetData) {
         if (algorithmName == null) {
-            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "algorithmName is null");
+            Log.d("MoaLib", "algorithmName is null");
             return new byte[0];
         }
         if (targetData == null) {
-            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "targetData is null");
+            Log.d("MoaLib", "targetData is null");
             return new byte[0];
         }
         try {
@@ -36,22 +31,22 @@ public class MoaCommon {
             messageDigest.update(targetData);
             return messageDigest.digest();
         } catch (NoSuchAlgorithmException e) {
-            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + e.getMessage());
+            Log.d("MoaLib", e.getMessage());
         }
         return new byte[0];
     }
 
     public byte[] hmacDigest(String algorithmName, byte[] targetData, byte[] key) {
         if (algorithmName == null) {
-            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "algorithmName is null");
+            Log.d("MoaLib", "algorithmName is null");
             return new byte[0];
         }
         if (targetData == null) {
-            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "targetData is null");
+            Log.d("MoaLib", "targetData is null");
             return new byte[0];
         }
         if (key == null) {
-            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "key is null");
+            Log.d("MoaLib", "key is null");
             return new byte[0];
         }
         try {
@@ -60,14 +55,14 @@ public class MoaCommon {
             mac.update(targetData);
             return mac.doFinal();
         } catch (NoSuchAlgorithmException | InvalidKeyException e) {
-            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + e.getMessage());
+            Log.d("MoaLib", e.getMessage());
         }
         return new byte[0];
     }
 
     public byte[] hexStringToByteArray(String s) {
         if (s == null) {
-            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "s is null");
+            Log.d("MoaLib", "s is null");
             return new byte[0];
         }
         int len = s.length();
@@ -81,7 +76,7 @@ public class MoaCommon {
 
     public String byteArrayToHexString(byte[] bytes) {
         if (bytes == null) {
-            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "bytes is null");
+            Log.d("MoaLib", "bytes is null");
             return "";
         }
         StringBuilder sb = new StringBuilder();

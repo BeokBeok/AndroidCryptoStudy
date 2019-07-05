@@ -52,7 +52,7 @@ public class MoaWalletHelper {
      */
     public void setReceiver(MoaWalletLibReceiver receiver) {
         if (receiver == null) {
-            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "receiver is null");
+            Log.d("MoaLib", "receiver is null");
             return;
         }
         wallet.setReceiver(receiver);
@@ -68,7 +68,7 @@ public class MoaWalletHelper {
      */
     public void setWebView(WebView webView) {
         if (webView == null) {
-            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "webView is null");
+            Log.d("MoaLib", "webView is null");
             return;
         }
         wallet.setWebView(webView);
@@ -88,7 +88,7 @@ public class MoaWalletHelper {
      */
     public void createWallet(String password) {
         if (password == null) {
-            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "password is null");
+            Log.d("MoaLib", "password is null");
             return;
         }
         wallet.create(password);
@@ -109,11 +109,11 @@ public class MoaWalletHelper {
      */
     public void getSignedTransaction(String transaction, String password) {
         if (transaction == null) {
-            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "transaction is null");
+            Log.d("MoaLib", "transaction is null");
             return;
         }
         if (password == null) {
-            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "password is null");
+            Log.d("MoaLib", "password is null");
             return;
         }
         wallet.generateSignedTransaction(transaction, password);
@@ -143,11 +143,11 @@ public class MoaWalletHelper {
      */
     public void restoreWallet(String password, String msg) {
         if (password == null) {
-            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "password is null");
+            Log.d("MoaLib", "password is null");
             return;
         }
         if (msg == null) {
-            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "msg is null");
+            Log.d("MoaLib", "msg is null");
             return;
         }
         if (wallet.verifyPsw(password, msg)) {
@@ -210,7 +210,7 @@ public class MoaWalletHelper {
      */
     public byte[] hexStringToByteArray(String target) {
         if (target == null) {
-            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "target is null");
+            Log.d("MoaLib", "target is null");
             return new byte[0];
         }
         return MoaCommon.getInstance().hexStringToByteArray(target);
@@ -228,7 +228,7 @@ public class MoaWalletHelper {
      */
     public String byteArrayToHexString(byte[] target) {
         if (target == null) {
-            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "target is null");
+            Log.d("MoaLib", "target is null");
             return "";
         }
         return MoaCommon.getInstance().byteArrayToHexString(target);
