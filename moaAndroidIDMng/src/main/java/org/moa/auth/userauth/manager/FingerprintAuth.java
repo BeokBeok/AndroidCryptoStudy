@@ -7,8 +7,6 @@ import android.support.annotation.RequiresApi;
 import android.util.Base64;
 import android.util.Log;
 
-import org.moa.auth.userauth.android.api.MoaCommon;
-
 import java.io.IOException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
@@ -44,37 +42,44 @@ public class FingerprintAuth {
     @RequiresApi(api = Build.VERSION_CODES.M)
     public void init(String ecdsaCurve, String ecdsaSignAlgorithmSuite) {
         if (ecdsaCurve == null || ecdsaSignAlgorithmSuite == null) {
-            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() +
-                    "ecdsaCurve is " + ecdsaCurve + " or ecdsaSignAlgorithmSuite is " + ecdsaSignAlgorithmSuite);
+            Log.d("MoaLib",
+                    "ecdsaCurve is " + ecdsaCurve
+                            + " or ecdsaSignAlgorithmSuite is " + ecdsaSignAlgorithmSuite
+            );
             return;
         }
         this.curve = ecdsaCurve;
         this.signAlgorithmSuite = ecdsaSignAlgorithmSuite;
         try {
-            if (!keyStore.containsAlias(keyAlias))
+            if (!keyStore.containsAlias(keyAlias)) {
                 generateKey();
+            }
         } catch (KeyStoreException e) {
-            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + e.getMessage());
+            Log.d("MoaLib", e.getMessage());
         }
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)
     public byte[] getRegisterSignature(String base64AuthToken) {
         if (base64AuthToken == null) {
-            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "base64AuthToken is null");
+            Log.d("MoaLib", "base64AuthToken is null");
             return new byte[0];
         }
         try {
-            if (!keyStore.containsAlias(keyAlias))
+            if (!keyStore.containsAlias(keyAlias)) {
                 generateKey();
+            }
             PublicKey publicKey = keyStore.getCertificate(keyAlias).getPublicKey();
             PrivateKey privateKey = (PrivateKey) keyStore.getKey(keyAlias, null);
 
-            byte[] authToken = Base64.decode(base64AuthToken, Base64.NO_WRAP);
-            byte[] combineAuthTokenWithPublicKey = getMergedByteArray(authToken, publicKey.getEncoded());
+            byte[] combineAuthTokenWithPublicKey = getMergedByteArray(
+                    Base64.decode(base64AuthToken, Base64.NO_WRAP),
+                    publicKey.getEncoded()
+            );
             return getSignedData(privateKey, combineAuthTokenWithPublicKey);
-        } catch (NoSuchAlgorithmException | KeyStoreException | UnrecoverableKeyException e) {
-            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + e.getMessage());
+        } catch (NoSuchAlgorithmException | KeyStoreException |
+                UnrecoverableKeyException e) {
+            Log.d("MoaLib", e.getMessage());
         }
         return new byte[0];
     }
@@ -82,24 +87,26 @@ public class FingerprintAuth {
     @RequiresApi(api = Build.VERSION_CODES.M)
     public byte[] getLoginSignature(String base64NonceOTP, String base64AuthToken) {
         if (base64NonceOTP == null) {
-            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "base64NonceOTP is null");
+            Log.d("MoaLib", "base64NonceOTP is null");
             return new byte[0];
         }
         if (base64AuthToken == null) {
-            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "base64AuthToken is null");
+            Log.d("MoaLib", "base64AuthToken is null");
             return new byte[0];
         }
-        byte[] nonceOTP = Base64.decode(base64NonceOTP, Base64.NO_WRAP);
-        byte[] authToken = Base64.decode(base64AuthToken, Base64.NO_WRAP);
-        byte[] combineNonceOTPWithAuthToken = getMergedByteArray(nonceOTP, authToken);
+        byte[] combineNonceOTPWithAuthToken = getMergedByteArray(
+                Base64.decode(base64NonceOTP, Base64.NO_WRAP),
+                Base64.decode(base64AuthToken, Base64.NO_WRAP)
+        );
         try {
-            if (!keyStore.containsAlias(keyAlias))
+            if (!keyStore.containsAlias(keyAlias)) {
                 generateKey();
-
+            }
             PrivateKey privateKey = (PrivateKey) keyStore.getKey(keyAlias, null);
             return getSignedData(privateKey, combineNonceOTPWithAuthToken);
-        } catch (KeyStoreException | NoSuchAlgorithmException | UnrecoverableKeyException e) {
-            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + e.getMessage());
+        } catch (KeyStoreException | NoSuchAlgorithmException |
+                UnrecoverableKeyException e) {
+            Log.d("MoaLib", e.getMessage());
         }
         return new byte[0];
     }
@@ -108,12 +115,12 @@ public class FingerprintAuth {
         try {
             Certificate certificate = keyStore.getCertificate(keyAlias);
             if (certificate == null) {
-                Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "Certificate is null");
+                Log.d("MoaLib", "Certificate is null");
                 return null;
             }
             return certificate.getPublicKey();
         } catch (KeyStoreException e) {
-            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + e.getMessage());
+            Log.d("MoaLib", e.getMessage());
         }
         return null;
     }
@@ -122,15 +129,19 @@ public class FingerprintAuth {
         try {
             this.keyStore = KeyStore.getInstance("AndroidKeyStore");
             this.keyStore.load(null);
-        } catch (KeyStoreException | IOException | NoSuchAlgorithmException | CertificateException e) {
-            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + e.getMessage());
+        } catch (KeyStoreException | IOException |
+                NoSuchAlgorithmException | CertificateException e) {
+            Log.d("MoaLib", e.getMessage());
         }
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)
     private void generateKey() {
         try {
-            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance(KeyProperties.KEY_ALGORITHM_EC, "AndroidKeyStore");
+            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance(
+                    KeyProperties.KEY_ALGORITHM_EC,
+                    "AndroidKeyStore"
+            );
             keyPairGenerator.initialize(
                     new KeyGenParameterSpec.Builder(keyAlias, KeyProperties.PURPOSE_SIGN)
                             .setDigests(KeyProperties.DIGEST_SHA256, KeyProperties.DIGEST_SHA512)
@@ -140,18 +151,19 @@ public class FingerprintAuth {
                             .build()
             );
             keyPairGenerator.generateKeyPair();
-        } catch (NoSuchAlgorithmException | NoSuchProviderException | InvalidAlgorithmParameterException e) {
-            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + e.getMessage());
+        } catch (NoSuchAlgorithmException | NoSuchProviderException |
+                InvalidAlgorithmParameterException e) {
+            Log.d("MoaLib", e.getMessage());
         }
     }
 
     private byte[] getMergedByteArray(byte[] first, byte[] second) {
         if (first == null) {
-            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "first is null");
+            Log.d("MoaLib", "first is null");
             return new byte[0];
         }
         if (second == null) {
-            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "second is null");
+            Log.d("MoaLib", "second is null");
             return new byte[0];
         }
         byte[] targetByteArr = new byte[first.length + second.length];
@@ -162,11 +174,11 @@ public class FingerprintAuth {
 
     private byte[] getSignedData(PrivateKey privateKey, byte[] targetData) {
         if (privateKey == null) {
-            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "Private Key is null");
+            Log.d("MoaLib", "Private Key is null");
             return new byte[0];
         }
         if (targetData == null) {
-            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "targetData is null");
+            Log.d("MoaLib", "targetData is null");
             return new byte[0];
         }
         try {
@@ -174,8 +186,9 @@ public class FingerprintAuth {
             signature.initSign(privateKey);
             signature.update(targetData);
             return signature.sign();
-        } catch (NoSuchAlgorithmException | InvalidKeyException | SignatureException e) {
-            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + e.getMessage());
+        } catch (NoSuchAlgorithmException | InvalidKeyException |
+                SignatureException e) {
+            Log.d("MoaLib", e.getMessage());
         }
         return new byte[0];
     }

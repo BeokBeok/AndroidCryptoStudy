@@ -61,11 +61,11 @@ public class MoaAuthHelper {
      */
     public void setUniqueDeviceID(String uniqueDeviceID) {
         if (uniqueDeviceID == null || uniqueDeviceID.length() < 1) {
-            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "uniqueDeviceID is : " + uniqueDeviceID);
+            Log.d("MoaLib", "uniqueDeviceID is : " + uniqueDeviceID);
             return;
         }
         if (context == null) {
-            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "context is null");
+            Log.d("MoaLib", "context is null");
             return;
         }
         userControl = UserControl.getInstance();
@@ -85,7 +85,7 @@ public class MoaAuthHelper {
      */
     public void setNonMemberPIN(String nonMemberId) {
         if (userControl == null) {
-            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "userControl is null");
+            Log.d("MoaLib", "userControl is null");
             return;
         }
         userControl.setMemberInfo(nonMemberId, MoaMember.NON_MEMBER);
@@ -100,7 +100,7 @@ public class MoaAuthHelper {
      */
     public String getCurrentMemberID() {
         if (userControl == null) {
-            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "userControl is null");
+            Log.d("MoaLib", "userControl is null");
             return "";
         }
         return userControl.getMemberInfo(1);
@@ -120,14 +120,18 @@ public class MoaAuthHelper {
      */
     public String generatePINRegisterMessage(String id, String password) {
         if (id == null) {
-            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "id is null");
+            Log.d("MoaLib", "id is null");
             return "";
         }
         if (password == null) {
-            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "password is null");
+            Log.d("MoaLib", "password is null");
             return "";
         }
-        return MoaCommon.getInstance().generateRegisterMessage(id, password);
+        if (userControl == null) {
+            Log.d("MoaLib", "userControl is null");
+            return "";
+        }
+        return userControl.generateRegisterMessage(id, password);
     }
 
     /**
@@ -145,18 +149,22 @@ public class MoaAuthHelper {
      */
     public String generatePINLoginRequestMessage(String id, String password, String nonceOTP) {
         if (id == null) {
-            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "id is null");
+            Log.d("MoaLib", "id is null");
             return "";
         }
         if (password == null) {
-            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "password is null");
+            Log.d("MoaLib", "password is null");
             return "";
         }
         if (nonceOTP == null) {
-            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "nonceOTP is null");
+            Log.d("MoaLib", "nonceOTP is null");
             return "";
         }
-        return MoaCommon.getInstance().generateLoginRequestMessage(id, password, nonceOTP);
+        if (userControl == null) {
+            Log.d("MoaLib", "userControl is null");
+            return "";
+        }
+        return userControl.generateLoginRequestMessage(id, password, nonceOTP);
     }
 
     /**
@@ -173,14 +181,18 @@ public class MoaAuthHelper {
      */
     public String generatePINResetRequestMessage(String id, String resetPw) {
         if (id == null) {
-            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "id is null");
+            Log.d("MoaLib", "id is null");
             return "";
         }
         if (resetPw == null) {
-            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "resetPw is null");
+            Log.d("MoaLib", "resetPw is null");
             return "";
         }
-        return MoaCommon.getInstance().generatePINResetRequestMessage(id, resetPw);
+        if (userControl == null) {
+            Log.d("MoaLib", "userControl is null");
+            return "";
+        }
+        return userControl.generatePINResetRequestMessage(id, resetPw);
     }
 
     /**
@@ -198,18 +210,22 @@ public class MoaAuthHelper {
      */
     public String generatePINChangeRequestMessage(String id, String currentPw, String newPw) {
         if (id == null) {
-            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "id is null");
+            Log.d("MoaLib", "id is null");
             return "";
         }
         if (currentPw == null) {
-            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "currentPw is null");
+            Log.d("MoaLib", "currentPw is null");
             return "";
         }
         if (newPw == null) {
-            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "newPw is null");
+            Log.d("MoaLib", "newPw is null");
             return "";
         }
-        return MoaCommon.getInstance().generatePINChangeRequestMessage(id, currentPw, newPw);
+        if (userControl == null) {
+            Log.d("MoaLib", "userControl is null");
+            return "";
+        }
+        return userControl.generatePINChangeRequestMessage(id, currentPw, newPw);
     }
 
     /**
@@ -230,7 +246,7 @@ public class MoaAuthHelper {
     @RequiresApi(api = Build.VERSION_CODES.M)
     public byte[] getFingerprintRegisterECDSASign(Map<String, String> fingerprintRegisterData) {
         if (fingerprintRegisterData == null || fingerprintRegisterData.size() != 3) {
-            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "fingerprintRegisterData not validate");
+            Log.d("MoaLib", "fingerprintRegisterData not validate");
             return new byte[0];
         }
         String curve = fingerprintRegisterData.get("curve");
@@ -264,7 +280,7 @@ public class MoaAuthHelper {
     @RequiresApi(api = Build.VERSION_CODES.M)
     public byte[] getFingerprintLoginECDSASign(Map<String, String> fingerprintLoginData) {
         if (fingerprintLoginData == null || fingerprintLoginData.size() != 4) {
-            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "fingerprintLoginData not validate");
+            Log.d("MoaLib", "fingerprintLoginData not validate");
             return new byte[0];
         }
         String curve = fingerprintLoginData.get("curve");
@@ -318,15 +334,15 @@ public class MoaAuthHelper {
      */
     public void setControlInfoData(String id, MoaMember moaMember) {
         if (id == null) {
-            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "id is null");
+            Log.d("MoaLib", "id is null");
             return;
         }
         if (moaMember == null) {
-            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "moaMember is null");
+            Log.d("MoaLib", "moaMember is null");
             return;
         }
         if (userControl == null) {
-            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "userControl is null");
+            Log.d("MoaLib", "userControl is null");
             return;
         }
         userControl.setMemberInfo(id, moaMember);
@@ -340,7 +356,7 @@ public class MoaAuthHelper {
      */
     public String getAutoLoginInfo() {
         if (autoLogin == null) {
-            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "autoLogin is null");
+            Log.d("MoaLib", "autoLogin is null");
             return "";
         }
         return autoLogin.get();
@@ -357,7 +373,7 @@ public class MoaAuthHelper {
      */
     public void setAutoLoginInfo(String password) {
         if (autoLogin == null) {
-            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "autoLogin is null");
+            Log.d("MoaLib", "autoLogin is null");
             return;
         }
         autoLogin.set(password);
@@ -371,7 +387,7 @@ public class MoaAuthHelper {
      */
     public String getBasePrimaryInfo() {
         if (userControl == null) {
-            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "userControl is null");
+            Log.d("MoaLib", "userControl is null");
             return "";
         }
         return userControl.getBasePrimaryInfo();
@@ -388,11 +404,11 @@ public class MoaAuthHelper {
      */
     public void setBasePrimaryInfo(String userSequenceIndex) {
         if (userSequenceIndex == null) {
-            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "userSequenceIndex is null");
+            Log.d("MoaLib", "userSequenceIndex is null");
             return;
         }
         if (userControl == null) {
-            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "userControl is null");
+            Log.d("MoaLib", "userControl is null");
             return;
         }
         userControl.setBasePrimaryInfo(userSequenceIndex);
@@ -406,7 +422,7 @@ public class MoaAuthHelper {
      */
     public void removeControlInfo() {
         if (userControl == null) {
-            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "userControl is null");
+            Log.d("MoaLib", "userControl is null");
             return;
         }
         userControl.removeControlInfo();
@@ -420,7 +436,7 @@ public class MoaAuthHelper {
      */
     public String getMemberID() {
         if (userControl == null) {
-            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "userControl is null");
+            Log.d("MoaLib", "userControl is null");
             return "";
         }
         return userControl.getMemberID();
@@ -434,7 +450,7 @@ public class MoaAuthHelper {
      */
     public String getNonMemberID() {
         if (userControl == null) {
-            Log.d("MoaLib", MoaCommon.getInstance().getClassAndMethodName() + "userControl is null");
+            Log.d("MoaLib", "userControl is null");
             return "";
         }
         return userControl.getNonMemberID();
