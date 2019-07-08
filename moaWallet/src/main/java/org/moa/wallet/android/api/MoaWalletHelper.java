@@ -78,7 +78,7 @@ public class MoaWalletHelper {
      * 지갑을 생성한다.
      *
      * <p>자바스크립트 라이브러리가 사용된다.</p>
-     * <p>완료 시 onLibCompleteWallet 콜백이 호출된다.</p>
+     * <p>완료 시 onLibWalletCreated 콜백이 호출된다.</p>
      * <p><strong>주의사항</strong></br>
      * 1) ({@code webView == null}) 인 상태로 setWebView 가 호출된 상태이면 안된다.</br>
      * 2) ({@code receiver == null}) 인 상태로 setReceiver 가 호출된 상태이면 콜백이 발생하지 않는다.</p>
@@ -98,7 +98,7 @@ public class MoaWalletHelper {
      * 트랜젝션 서명을 생성한다.
      *
      * <p>자바스크립트 라이브러리가 사용된다.</p>
-     * <p>완료 시 onLibCompleteSign 콜백이 호출된다.</p>
+     * <p>완료 시 onLibSignCreated 콜백이 호출된다.</p>
      * <p><strong>주의사항</strong></br>
      * 1) ({@code webView == null}) 인 상태로 setWebView 가 호출된 상태이면 안된다.</br>
      * 2) ({@code receiver == null}) 인 상태로 setReceiver 가 호출된 상태이면 콜백이 발생하지 않는다.</p>
@@ -131,7 +131,7 @@ public class MoaWalletHelper {
     /**
      * 지갑 복구 할 때, 복구 메시지를 기반으로 복구한다.
      *
-     * <p>완료 시 onLibCompleteWallet 콜백이 호출된다.</p>
+     * <p>완료 시 onLibRestoreCompleted 콜백이 호출된다.</p>
      * <p>지갑 비밀번호 불일치 시 onLibFail 콜백이 호출된다.</p>
      * <p><strong>주의사항</strong></br>
      * 1) ({@code context == null}) 인 상태로 setWebView 가 호출된 상태이면 안된다.</br>
@@ -150,10 +150,10 @@ public class MoaWalletHelper {
             Log.d("MoaLib", "msg is null");
             return;
         }
-        if (wallet.verifyPsw(password, msg)) {
+        if (wallet.verifyPsw(password, msg)) { // onLibRestoreCompleted
             String[] restoreMsg = msg.split("%");
             wallet.save(password, restoreMsg[1]);
-        } else {
+        } else { // onLibFail 호출
             wallet.throwWalletException(
                     new IllegalStateException(MoaWalletErr.RESTORE_PASSWORD_NOT_VERIFY.getType())
             );

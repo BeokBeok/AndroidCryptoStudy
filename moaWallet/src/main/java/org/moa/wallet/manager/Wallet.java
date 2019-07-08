@@ -194,7 +194,7 @@ public class Wallet implements MoaECDSAReceiver {
 
         /* 지갑 생성 완료 콜백 호출 */
         this.password = "";
-        receiver.onLibCompleteWallet();
+        receiver.onLibRestoreCompleted();
     }
 
     public void create(String password) {
@@ -202,7 +202,7 @@ public class Wallet implements MoaECDSAReceiver {
             Log.d("MoaLib", "password is null");
             return;
         }
-        /* 키 생성 요청, 키 생성 완료 시 OnSuccessKeyPair 콜백 호출됨 */
+        /* 키 생성 요청, 키 생성 완료 시 onSuccessKeyPair 콜백 호출됨 */
         String curve = getValuesInPreferences("ECC.Curve");
         webView.loadUrl("javascript:doGenerate('" + curve + "')");
         this.password = password;
@@ -658,7 +658,7 @@ public class Wallet implements MoaECDSAReceiver {
         keyPair[1] = MoaCommon.getInstance().hexStringToByteArray(puk);
         save(keyPair);
         /* 복원형 지갑 생성을 위한 필수 데이터 생성 완료 콜백 호출 */
-        receiver.onLibCompleteRestoreMsg(generateRestoreDataFormat(keyPair));
+        receiver.onLibWalletCreated(generateRestoreDataFormat(keyPair));
     }
 
     @Override
@@ -668,7 +668,7 @@ public class Wallet implements MoaECDSAReceiver {
             Log.d("MoaLib", "receiver is null");
             return;
         }
-        receiver.onLibCompleteSign(sign);
+        receiver.onLibSignCreated(sign);
     }
 
     private static class Singleton {
