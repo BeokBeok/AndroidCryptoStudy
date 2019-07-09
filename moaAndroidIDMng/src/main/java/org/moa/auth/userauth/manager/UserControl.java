@@ -34,7 +34,6 @@ public class UserControl extends PINAuth {
             return;
         }
         super.init(context, uniqueDeviceID);
-        setValuesInPreferences("UniqueDevice.Info", uniqueDeviceID);
     }
 
     public void setMemberInfo(String id, MoaMember moaMember) {
@@ -51,11 +50,13 @@ public class UserControl extends PINAuth {
         } else {
             setValuesInPreferences("MemberID", id);
         }
-        String controlDataForm = moaMember.getMemberType() + "$" +
-                Base64.encodeToString(id.getBytes(StandardCharsets.UTF_8), Base64.NO_WRAP) + "$" +
-                moaMember.getAuthType() + "$" +
-                moaMember.getWalletType();
-        setValuesInPreferences("Control.Info", controlDataForm);
+        setValuesInPreferences(
+                "Control.Info",
+                moaMember.getMemberType() + "$" +
+                        Base64.encodeToString(id.getBytes(StandardCharsets.UTF_8), Base64.NO_WRAP) + "$" +
+                        moaMember.getAuthType() + "$" +
+                        moaMember.getWalletType()
+        );
     }
 
     public String getNonMemberID() {
@@ -120,8 +121,10 @@ public class UserControl extends PINAuth {
             Log.d("MoaLib", "value is null");
             return;
         }
-        byte[] encodedUtf8Content = value.getBytes(StandardCharsets.UTF_8);
-        byte[] encryption = symmetric.getSymmetricData(Cipher.ENCRYPT_MODE, encodedUtf8Content);
+        byte[] encryption = symmetric.getSymmetricData(
+                Cipher.ENCRYPT_MODE,
+                value.getBytes(StandardCharsets.UTF_8)
+        );
         SharedPreferences pref =
                 context.getSharedPreferences("androidIDManager", Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = pref.edit();
@@ -141,8 +144,10 @@ public class UserControl extends PINAuth {
             Log.d("MoaLib", "value not validate");
             return "";
         }
-        byte[] decodedBase64Value = Base64.decode(value, Base64.NO_WRAP);
-        byte[] decryption = symmetric.getSymmetricData(Cipher.DECRYPT_MODE, decodedBase64Value);
+        byte[] decryption = symmetric.getSymmetricData(
+                Cipher.DECRYPT_MODE,
+                Base64.decode(value, Base64.NO_WRAP)
+        );
         return new String(decryption, StandardCharsets.UTF_8);
     }
 
