@@ -120,6 +120,31 @@ public class MoaWalletHelper {
     }
 
     /**
+     * 트랜젝션 서명을 검증한다.
+     *
+     * <p>자바스크립트 라이브러리가 사용된다.</p>
+     * <p>완료 시 onLibSignVerify 콜백이 호출된다.</p>
+     * <p><strong>주의사항</strong></br>
+     * 1) ({@code webView == null}) 인 상태로 setWebView 가 호출된 상태이면 안된다.</br>
+     * 2) ({@code receiver == null}) 인 상태로 setReceiver 가 호출된 상태이면 콜백이 발생하지 않는다.</p>
+     * 3) ({@code transaction == null || password == null}) 이면 안된다.</p>
+     *
+     * @param transaction 서명 검증할 트랜젝션 원문
+     * @param sign        서명 값
+     */
+    public void verifySign(String transaction, String sign) {
+        if (transaction == null) {
+            Log.d("MoaLib", "originMsg is null");
+            return;
+        }
+        if (sign == null) {
+            Log.d("MoaLib", "sign is null");
+            return;
+        }
+        wallet.verifiedSign(transaction, sign);
+    }
+
+    /**
      * 서명 검증 시 필요한 공개키를 리턴한다.
      *
      * <p>자바스크립트 라이브러리가 사용된다.</p>

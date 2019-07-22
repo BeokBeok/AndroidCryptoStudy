@@ -141,7 +141,7 @@ public class Wallet implements MoaECDSAReceiver {
         }
         webview.getSettings().setJavaScriptEnabled(true);
         webview.addJavascriptInterface(new MoaBridge(this), "ECDSA");
-        webview.loadUrl("file:///android_asset/ECDSA/ECDSA.html");
+        webview.post(() -> webview.loadUrl("file:///android_asset/ECDSA/ECDSA.html"));
         this.webView = webview;
     }
 
@@ -204,7 +204,7 @@ public class Wallet implements MoaECDSAReceiver {
         }
         /* 키 생성 요청, 키 생성 완료 시 onSuccessKeyPair 콜백 호출됨 */
         String curve = getValuesInPreferences("ECC.Curve");
-        webView.loadUrl("javascript:doGenerate('" + curve + "')");
+        webView.post(() -> webView.loadUrl("javascript:doGenerate('" + curve + "')"));
         this.password = password;
     }
 
@@ -300,11 +300,34 @@ public class Wallet implements MoaECDSAReceiver {
             return;
         }
         /* 서명 생성 요청, 서명 생성 완료 시 OnSuccessSign 콜백 호출됨 */
-        webView.loadUrl("javascript:doSign('"
-                + getValuesInPreferences("ECC.Curve") + "', '"
-                + getValuesInPreferences("Signature.Alg") + "', '"
-                + transaction + "', '"
-                + MoaCommon.getInstance().byteArrayToHexString(privateKeyBytes) + "')"
+        webView.post(() ->
+                webView.loadUrl("javascript:doSign('"
+                        + getValuesInPreferences("ECC.Curve") + "', '"
+                        + getValuesInPreferences("Signature.Alg") + "', '"
+                        + transaction + "', '"
+                        + MoaCommon.getInstance().byteArrayToHexString(privateKeyBytes) + "')"
+                )
+        );
+    }
+
+    public void verifiedSign(String transaction, String sign) {
+        if (transaction == null) {
+            Log.d("MoaLib", "originMsg is null");
+            return;
+        }
+        if (sign == null) {
+            Log.d("MoaLib", "sign is null");
+            return;
+        }
+        /* 서명 검증 요청, 검증 완료 시 OnSuccessVerify 콜백 호출됨 */
+        webView.post(() ->
+                webView.loadUrl("javascript:doVerify('" +
+                        getValuesInPreferences("ECC.Curve") + "', '" +
+                        getValuesInPreferences("Signature.Alg") + "', '" +
+                        transaction + "', '" +
+                        sign + "', '" +
+                        getPublicKey() + "')"
+                )
         );
     }
 
@@ -669,6 +692,15 @@ public class Wallet implements MoaECDSAReceiver {
             return;
         }
         receiver.onLibSignCreated(sign);
+    }
+
+    @Override
+    public void onSuccessVerify(String result) {
+        if (receiver == null) {
+            Log.d("MoaLib", "receiver is null");
+            return;
+        }
+        receiver.onLibSignVerified(result.equals("true"));
     }
 
     private static class Singleton {

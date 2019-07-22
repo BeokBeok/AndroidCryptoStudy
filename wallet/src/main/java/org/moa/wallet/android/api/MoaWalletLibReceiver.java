@@ -29,6 +29,14 @@ public interface MoaWalletLibReceiver {
      */
     void onLibSignCreated(String sign);
 
+    /**
+     * 서명 검증 완료 시 호출된다.
+     *
+     * <p>생성된 서명 검증 값은 파라미터에 전달된다.</p>
+     *
+     * @param isVerify 검증 완료된 서명 값
+     */
+    void onLibSignVerified(boolean isVerify);
 
     /**
      * 전자지갑 관련하여 실패 시 Exception 을 던진다.
