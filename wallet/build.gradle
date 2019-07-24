@@ -2,26 +2,19 @@ apply plugin: 'com.android.library'
 
 android {
     compileSdkVersion 28
-
-
-
     defaultConfig {
         minSdkVersion 19
         targetSdkVersion 28
         versionCode 1
         versionName "1.0"
-
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
-
     }
-
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
-
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
@@ -37,11 +30,11 @@ dependencies {
     implementation files('libs/moaAndroidCryptoCoreAPI-v1.0.2.jar')
 }
 
-task deleteObjectJar(type: Delete){
+task deleteObjectJar(type: Delete) {
     delete 'release/moaAndroidBCWallet-v1.0.2.jar'
 }
 
-task exportJar(type: Copy){
+task exportJar(type: Copy) {
     from('build/intermediates/packaged-classes/release/')
     into('release/')
     include('classes.jar')
