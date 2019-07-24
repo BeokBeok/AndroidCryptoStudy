@@ -60,63 +60,45 @@ public class Wallet implements MoaECDSAReceiver {
         return Singleton.instance;
     }
 
-    private void initKeyStore() {
-        try {
-            this.keyStore = KeyStore.getInstance(androidProvider);
-            this.keyStore.load(null);
-        } catch (KeyStoreException | IOException |
-                NoSuchAlgorithmException | CertificateException e) {
-            Log.d("MoaLib", e.getMessage());
-        }
-    }
-
-    private void generateKey() {
-        Calendar startData = Calendar.getInstance();
-        Calendar endData = Calendar.getInstance();
-        endData.add(Calendar.YEAR, 25);
-        try {
-            KeyPairGenerator keyPairGenerator =
-                    KeyPairGenerator.getInstance("RSA", androidProvider);
-            keyPairGenerator.initialize(
-                    new KeyPairGeneratorSpec.Builder(context)
-                            .setAlias(keyAlias)
-                            .setSerialNumber(BigInteger.ONE)
-                            .setSubject(new X500Principal("CN=" + keyAlias))
-                            .setStartDate(startData.getTime())
-                            .setEndDate(endData.getTime())
-                            .build()
-            );
-            keyPairGenerator.generateKeyPair();
-        } catch (NoSuchAlgorithmException | NoSuchProviderException |
-                InvalidAlgorithmParameterException e) {
-            Log.d("MoaLib", e.getMessage());
-        }
-    }
-
-    private void setValuesInPreferences(String key, String value) {
-        if (key == null) {
-            Log.d("MoaLib", "key is null");
+    @Override
+    public void onSuccessKeyPair(String prk, String puk) {
+        if (receiver == null) {
+            Log.d("MoaLib", "receiver is null");
             return;
         }
-        if (value == null) {
-            Log.d("MoaLib", "value is null");
+        if (prk == null) {
+            Log.d("MoaLib", "prk is null");
             return;
         }
-        SharedPreferences pref =
-                context.getSharedPreferences("moaWallet", Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = pref.edit();
-        editor.putString(key, value);
-        editor.apply();
+        if (puk == null) {
+            Log.d("MoaLib", "puk is null");
+            return;
+        }
+        byte[][] keyPair = new byte[2][];
+        keyPair[0] = MoaCommon.getInstance().hexStringToByteArray(prk);
+        keyPair[1] = MoaCommon.getInstance().hexStringToByteArray(puk);
+        save(keyPair);
+        /* 복원형 지갑 생성을 위한 필수 데이터 생성 완료 콜백 호출 */
+        receiver.onLibWalletCreated(generateRestoreDataFormat(keyPair));
     }
 
-    private String getValuesInPreferences(String key) {
-        if (key == null) {
-            Log.d("MoaLib", "key is null");
-            return "";
+    @Override
+    public void onSuccessSign(String sign) {
+        password = "";
+        if (receiver == null) {
+            Log.d("MoaLib", "receiver is null");
+            return;
         }
-        SharedPreferences pref =
-                context.getSharedPreferences("moaWallet", Context.MODE_PRIVATE);
-        return pref.getString(key, "");
+        receiver.onLibSignCreated(sign);
+    }
+
+    @Override
+    public void onSuccessVerify(String result) {
+        if (receiver == null) {
+            Log.d("MoaLib", "receiver is null");
+            return;
+        }
+        receiver.onLibSignVerified(result.equals("true"));
     }
 
     public void setContext(Context context) {
@@ -429,6 +411,65 @@ public class Wallet implements MoaECDSAReceiver {
                 ));
     }
 
+    private void initKeyStore() {
+        try {
+            this.keyStore = KeyStore.getInstance(androidProvider);
+            this.keyStore.load(null);
+        } catch (KeyStoreException | IOException |
+                NoSuchAlgorithmException | CertificateException e) {
+            Log.d("MoaLib", e.getMessage());
+        }
+    }
+
+    private void generateKey() {
+        Calendar startData = Calendar.getInstance();
+        Calendar endData = Calendar.getInstance();
+        endData.add(Calendar.YEAR, 25);
+        try {
+            KeyPairGenerator keyPairGenerator =
+                    KeyPairGenerator.getInstance("RSA", androidProvider);
+            keyPairGenerator.initialize(
+                    new KeyPairGeneratorSpec.Builder(context)
+                            .setAlias(keyAlias)
+                            .setSerialNumber(BigInteger.ONE)
+                            .setSubject(new X500Principal("CN=" + keyAlias))
+                            .setStartDate(startData.getTime())
+                            .setEndDate(endData.getTime())
+                            .build()
+            );
+            keyPairGenerator.generateKeyPair();
+        } catch (NoSuchAlgorithmException | NoSuchProviderException |
+                InvalidAlgorithmParameterException e) {
+            Log.d("MoaLib", e.getMessage());
+        }
+    }
+
+    private void setValuesInPreferences(String key, String value) {
+        if (key == null) {
+            Log.d("MoaLib", "key is null");
+            return;
+        }
+        if (value == null) {
+            Log.d("MoaLib", "value is null");
+            return;
+        }
+        SharedPreferences pref =
+                context.getSharedPreferences("moaWallet", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = pref.edit();
+        editor.putString(key, value);
+        editor.apply();
+    }
+
+    private String getValuesInPreferences(String key) {
+        if (key == null) {
+            Log.d("MoaLib", "key is null");
+            return "";
+        }
+        SharedPreferences pref =
+                context.getSharedPreferences("moaWallet", Context.MODE_PRIVATE);
+        return pref.getString(key, "");
+    }
+
     private void initUsingKeys() {
         try {
             if (!keyStore.containsAlias(keyAlias))
@@ -682,47 +723,6 @@ public class Wallet implements MoaECDSAReceiver {
         } else {
             return "0x5114";
         }
-    }
-
-    @Override
-    public void onSuccessKeyPair(String prk, String puk) {
-        if (receiver == null) {
-            Log.d("MoaLib", "receiver is null");
-            return;
-        }
-        if (prk == null) {
-            Log.d("MoaLib", "prk is null");
-            return;
-        }
-        if (puk == null) {
-            Log.d("MoaLib", "puk is null");
-            return;
-        }
-        byte[][] keyPair = new byte[2][];
-        keyPair[0] = MoaCommon.getInstance().hexStringToByteArray(prk);
-        keyPair[1] = MoaCommon.getInstance().hexStringToByteArray(puk);
-        save(keyPair);
-        /* 복원형 지갑 생성을 위한 필수 데이터 생성 완료 콜백 호출 */
-        receiver.onLibWalletCreated(generateRestoreDataFormat(keyPair));
-    }
-
-    @Override
-    public void onSuccessSign(String sign) {
-        password = "";
-        if (receiver == null) {
-            Log.d("MoaLib", "receiver is null");
-            return;
-        }
-        receiver.onLibSignCreated(sign);
-    }
-
-    @Override
-    public void onSuccessVerify(String result) {
-        if (receiver == null) {
-            Log.d("MoaLib", "receiver is null");
-            return;
-        }
-        receiver.onLibSignVerified(result.equals("true"));
     }
 
     private static class Singleton {
