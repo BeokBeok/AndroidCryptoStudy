@@ -393,18 +393,18 @@ public class Wallet implements MoaECDSAReceiver {
         return Arrays.equals(secondEncryptHmacPsw, newSecondEncryptHmacPsw);
     }
 
-    public String getDecryptedHmacPswMsg(String id, String dateOfBirth, String encryptedHmacPsw) {
+    public byte[] getDecryptedHmacPswMsg(String id, String dateOfBirth, String encryptedHmacPsw) {
         if (id == null) {
             Log.d("MoaLib", "id is null");
-            return "";
+            return new byte[0];
         }
         if (dateOfBirth == null) {
             Log.d("MoaLib", "dateOfBirth is null");
-            return "";
+            return new byte[0];
         }
         if (encryptedHmacPsw == null) {
             Log.d("MoaLib", "encryptedHmacPsw is null");
-            return "";
+            return new byte[0];
         }
         byte[] dk = pbkdf2.kdfGen(
                 dateOfBirth.getBytes(),
@@ -423,13 +423,10 @@ public class Wallet implements MoaECDSAReceiver {
                 0,
                 decodedEncryptedHmacPsw.length / 2
         );
-        return Base64.encodeToString(
-                Arrays.copyOfRange(
-                        symmetric.getSymmetricData(Cipher.DECRYPT_MODE, firstEncryptHmacPsw),
-                        1,
-                        14
-                ),
-                Base64.NO_WRAP
+        return Arrays.copyOfRange(
+                symmetric.getSymmetricData(Cipher.DECRYPT_MODE, firstEncryptHmacPsw),
+                1,
+                14
         );
     }
 
@@ -467,14 +464,6 @@ public class Wallet implements MoaECDSAReceiver {
     }
 
     private void setValuesInPreferences(String key, String value) {
-        if (key == null) {
-            Log.d("MoaLib", "key is null");
-            return;
-        }
-        if (value == null) {
-            Log.d("MoaLib", "value is null");
-            return;
-        }
         SharedPreferences pref =
                 context.getSharedPreferences("moaWallet", Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = pref.edit();
@@ -483,10 +472,6 @@ public class Wallet implements MoaECDSAReceiver {
     }
 
     private String getValuesInPreferences(String key) {
-        if (key == null) {
-            Log.d("MoaLib", "key is null");
-            return "";
-        }
         SharedPreferences pref =
                 context.getSharedPreferences("moaWallet", Context.MODE_PRIVATE);
         return pref.getString(key, "");
@@ -712,7 +697,7 @@ public class Wallet implements MoaECDSAReceiver {
                 encryptedPuk,
                 password.getBytes()
         );
-        /* encrypted hmac % prk $ puk $ salt */
+        /* E[Hmac_puk] % E[prk] $ E[puk] $ salt */
         return Base64.encodeToString(hmacEncryptedPuk, Base64.NO_WRAP) + "%"
                 + Base64.encodeToString(encryptedPrk, Base64.NO_WRAP) + "$"
                 + Base64.encodeToString(encryptedPuk, Base64.NO_WRAP) + "$"
