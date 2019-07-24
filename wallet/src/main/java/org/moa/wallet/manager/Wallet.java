@@ -369,7 +369,31 @@ public class Wallet implements MoaECDSAReceiver {
         receiver.onLibFail(t);
     }
 
-    public String getDecryptedHmacPsw(String id, String dateOfBirth, String encryptedHmacPsw) {
+    public boolean verifyEncryptHmacPsw(String dateOfBirth, String encryptedHmacPsw) {
+        byte[] decodedEncryptedHmacPsw = Base64.decode(encryptedHmacPsw, Base64.NO_WRAP);
+        byte[] firstEncryptHmacPsw = Arrays.copyOfRange(
+                decodedEncryptedHmacPsw,
+                0,
+                decodedEncryptedHmacPsw.length / 2
+        );
+        byte[] secondEncryptHmacPsw = Arrays.copyOfRange(
+                decodedEncryptedHmacPsw,
+                decodedEncryptedHmacPsw.length / 2,
+                decodedEncryptedHmacPsw.length
+        );
+        byte[] newHmac = MoaCommon.getInstance().hmacDigest(
+                getValuesInPreferences("MAC.Alg"),
+                firstEncryptHmacPsw,
+                dateOfBirth.getBytes()
+        );
+        byte[] newSecondEncryptHmacPsw = new byte[newHmac.length / 2];
+        for (int i = 0; i < newHmac.length / 2; i++) {
+            newSecondEncryptHmacPsw[i] = (byte) (newHmac[i] ^ newHmac[i + 16]);
+        }
+        return Arrays.equals(secondEncryptHmacPsw, newSecondEncryptHmacPsw);
+    }
+
+    public String getDecryptedHmacPswMsg(String id, String dateOfBirth, String encryptedHmacPsw) {
         if (id == null) {
             Log.d("MoaLib", "id is null");
             return "";
@@ -399,16 +423,14 @@ public class Wallet implements MoaECDSAReceiver {
                 0,
                 decodedEncryptedHmacPsw.length / 2
         );
-        return generateVerifiedEncryptHmacPswHeader(dateOfBirth, encryptedHmacPsw)
-                .concat("$")
-                .concat(Base64.encodeToString(
-                        Arrays.copyOfRange(
-                                symmetric.getSymmetricData(Cipher.DECRYPT_MODE, firstEncryptHmacPsw),
-                                1,
-                                14
-                        ),
-                        Base64.NO_WRAP
-                ));
+        return Base64.encodeToString(
+                Arrays.copyOfRange(
+                        symmetric.getSymmetricData(Cipher.DECRYPT_MODE, firstEncryptHmacPsw),
+                        1,
+                        14
+                ),
+                Base64.NO_WRAP
+        );
     }
 
     private void initKeyStore() {
@@ -695,34 +717,6 @@ public class Wallet implements MoaECDSAReceiver {
                 + Base64.encodeToString(encryptedPrk, Base64.NO_WRAP) + "$"
                 + Base64.encodeToString(encryptedPuk, Base64.NO_WRAP) + "$"
                 + Base64.encodeToString(getSalt(), Base64.NO_WRAP);
-    }
-
-    private String generateVerifiedEncryptHmacPswHeader(String dateOfBirth, String encryptedHmacPsw) {
-        byte[] decodedEncryptedHmacPsw = Base64.decode(encryptedHmacPsw, Base64.NO_WRAP);
-        byte[] firstEncryptHmacPsw = Arrays.copyOfRange(
-                decodedEncryptedHmacPsw,
-                0,
-                decodedEncryptedHmacPsw.length / 2
-        );
-        byte[] secondEncryptHmacPsw = Arrays.copyOfRange(
-                decodedEncryptedHmacPsw,
-                decodedEncryptedHmacPsw.length / 2,
-                decodedEncryptedHmacPsw.length
-        );
-        byte[] newHmac = MoaCommon.getInstance().hmacDigest(
-                getValuesInPreferences("MAC.Alg"),
-                firstEncryptHmacPsw,
-                dateOfBirth.getBytes()
-        );
-        byte[] newSecondEncryptHmacPsw = new byte[newHmac.length / 2];
-        for (int i = 0; i < newHmac.length / 2; i++) {
-            newSecondEncryptHmacPsw[i] = (byte) (newHmac[i] ^ newHmac[i + 16]);
-        }
-        if (Arrays.equals(secondEncryptHmacPsw, newSecondEncryptHmacPsw)) {
-            return "0x5113";
-        } else {
-            return "0x5114";
-        }
     }
 
     private static class Singleton {
