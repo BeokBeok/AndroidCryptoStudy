@@ -360,6 +360,76 @@ public class Wallet implements MoaECDSAReceiver {
         receiver.onLibFail(t);
     }
 
+    public String getDecryptedHmacPsw(String id, String dateOfBirth, String encryptedHmacPsw) {
+        if (id == null) {
+            Log.d("MoaLib", "id is null");
+            return "";
+        }
+        if (dateOfBirth == null) {
+            Log.d("MoaLib", "dateOfBirth is null");
+            return "";
+        }
+        if (encryptedHmacPsw == null) {
+            Log.d("MoaLib", "encryptedHmacPsw is null");
+            return "";
+        }
+        byte[] dk = pbkdf2.kdfGen(
+                dateOfBirth.getBytes(),
+                id.getBytes(),
+                10,
+                48
+        );
+        Symmetric symmetric = new Symmetric(
+                "AES/CBC/PKCS7Padding",
+                Arrays.copyOfRange(dk, 32, dk.length), // iv
+                Arrays.copyOf(dk, 32) // dbk
+        );
+        byte[] decodedEncryptedHmacPsw = Base64.decode(encryptedHmacPsw, Base64.NO_WRAP);
+        byte[] firstEncryptHmacPsw = Arrays.copyOfRange(
+                decodedEncryptedHmacPsw,
+                0,
+                decodedEncryptedHmacPsw.length / 2
+        );
+        return generateVerifiedEncryptHmacPswHeader(dateOfBirth, encryptedHmacPsw)
+                .concat("$")
+                .concat(Base64.encodeToString(
+                        Arrays.copyOfRange(
+                                symmetric.getSymmetricData(Cipher.DECRYPT_MODE, firstEncryptHmacPsw),
+                                1,
+                                14
+                        ),
+                        Base64.NO_WRAP
+                ));
+    }
+
+    private String generateVerifiedEncryptHmacPswHeader(String dateOfBirth, String encryptedHmacPsw) {
+        byte[] decodedEncryptedHmacPsw = Base64.decode(encryptedHmacPsw, Base64.NO_WRAP);
+        byte[] firstEncryptHmacPsw = Arrays.copyOfRange(
+                decodedEncryptedHmacPsw,
+                0,
+                decodedEncryptedHmacPsw.length / 2
+        );
+        byte[] secondEncryptHmacPsw = Arrays.copyOfRange(
+                decodedEncryptedHmacPsw,
+                decodedEncryptedHmacPsw.length / 2,
+                decodedEncryptedHmacPsw.length
+        );
+        byte[] newHmac = MoaCommon.getInstance().hmacDigest(
+                getValuesInPreferences("MAC.Alg"),
+                firstEncryptHmacPsw,
+                dateOfBirth.getBytes()
+        );
+        byte[] newSecondEncryptHmacPsw = new byte[newHmac.length / 2];
+        for (int i = 0; i < newHmac.length / 2; i++) {
+            newSecondEncryptHmacPsw[i] = (byte) (newHmac[i] ^ newHmac[i + 16]);
+        }
+        if (Arrays.equals(secondEncryptHmacPsw, newSecondEncryptHmacPsw)) {
+            return "0x5113";
+        } else {
+            return "0x5114";
+        }
+    }
+
     private void initUsingKeys() {
         try {
             if (!keyStore.containsAlias(keyAlias))
