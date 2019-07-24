@@ -1,1 +1,1 @@
-include ':app', ':moaAndroidIDMng', ':crypto', ':moaWallet'
+include ':app', ':crypto'
