@@ -61,10 +61,6 @@ public class MoaCommon {
     }
 
     public byte[] hexStringToByteArray(String s) {
-        if (s == null) {
-            Log.d("MoaLib", "s is null");
-            return new byte[0];
-        }
         int len = s.length();
         byte[] data = new byte[len / 2];
         for (int i = 0; i < len; i += 2) {
@@ -75,10 +71,6 @@ public class MoaCommon {
     }
 
     public String byteArrayToHexString(byte[] bytes) {
-        if (bytes == null) {
-            Log.d("MoaLib", "bytes is null");
-            return "";
-        }
         StringBuilder sb = new StringBuilder();
         for (byte b : bytes) {
             sb.append(String.format("%02x", b & 0xff));

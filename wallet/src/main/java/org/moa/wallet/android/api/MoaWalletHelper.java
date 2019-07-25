@@ -41,39 +41,25 @@ public class MoaWalletHelper {
      *
      * @param context 해당 Activity 의 Context
      */
-    public void setContext(Context context) {
+    public void setContext(@NonNull Context context) {
         wallet.setContext(context);
     }
 
     /**
      * MoaWalletLibReceiver 를 설정한다.
      *
-     * <p><strong>주의사항</strong></br>
-     * ({@code receiver == null}) 이면 안된다.</p>
-     *
      * @param receiver MoaWalletLibReceiver
      */
-    public void setReceiver(MoaWalletLibReceiver receiver) {
-        if (receiver == null) {
-            Log.d("MoaLib", "receiver is null");
-            return;
-        }
+    public void setReceiver(@NonNull MoaWalletLibReceiver receiver) {
         wallet.setReceiver(receiver);
     }
 
     /**
      * Javascript 라이브러리를 사용하기 위한 WebView 를 설정한다.
      *
-     * <p><strong>주의사항</strong></br>
-     * ({@code webView == null}) 이면 안된다.</p>
-     *
      * @param webView WebView
      */
-    public void setWebView(WebView webView) {
-        if (webView == null) {
-            Log.d("MoaLib", "webView is null");
-            return;
-        }
+    public void setWebView(@NonNull WebView webView) {
         wallet.setWebView(webView);
     }
 
@@ -83,17 +69,12 @@ public class MoaWalletHelper {
      * <p>자바스크립트 라이브러리가 사용된다.</p>
      * <p>완료 시 onLibWalletCreated 콜백이 호출된다.</p>
      * <p><strong>주의사항</strong></br>
-     * 1) ({@code webView == null}) 인 상태로 setWebView 가 호출된 상태이면 안된다.</br>
-     * 2) ({@code receiver == null}) 인 상태로 setReceiver 가 호출된 상태이면 콜백이 발생하지 않는다.</p>
-     * 3) ({@code password == null}) 이면 안된다.</p>
+     * 1) setWebView 가 호출된 상태이어야 한다.</br>
+     * 2) setReceiver 가 호출된 상태이어야 한다.</p>
      *
      * @param password 지갑 생성 시 사용될 패스워드
      */
-    public void createWallet(String password) {
-        if (password == null) {
-            Log.d("MoaLib", "password is null");
-            return;
-        }
+    public void createWallet(@NonNull String password) {
         wallet.create(password);
     }
 
@@ -103,22 +84,16 @@ public class MoaWalletHelper {
      * <p>자바스크립트 라이브러리가 사용된다.</p>
      * <p>완료 시 onLibSignCreated 콜백이 호출된다.</p>
      * <p><strong>주의사항</strong></br>
-     * 1) ({@code webView == null}) 인 상태로 setWebView 가 호출된 상태이면 안된다.</br>
-     * 2) ({@code receiver == null}) 인 상태로 setReceiver 가 호출된 상태이면 콜백이 발생하지 않는다.</p>
-     * 3) ({@code transaction == null || password == null}) 이면 안된다.</p>
+     * 1) setWebView 가 호출된 상태이어야 한다.</br>
+     * 2) setReceiver 가 호출된 상태이어야 한다.</p>
      *
      * @param transaction 서명할 트랜젝션
      * @param password    개인키로 서명하기 위한 패스워드
      */
-    public void getSignedTransaction(String transaction, String password) {
-        if (transaction == null) {
-            Log.d("MoaLib", "transaction is null");
-            return;
-        }
-        if (password == null) {
-            Log.d("MoaLib", "password is null");
-            return;
-        }
+    public void getSignedTransaction(
+            @NonNull String transaction,
+            @NonNull String password
+    ) {
         wallet.generateSignedTransaction(transaction, password);
     }
 
@@ -128,22 +103,16 @@ public class MoaWalletHelper {
      * <p>자바스크립트 라이브러리가 사용된다.</p>
      * <p>완료 시 onLibSignVerify 콜백이 호출된다.</p>
      * <p><strong>주의사항</strong></br>
-     * 1) ({@code webView == null}) 인 상태로 setWebView 가 호출된 상태이면 안된다.</br>
-     * 2) ({@code receiver == null}) 인 상태로 setReceiver 가 호출된 상태이면 콜백이 발생하지 않는다.</p>
-     * 3) ({@code transaction == null || password == null}) 이면 안된다.</p>
+     * 1) setWebView 가 호출된 상태이어야 한다.</br>
+     * 2) setReceiver 가 호출된 상태이어야 한다.</p>
      *
      * @param transaction 서명 검증할 트랜젝션 원문
      * @param sign        서명 값
      */
-    public void verifySign(String transaction, String sign) {
-        if (transaction == null) {
-            Log.d("MoaLib", "originMsg is null");
-            return;
-        }
-        if (sign == null) {
-            Log.d("MoaLib", "sign is null");
-            return;
-        }
+    public void verifySign(
+            @NonNull String transaction,
+            @NonNull String sign
+    ) {
         wallet.verifiedSign(transaction, sign);
     }
 
@@ -162,22 +131,16 @@ public class MoaWalletHelper {
      * <p>완료 시 onLibRestoreCompleted 콜백이 호출된다.</p>
      * <p>지갑 비밀번호 불일치 시 onLibFail 콜백이 호출된다.</p>
      * <p><strong>주의사항</strong></br>
-     * 1) ({@code context == null}) 인 상태로 setWebView 가 호출된 상태이면 안된다.</br>
-     * 2) ({@code receiver == null}) 인 상태로 setReceiver 가 호출된 상태이면 콜백이 발생하지 않는다.</p>
-     * 3) ({@code transaction == null || password == null}) 이면 안된다.</p>
+     * 1) setWebView 가 호출된 상태이어야 한다.</br>
+     * 2) setReceiver 가 호출된 상태이어야 한다.</p>
      *
      * @param password 복구 메시지를 복호화하기 위해 필요한 패스워드
      * @param msg      지갑 복구 메시지
      */
-    public void restoreWallet(String password, String msg) {
-        if (password == null) {
-            Log.d("MoaLib", "password is null");
-            return;
-        }
-        if (msg == null) {
-            Log.d("MoaLib", "msg is null");
-            return;
-        }
+    public void restoreWallet(
+            @NonNull String password,
+            @NonNull String msg
+    ) {
         if (wallet.verifyPsw(password, msg)) { // onLibRestoreCompleted
             String[] restoreMsg = msg.split("%");
             wallet.save(password, restoreMsg[1]);
@@ -207,7 +170,7 @@ public class MoaWalletHelper {
      *
      * @param psw 패스워드
      */
-    public String getHmacPsw(String psw) {
+    public String getHmacPsw(@NonNull String psw) {
         return MoaCommon.getInstance()
                 .byteArrayToHexString(wallet.getHmacPsw(psw));
     }
@@ -219,7 +182,11 @@ public class MoaWalletHelper {
      * @param psw         패스워드
      * @param dateOfBirth 생년월일; 패스워드 암호화 시 Key로 사용된다.
      */
-    public String getEncryptedHmacPsw(String id, String psw, String dateOfBirth) {
+    public String getEncryptedHmacPsw(
+            @NonNull String id,
+            @NonNull String psw,
+            @NonNull String dateOfBirth
+    ) {
         return Base64.encodeToString(
                 wallet.getEncryptedHmacPsw(id, psw, dateOfBirth),
                 Base64.NO_WRAP
@@ -263,7 +230,6 @@ public class MoaWalletHelper {
      *
      * <p><strong>주의사항</strong></br>
      * setPswInitMode(true) 함수가 호출된 상태여야 한다.</p>
-     *
      */
     public void updateWallet() {
         wallet.updateWallet();
@@ -273,17 +239,11 @@ public class MoaWalletHelper {
      * Hex String 을 byte[] 로 변환한다.
      *
      * <p>자바스크립트에서 생성된 데이터는 Hex String 이므로, byte 배열로 변환이 필요하다</p>
-     * <p><strong>주의사항</strong></br>
-     * ({@code target == null}) 이면 안된다.</p>
      *
      * @param target byte[]로 변환할 Hex String
      * @return 변환된 byte 배열
      */
-    public byte[] hexStringToByteArray(String target) {
-        if (target == null) {
-            Log.d("MoaLib", "target is null");
-            return new byte[0];
-        }
+    public byte[] hexStringToByteArray(@NonNull String target) {
         return MoaCommon.getInstance().hexStringToByteArray(target);
     }
 
@@ -291,17 +251,11 @@ public class MoaWalletHelper {
      * Byte[] 를 Hex String 으로 변환한다.
      *
      * <p>자바스크립트에서는 Hex String 을 사용하므로, Hex String 으로 변환이 필요하다.</p>
-     * <p><strong>주의사항</strong></br>
-     * ({@code target == null}) 이면 안된다.</p>
      *
      * @param target Hex String 으로 변환할 byte[]
      * @return 변환된 Hex String
      */
-    public String byteArrayToHexString(byte[] target) {
-        if (target == null) {
-            Log.d("MoaLib", "target is null");
-            return "";
-        }
+    public String byteArrayToHexString(@NonNull byte[] target) {
         return MoaCommon.getInstance().byteArrayToHexString(target);
     }
 

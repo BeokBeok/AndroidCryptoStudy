@@ -117,19 +117,11 @@ public class Wallet implements MoaECDSAReceiver {
     }
 
     public void setReceiver(MoaWalletLibReceiver receiver) {
-        if (receiver == null) {
-            Log.d("MoaLib", "receiver is null");
-            return;
-        }
         this.receiver = receiver;
     }
 
     @SuppressLint("SetJavaScriptEnabled")
     public void setWebView(WebView webview) {
-        if (webview == null) {
-            Log.d("MoaLib", "webView is null");
-            return;
-        }
         webview.getSettings().setJavaScriptEnabled(true);
         webview.addJavascriptInterface(new MoaBridge(this), "ECDSA");
         webview.post(() -> webview.loadUrl("file:///android_asset/ECDSA/ECDSA.html"));
@@ -141,12 +133,8 @@ public class Wallet implements MoaECDSAReceiver {
             Log.d("MoaLib", "receiver is null");
             return;
         }
-        if (password == null) {
-            Log.d("MoaLib", "password is null");
-            return;
-        }
-        if (msg == null || msg.length() == 0) {
-            Log.d("MoaLib", "msg is null");
+        if (msg.length() == 0) {
+            Log.d("MoaLib", "msg size is 0");
             return;
         }
         /* 메시지 분리 */
@@ -192,10 +180,6 @@ public class Wallet implements MoaECDSAReceiver {
     }
 
     public void create(String password) {
-        if (password == null) {
-            Log.d("MoaLib", "password is null");
-            return;
-        }
         /* 키 생성 요청, 키 생성 완료 시 onSuccessKeyPair 콜백 호출됨 */
         String curve = getValuesInPreferences("ECC.Curve");
         webView.post(() -> webView.loadUrl("javascript:doGenerate('" + curve + "')"));
@@ -203,12 +187,8 @@ public class Wallet implements MoaECDSAReceiver {
     }
 
     public boolean verifyPsw(String password, String msg) {
-        if (password == null) {
-            Log.d("MoaLib", "password is null");
-            return false;
-        }
-        if (msg == null || msg.length() == 0) {
-            Log.d("MoaLib", "msg is null");
+        if (msg.length() == 0) {
+            Log.d("MoaLib", "msg size is 0");
             return false;
         }
         StringTokenizer st = new StringTokenizer(msg, "%");
@@ -224,10 +204,6 @@ public class Wallet implements MoaECDSAReceiver {
     }
 
     public byte[] getHmacPsw(String psw) {
-        if (psw == null) {
-            Log.d("MoaLib", "password is null");
-            return new byte[0];
-        }
         /* hmac 생성 (14 byte);지갑 비밀번호 */
         byte[] hashPsw = MoaCommon.getInstance().
                 hashDigest(getValuesInPreferences("Hash.Alg"), psw.getBytes());
@@ -241,18 +217,6 @@ public class Wallet implements MoaECDSAReceiver {
     }
 
     public byte[] getEncryptedHmacPsw(String id, String psw, String dateOfBirth) {
-        if (id == null) {
-            Log.d("MoaLib", "id is null");
-            return new byte[0];
-        }
-        if (psw == null) {
-            Log.d("MoaLib", "psw is null");
-            return new byte[0];
-        }
-        if (dateOfBirth == null) {
-            Log.d("MoaLib", "dateOfBirth is null");
-            return new byte[0];
-        }
         /* hmac 생성 (14 byte);지갑 비밀번호 */
         byte[] hmacPsw = getHmacPsw(psw);
 
@@ -297,14 +261,6 @@ public class Wallet implements MoaECDSAReceiver {
     }
 
     public void generateSignedTransaction(String transaction, String password) {
-        if (transaction == null) {
-            Log.d("MoaLib", "transaction is null");
-            return;
-        }
-        if (password == null) {
-            Log.d("MoaLib", "password is null");
-            return;
-        }
         if (!checkMACData(password)) {
             Log.d("MoaLib", "MAC not validate");
             onSuccessSign("");
@@ -329,14 +285,6 @@ public class Wallet implements MoaECDSAReceiver {
     }
 
     public void verifiedSign(String transaction, String sign) {
-        if (transaction == null) {
-            Log.d("MoaLib", "originMsg is null");
-            return;
-        }
-        if (sign == null) {
-            Log.d("MoaLib", "sign is null");
-            return;
-        }
         /* 서명 검증 요청, 검증 완료 시 OnSuccessVerify 콜백 호출됨 */
         webView.post(() ->
                 webView.loadUrl("javascript:doVerify('" +
@@ -373,8 +321,9 @@ public class Wallet implements MoaECDSAReceiver {
     }
 
     public void throwWalletException(Throwable t) {
-        if (receiver == null)
+        if (receiver == null) {
             return;
+        }
         receiver.onLibFail(t);
     }
 
