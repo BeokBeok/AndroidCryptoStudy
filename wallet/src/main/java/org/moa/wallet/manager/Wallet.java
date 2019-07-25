@@ -454,6 +454,31 @@ public class Wallet implements MoaECDSAReceiver {
         return backupDataFormat;
     }
 
+    public void updateWallet() {
+        if (!isPswInitMode) {
+            Log.d("MoaLib", "isPswInitMode is false");
+            return;
+        }
+        /* get temp wallet */
+        String cipheredData = getValuesInPreferences("Ciphered.Data");
+        String puk = getValuesInPreferences("Wallet.PublicKey");
+        String addr = getValuesInPreferences("Wallet.Addr");
+        String mac = getValuesInPreferences("MAC.Data");
+        String salt = getValuesInPreferences("Salt.Value");
+        /* update wallet */
+        isPswInitMode = false;
+        setValuesInPreferences("Ciphered.Data", cipheredData);
+        setValuesInPreferences("Wallet.PublicKey", puk);
+        setValuesInPreferences("Wallet.Addr", addr);
+        setValuesInPreferences("MAC.Data", mac);
+        setValuesInPreferences("Salt.Value", salt);
+        /* remove temp wallet */
+        isPswInitMode = true;
+        removeWallet();
+        /* look at the origin wallet */
+        isPswInitMode = false;
+    }
+
     private void initKeyStore() {
         try {
             this.keyStore = KeyStore.getInstance(androidProvider);

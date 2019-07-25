@@ -259,6 +259,17 @@ public class MoaWalletHelper {
     }
 
     /**
+     * 패스워드 초기화된 지갑 데이터로 갱신한다.
+     *
+     * <p><strong>주의사항</strong></br>
+     * setPswInitMode(true) 함수가 호출된 상태여야 한다.</p>
+     *
+     */
+    public void updateWallet() {
+        wallet.updateWallet();
+    }
+
+    /**
      * Hex String 을 byte[] 로 변환한다.
      *
      * <p>자바스크립트에서 생성된 데이터는 Hex String 이므로, byte 배열로 변환이 필요하다</p>
