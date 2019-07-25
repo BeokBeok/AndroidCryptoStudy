@@ -363,9 +363,9 @@ public class Wallet implements MoaECDSAReceiver {
         /* Decryption */
         /* HmacPsw */
         byte[] hmacPsw = getDecryptedHmacPsw(
-                walletData.get("id"),
-                walletData.get("dateOfBirth"),
-                walletData.get("encryptedHmacPsw")
+                Objects.requireNonNull(walletData.get("id")),
+                Objects.requireNonNull(walletData.get("dateOfBirth")),
+                Objects.requireNonNull(walletData.get("encryptedHmacPsw"))
         );
         /* Prk */
         byte[] prk = getPBKDF2Data(
@@ -477,16 +477,18 @@ public class Wallet implements MoaECDSAReceiver {
 
     private void initUsingKeys() {
         try {
-            if (!keyStore.containsAlias(keyAlias))
+            if (!keyStore.containsAlias(keyAlias)) {
                 generateKey();
+            }
         } catch (KeyStoreException e) {
             Log.d("MoaLib", e.getMessage());
         }
     }
 
     private void initProperties() {
-        if (getValuesInPreferences("Version.Info").length() > 0)
+        if (getValuesInPreferences("Version.Info").length() > 0) {
             return;
+        }
         setValuesInPreferences("Version.Info", "1");
         setValuesInPreferences("Symmetric.Alg", "AES/CTR/NoPadding");
         setValuesInPreferences("Symmetric.KeySize", "256");
@@ -506,8 +508,9 @@ public class Wallet implements MoaECDSAReceiver {
             new SecureRandom().nextBytes(salt);
             setValuesInPreferences("Salt.Value", MoaBase58.getInstance().encode(salt));
             return salt;
-        } else
+        } else {
             return MoaBase58.getInstance().decode(base58Salt);
+        }
     }
 
     private byte[] generateDerivedKey(String psw) {
@@ -703,18 +706,6 @@ public class Wallet implements MoaECDSAReceiver {
     }
 
     private byte[] getDecryptedHmacPsw(String id, String dateOfBirth, String encryptedHmacPsw) {
-        if (id == null) {
-            Log.d("MoaLib", "id is null");
-            return new byte[0];
-        }
-        if (dateOfBirth == null) {
-            Log.d("MoaLib", "dateOfBirth is null");
-            return new byte[0];
-        }
-        if (encryptedHmacPsw == null) {
-            Log.d("MoaLib", "encryptedHmacPsw is null");
-            return new byte[0];
-        }
         byte[] dk = pbkdf2.kdfGen(
                 dateOfBirth.getBytes(),
                 id.getBytes(),
