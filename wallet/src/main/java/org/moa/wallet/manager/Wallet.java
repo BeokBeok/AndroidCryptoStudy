@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.security.KeyPairGeneratorSpec;
+import android.support.annotation.NonNull;
 import android.util.Base64;
 import android.util.Log;
 import android.webkit.WebView;
@@ -34,6 +35,7 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.StringTokenizer;
 
 import javax.crypto.BadPaddingException;
@@ -51,6 +53,7 @@ public class Wallet implements MoaECDSAReceiver {
     private WebView webView;
     private String password = "";
     private PBKDF2 pbkdf2 = new PBKDF2("SHA384");
+    private boolean isPswInitMode;
 
     private Wallet() {
         initKeyStore();
@@ -74,12 +77,18 @@ public class Wallet implements MoaECDSAReceiver {
             Log.d("MoaLib", "puk is null");
             return;
         }
-        byte[][] keyPair = new byte[2][];
-        keyPair[0] = MoaCommon.getInstance().hexStringToByteArray(prk);
-        keyPair[1] = MoaCommon.getInstance().hexStringToByteArray(puk);
-        save(keyPair);
+        save(
+                MoaCommon.getInstance().hexStringToByteArray(prk),
+                MoaCommon.getInstance().hexStringToByteArray(puk)
+        );
         /* 복원형 지갑 생성을 위한 필수 데이터 생성 완료 콜백 호출 */
-        receiver.onLibWalletCreated(generateRestoreDataFormat(keyPair));
+        receiver.onLibWalletCreated(
+                generateRestoreDataFormat(
+                        MoaCommon.getInstance().hexStringToByteArray(prk),
+                        MoaCommon.getInstance().hexStringToByteArray(puk)
+                )
+        );
+        password = "";
     }
 
     @Override
@@ -354,7 +363,7 @@ public class Wallet implements MoaECDSAReceiver {
 
     public void removeWallet() {
         SharedPreferences sp =
-                context.getSharedPreferences("moaWallet", Context.MODE_PRIVATE);
+                context.getSharedPreferences(getPrefName(), Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sp.edit();
         editor.remove("Ciphered.Data");
         editor.remove("Wallet.PublicKey");
@@ -393,41 +402,56 @@ public class Wallet implements MoaECDSAReceiver {
         return Arrays.equals(secondEncryptHmacPsw, newSecondEncryptHmacPsw);
     }
 
-    public byte[] getDecryptedHmacPswMsg(String id, String dateOfBirth, String encryptedHmacPsw) {
-        if (id == null) {
-            Log.d("MoaLib", "id is null");
-            return new byte[0];
+    public void setPswInitMode(boolean isPswInitMode) {
+        this.isPswInitMode = isPswInitMode;
+    }
+
+    public String generateBackUpRestoreDataFormat(@NonNull HashMap<String, String> walletData) {
+        if (!isPswInitMode) {
+            Log.d("MoLib", "isPswInitMode is false");
+            return "";
         }
-        if (dateOfBirth == null) {
-            Log.d("MoaLib", "dateOfBirth is null");
-            return new byte[0];
-        }
-        if (encryptedHmacPsw == null) {
-            Log.d("MoaLib", "encryptedHmacPsw is null");
-            return new byte[0];
-        }
-        byte[] dk = pbkdf2.kdfGen(
-                dateOfBirth.getBytes(),
-                id.getBytes(),
-                10,
-                48
+        /* Decryption */
+        /* HmacPsw */
+        byte[] hmacPsw = getDecryptedHmacPsw(
+                walletData.get("id"),
+                walletData.get("dateOfBirth"),
+                walletData.get("encryptedHmacPsw")
         );
-        Symmetric symmetric = new Symmetric(
-                "AES/CBC/PKCS7Padding",
-                Arrays.copyOfRange(dk, 32, dk.length), // iv
-                Arrays.copyOf(dk, 32) // dbk
+        /* Prk */
+        byte[] prk = getPBKDF2Data(
+                Cipher.DECRYPT_MODE,
+                MoaCommon.getInstance().byteArrayToHexString(hmacPsw),
+                MoaBase58.getInstance().decode(Objects.requireNonNull(walletData.get("encPrk")))
         );
-        byte[] decodedEncryptedHmacPsw = Base64.decode(encryptedHmacPsw, Base64.NO_WRAP);
-        byte[] firstEncryptHmacPsw = Arrays.copyOfRange(
-                decodedEncryptedHmacPsw,
+        /* Puk and Salt */
+        byte[] pukSalt = getPBKDF2Data(
+                Cipher.DECRYPT_MODE,
+                MoaCommon.getInstance().byteArrayToHexString(hmacPsw),
+                MoaBase58.getInstance().decode(Objects.requireNonNull(walletData.get("encPukSalt")))
+        );
+        byte[] puk = Arrays.copyOfRange(
+                pukSalt,
                 0,
-                decodedEncryptedHmacPsw.length / 2
+                pukSalt.length - 32
         );
-        return Arrays.copyOfRange(
-                symmetric.getSymmetricData(Cipher.DECRYPT_MODE, firstEncryptHmacPsw),
-                1,
-                14
+        byte[] salt = Arrays.copyOfRange(
+                pukSalt,
+                pukSalt.length - 32,
+                pukSalt.length
         );
+        /* save salt */
+        setValuesInPreferences("Salt.Value", MoaBase58.getInstance().encode(salt));
+
+        /* Encrypt */
+        /* set password */
+        password = walletData.get("psw");
+        /* save wallet */
+        save(prk, puk);
+        /* generate message */
+        String backupDataFormat = generateRestoreDataFormat(prk, puk);
+        password = "";
+        return backupDataFormat;
     }
 
     private void initKeyStore() {
@@ -465,7 +489,7 @@ public class Wallet implements MoaECDSAReceiver {
 
     private void setValuesInPreferences(String key, String value) {
         SharedPreferences pref =
-                context.getSharedPreferences("moaWallet", Context.MODE_PRIVATE);
+                context.getSharedPreferences(getPrefName(), Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = pref.edit();
         editor.putString(key, value);
         editor.apply();
@@ -473,7 +497,7 @@ public class Wallet implements MoaECDSAReceiver {
 
     private String getValuesInPreferences(String key) {
         SharedPreferences pref =
-                context.getSharedPreferences("moaWallet", Context.MODE_PRIVATE);
+                context.getSharedPreferences(getPrefName(), Context.MODE_PRIVATE);
         return pref.getString(key, "");
     }
 
@@ -656,13 +680,13 @@ public class Wallet implements MoaECDSAReceiver {
         return getPBKDF2Data(Cipher.DECRYPT_MODE, psw, firstEncryptedPrk);
     }
 
-    private void save(byte[][] walletKeyPair) {
-        byte[] walletAddress = generateAddress(walletKeyPair[1]);
+    private void save(byte[] prk, byte[] puk) {
+        byte[] walletAddress = generateAddress(puk);
         if (walletAddress.length == 0) {
             Log.d("MoaLib", "Wallet address not validate");
             return;
         }
-        byte[] firstEncryptedPrk = getPBKDF2Data(Cipher.ENCRYPT_MODE, password, walletKeyPair[0]);
+        byte[] firstEncryptedPrk = getPBKDF2Data(Cipher.ENCRYPT_MODE, password, prk);
         if (firstEncryptedPrk.length == 0) {
             Log.d("MoaLib", "first encryption prk not validate");
             return;
@@ -676,18 +700,18 @@ public class Wallet implements MoaECDSAReceiver {
         /* 지갑 데이터 저장 */
         HashMap<String, String> requiredDataForMAC = new HashMap<>();
         requiredDataForMAC.put("cipheredPrk", MoaBase58.getInstance().encode(lastEncryptedPrk));
-        requiredDataForMAC.put("puk", MoaBase58.getInstance().encode(walletKeyPair[1]));
+        requiredDataForMAC.put("puk", MoaBase58.getInstance().encode(puk));
         requiredDataForMAC.put("address", MoaBase58.getInstance().encode(walletAddress));
         setWalletPref(requiredDataForMAC);
     }
 
-    private String generateRestoreDataFormat(byte[][] walletKeyPair) {
-        byte[] encryptedPrk = getPBKDF2Data(Cipher.ENCRYPT_MODE, password, walletKeyPair[0]);
+    private String generateRestoreDataFormat(byte[] prk, byte[] puk) {
+        byte[] encryptedPrk = getPBKDF2Data(Cipher.ENCRYPT_MODE, password, prk);
         if (encryptedPrk.length == 0) {
             Log.d("MoaLib", "Prk is null");
             return "";
         }
-        byte[] encryptedPuk = getPBKDF2Data(Cipher.ENCRYPT_MODE, password, walletKeyPair[1]);
+        byte[] encryptedPuk = getPBKDF2Data(Cipher.ENCRYPT_MODE, password, puk);
         if (encryptedPuk.length == 0) {
             Log.d("MoaLib", "Puk is null");
             return "";
@@ -702,6 +726,47 @@ public class Wallet implements MoaECDSAReceiver {
                 + Base64.encodeToString(encryptedPrk, Base64.NO_WRAP) + "$"
                 + Base64.encodeToString(encryptedPuk, Base64.NO_WRAP) + "$"
                 + Base64.encodeToString(getSalt(), Base64.NO_WRAP);
+    }
+
+    private byte[] getDecryptedHmacPsw(String id, String dateOfBirth, String encryptedHmacPsw) {
+        if (id == null) {
+            Log.d("MoaLib", "id is null");
+            return new byte[0];
+        }
+        if (dateOfBirth == null) {
+            Log.d("MoaLib", "dateOfBirth is null");
+            return new byte[0];
+        }
+        if (encryptedHmacPsw == null) {
+            Log.d("MoaLib", "encryptedHmacPsw is null");
+            return new byte[0];
+        }
+        byte[] dk = pbkdf2.kdfGen(
+                dateOfBirth.getBytes(),
+                id.getBytes(),
+                10,
+                48
+        );
+        Symmetric symmetric = new Symmetric(
+                "AES/CBC/PKCS7Padding",
+                Arrays.copyOfRange(dk, 32, dk.length), // iv
+                Arrays.copyOf(dk, 32) // dbk
+        );
+        byte[] decodedEncryptedHmacPsw = Base64.decode(encryptedHmacPsw, Base64.NO_WRAP);
+        byte[] firstEncryptHmacPsw = Arrays.copyOfRange(
+                decodedEncryptedHmacPsw,
+                0,
+                decodedEncryptedHmacPsw.length / 2
+        );
+        return Arrays.copyOfRange(
+                symmetric.getSymmetricData(Cipher.DECRYPT_MODE, firstEncryptHmacPsw),
+                1,
+                14
+        );
+    }
+
+    private String getPrefName() {
+        return isPswInitMode ? "tempWallet" : "moaWallet";
     }
 
     private static class Singleton {

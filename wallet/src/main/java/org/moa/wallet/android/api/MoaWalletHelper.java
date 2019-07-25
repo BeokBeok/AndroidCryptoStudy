@@ -2,11 +2,14 @@ package org.moa.wallet.android.api;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.support.annotation.NonNull;
 import android.util.Base64;
 import android.util.Log;
 import android.webkit.WebView;
 
 import org.moa.wallet.manager.Wallet;
+
+import java.util.HashMap;
 
 /**
  * 전자지갑 관련 생성 및 복원을 도와준다.
@@ -221,6 +224,38 @@ public class MoaWalletHelper {
                 wallet.getEncryptedHmacPsw(id, psw, dateOfBirth),
                 Base64.NO_WRAP
         );
+    }
+
+    /**
+     * 패스워드 초기화 모드를 설정한다.
+     *
+     * <p><strong>주의사항</strong></br>
+     * 패스워드 초기화가 끝나면 반드시 setPswInitMode(false)를 호출해야 한다.</p>
+     *
+     * @param isPswInitMode 패스워드 초기화 모드
+     *                      true - 초기화
+     *                      false - 일반
+     */
+    public void setPswInitMode(boolean isPswInitMode) {
+        wallet.setPswInitMode(isPswInitMode);
+    }
+
+    /**
+     * 패스워드 초기화 메시지를 생성한다.
+     *
+     * <p><strong>주의사항</strong></br>
+     * setPswInitMode(true) 함수가 호출된 상태여야 한다.</p>
+     *
+     * @param walletData 지갑 패스워드 초기화를 위한 데이터
+     *                   server - encryptedHmacPsw, encPrk, encPukSalt,
+     *                   client - id, psw, dateOfBirth
+     */
+    public String generateWalletInitMsg(@NonNull HashMap<String, String> walletData) {
+        if (walletData.size() != 6) {
+            Log.d("MoaLib", "walletData not validate");
+            return "";
+        }
+        return wallet.generateBackUpRestoreDataFormat(walletData);
     }
 
     /**
