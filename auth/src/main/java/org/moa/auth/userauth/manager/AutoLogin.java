@@ -51,25 +51,32 @@ public class AutoLogin extends PINAuth {
     }
 
     @Override
-    public void init(Context context, String uniqueDeviceID) {
+    public void init(
+            Context context,
+            String uniqueDeviceID
+    ) {
         super.init(context, uniqueDeviceID);
         try {
-            if (!keyStore.containsAlias(keyAlias))
+            if (!keyStore.containsAlias(keyAlias)) {
                 generateKey();
+            }
         } catch (KeyStoreException e) {
             Log.d("MoaLib", e.getMessage());
         }
     }
 
     public String get() {
-        String content = getValuesInPreferences("Auto.Info");
-        StringTokenizer stringTokenizer = new StringTokenizer(content, "$");
+        StringTokenizer stringTokenizer = new StringTokenizer(
+                getValuesInPreferences("Auto.Info"),
+                "$"
+        );
         String type = stringTokenizer.nextToken();
         String info = stringTokenizer.nextToken();
-        if (Integer.parseInt(type) == AUTO_LOGIN)
+        if (Integer.parseInt(type) == AUTO_LOGIN) {
             return info;
-        else
+        } else {
             return "";
+        }
     }
 
     public void set(String password) {
@@ -87,8 +94,11 @@ public class AutoLogin extends PINAuth {
         try {
             super.keyStore = KeyStore.getInstance("AndroidKeyStore");
             super.keyStore.load(null);
-        } catch (KeyStoreException | IOException |
-                NoSuchAlgorithmException | CertificateException e) {
+        } catch (KeyStoreException |
+                IOException |
+                NoSuchAlgorithmException |
+                CertificateException e
+        ) {
             Log.d("MoaLib", e.getMessage());
         }
     }
@@ -110,21 +120,18 @@ public class AutoLogin extends PINAuth {
                             .build()
             );
             keyPairGenerator.generateKeyPair();
-        } catch (NoSuchAlgorithmException | NoSuchProviderException |
-                InvalidAlgorithmParameterException e) {
+        } catch (NoSuchAlgorithmException |
+                NoSuchProviderException |
+                InvalidAlgorithmParameterException e
+        ) {
             Log.d("MoaLib", e.getMessage());
         }
     }
 
-    private void setValuesInPreferences(String key, String value) {
-        if (key == null) {
-            Log.d("MoaLib", "key is null");
-            return;
-        }
-        if (value == null) {
-            Log.d("MoaLib", "value is null");
-            return;
-        }
+    private void setValuesInPreferences(
+            String key,
+            String value
+    ) {
         String encryptValue = "";
         if (key.equals("Auto.Info")) {
             encryptValue = getEncryptContent(value);
@@ -143,10 +150,6 @@ public class AutoLogin extends PINAuth {
     }
 
     private String getValuesInPreferences(String key) {
-        if (key == null) {
-            Log.d("MoaLib", "key is null");
-            return "";
-        }
         SharedPreferences pref =
                 context.getSharedPreferences("androidIDManager", Context.MODE_PRIVATE);
         String value = pref.getString(key, "");
@@ -178,15 +181,10 @@ public class AutoLogin extends PINAuth {
         }
     }
 
-    private byte[] getPBKDF2Data(int encOrDecMode, byte[] data) {
-        if (encOrDecMode != Cipher.ENCRYPT_MODE && encOrDecMode != Cipher.DECRYPT_MODE) {
-            Log.d("MoaLib", "Cipher mode is " + encOrDecMode);
-            return new byte[0];
-        }
-        if (data == null) {
-            Log.d("MoaLib", "data is null");
-            return new byte[0];
-        }
+    private byte[] getPBKDF2Data(
+            int encOrDecMode,
+            byte[] data
+    ) {
         byte[] derivedKey = generateDerivedKey();
         if (derivedKey.length != 48) {
             Log.d("MoaLib", "Derived key length is " + derivedKey.length);
@@ -206,15 +204,10 @@ public class AutoLogin extends PINAuth {
         return pbkdf2.kdfGen(pw, salt, iterationCount, keySize);
     }
 
-    private byte[] getRSAData(int encOrDecMode, byte[] data) {
-        if (encOrDecMode != Cipher.ENCRYPT_MODE && encOrDecMode != Cipher.DECRYPT_MODE) {
-            Log.d("MoaLib", "Cipher mode is " + encOrDecMode);
-            return new byte[0];
-        }
-        if (data == null) {
-            Log.d("MoaLib", "data is null");
-            return new byte[0];
-        }
+    private byte[] getRSAData(
+            int encOrDecMode,
+            byte[] data
+    ) {
         try {
             if (!keyStore.containsAlias(keyAlias)) {
                 generateKey();
@@ -236,32 +229,37 @@ public class AutoLogin extends PINAuth {
                 cipher.init(encOrDecMode, privateKey);
             }
             return cipher.doFinal(data);
-        } catch (KeyStoreException | NoSuchAlgorithmException |
-                NoSuchPaddingException | InvalidKeyException |
-                BadPaddingException | IllegalBlockSizeException |
-                UnrecoverableKeyException e) {
+        } catch (KeyStoreException |
+                NoSuchAlgorithmException |
+                NoSuchPaddingException |
+                InvalidKeyException |
+                BadPaddingException |
+                IllegalBlockSizeException |
+                UnrecoverableKeyException e
+        ) {
             Log.d("MoaLib", e.getMessage());
         }
         return new byte[0];
     }
 
     private String getEncryptContent(String content) {
-        if (content == null) {
-            Log.d("MoaLib", "content is null");
-            return "";
-        }
-        byte[] firstEncrypt =
-                getPBKDF2Data(Cipher.ENCRYPT_MODE, content.getBytes(StandardCharsets.UTF_8));
-        return Base64.encodeToString(getRSAData(Cipher.ENCRYPT_MODE, firstEncrypt), Base64.NO_WRAP);
+        return Base64.encodeToString(
+                getRSAData(
+                        Cipher.ENCRYPT_MODE,
+                        getPBKDF2Data(Cipher.ENCRYPT_MODE, content.getBytes(StandardCharsets.UTF_8))
+                ),
+                Base64.NO_WRAP
+        );
     }
 
     private String getDecryptContent(String content) {
-        if (content == null) {
-            Log.d("MoaLib", "content is null");
-            return "";
-        }
-        byte[] firstDecrypt = getRSAData(Cipher.DECRYPT_MODE, Base64.decode(content, Base64.NO_WRAP));
-        return new String(getPBKDF2Data(Cipher.DECRYPT_MODE, firstDecrypt), StandardCharsets.UTF_8);
+        return new String(
+                getPBKDF2Data(
+                        Cipher.DECRYPT_MODE,
+                        getRSAData(Cipher.DECRYPT_MODE, Base64.decode(content, Base64.NO_WRAP))
+                ),
+                StandardCharsets.UTF_8
+        );
     }
 
     private static class Singleton {

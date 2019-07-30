@@ -28,15 +28,10 @@ abstract class PINAuth {
     KeyStore keyStore;
     Symmetric symmetric;
 
-    public void init(Context context, String uniqueDeviceID) {
-        if (context == null) {
-            Log.d("MoaLib", "context is null");
-            return;
-        }
-        if (uniqueDeviceID == null) {
-            Log.d("MoaLib", "uniqueDeviceID is null");
-            return;
-        }
+    public void init(
+            Context context,
+            String uniqueDeviceID
+    ) {
         this.context = context;
         this.uniqueDeviceID = uniqueDeviceID;
         setSymmetricInstance();
@@ -49,7 +44,10 @@ abstract class PINAuth {
      * @param psw 패스워드
      * @return ID || H[E(PW)] || HMAC(ID)
      */
-    public String generateRegisterMessage(String id, String psw) {
+    public String generateRegisterMessage(
+            String id,
+            String psw
+    ) {
         byte[] idBytes = id.getBytes(StandardCharsets.UTF_8);
         Symmetric symmetric = new Symmetric(
                 transformation,
@@ -84,7 +82,11 @@ abstract class PINAuth {
      * @param nonce Nonce
      * @return ID || H[E(PW)] || HMAC(ID) || NONCE
      */
-    public String generateLoginRequestMessage(String id, String psw, String nonce) {
+    public String generateLoginRequestMessage(
+            String id,
+            String psw,
+            String nonce
+    ) {
         byte[] idBytes = id.getBytes(StandardCharsets.UTF_8);
         Symmetric symmetric = new Symmetric(
                 transformation,
@@ -120,7 +122,10 @@ abstract class PINAuth {
      * @param resetPsw 초기화 비밀번호
      * @return ID || H[E(PW)] || HMAC[H[E(PW)]]
      */
-    public String generatePINResetRequestMessage(String id, String resetPsw) {
+    public String generatePINResetRequestMessage(
+            String id,
+            String resetPsw
+    ) {
         byte[] idBytes = id.getBytes(StandardCharsets.UTF_8);
         String hashAndHmacPwMsg = generateHashAndHmacPswMsg(
                 idBytes,
@@ -147,7 +152,11 @@ abstract class PINAuth {
      * @param newPsw     새로운 비밀번호
      * @return ID || H[E(CurrentPW)] || HMAC[H[E(CurrentPW)]] || H[E(NewPW)] || HMAC[H[E(NewPW)]]
      */
-    public String generatePINChangeRequestMessage(String id, String currentPsw, String newPsw) {
+    public String generatePINChangeRequestMessage(
+            String id,
+            String currentPsw,
+            String newPsw
+    ) {
         byte[] idBytes = id.getBytes(StandardCharsets.UTF_8);
         String hashAndHmacCurrentPswMsg = generateHashAndHmacPswMsg(
                 idBytes,
@@ -207,30 +216,18 @@ abstract class PINAuth {
     }
 
     private byte[] hashDigest(byte[] targetData) {
-        final String hashAlg = "SHA256";
-        if (targetData == null) {
-            Log.d("MoaLib", "MoaLib is null");
-            return new byte[0];
-        }
         try {
-            MessageDigest messageDigest = MessageDigest.getInstance(hashAlg);
+            MessageDigest messageDigest = MessageDigest.getInstance("SHA256");
             messageDigest.update(targetData);
             return messageDigest.digest();
         } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e.getMessage());
+            Log.d("MoaLib", e.getMessage());
         }
+        return new byte[0];
     }
 
     private byte[] hmacDigest(byte[] targetData, byte[] key) {
         final String hmacAlg = "HmacSHA256";
-        if (targetData == null) {
-            Log.d("MoaLib", "targetData is null");
-            return new byte[0];
-        }
-        if (key == null) {
-            Log.d("MoaLib", "key is null");
-            return new byte[0];
-        }
         try {
             SecretKeySpec secretKeySpec = new SecretKeySpec(key, hmacAlg);
             Mac mac = Mac.getInstance(hmacAlg);
@@ -238,15 +235,12 @@ abstract class PINAuth {
             mac.update(targetData);
             return mac.doFinal();
         } catch (NoSuchAlgorithmException | InvalidKeyException e) {
-            throw new RuntimeException(e.getMessage());
+            Log.d("MoaLib", e.getMessage());
         }
+        return new byte[0];
     }
 
     private byte[] hexStringToByteArray(String s) {
-        if (s == null) {
-            Log.d("MoaLib", "s is null");
-            return new byte[0];
-        }
         int len = s.length();
         byte[] data = new byte[len / 2];
         for (int i = 0; i < len; i += 2) {
@@ -257,10 +251,6 @@ abstract class PINAuth {
     }
 
     private String byteArrayToHexString(byte[] bytes) {
-        if (bytes == null) {
-            Log.d("MoaLib", "bytes is null");
-            return "";
-        }
         StringBuilder sb = new StringBuilder();
         for (byte b : bytes) {
             sb.append(String.format("%02x", b & 0xff));

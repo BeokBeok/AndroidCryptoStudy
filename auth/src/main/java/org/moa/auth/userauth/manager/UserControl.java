@@ -24,27 +24,17 @@ public class UserControl extends PINAuth {
     }
 
     @Override
-    public void init(Context context, String uniqueDeviceID) {
-        if (context == null) {
-            Log.d("MoaLib", "context is null");
-            return;
-        }
-        if (uniqueDeviceID == null) {
-            Log.d("MoaLib", "uniqueDeviceID is null");
-            return;
-        }
+    public void init(
+            Context context,
+            String uniqueDeviceID
+    ) {
         super.init(context, uniqueDeviceID);
     }
 
-    public void setMemberInfo(String id, MoaMember moaMember) {
-        if (id == null) {
-            Log.d("MoaLib", "id is null");
-            return;
-        }
-        if (moaMember == null) {
-            Log.d("MoaLib", "moaMember is null");
-            return;
-        }
+    public void setMemberInfo(
+            String id,
+            MoaMember moaMember
+    ) {
         if (moaMember.getAuthType() == MoaMember.NON_MEMBER.getAuthType()) {
             setValuesInPreferences("NonMemberID", id);
         } else {
@@ -112,31 +102,27 @@ public class UserControl extends PINAuth {
         pref.edit().remove("Control.Info").apply();
     }
 
-    private void setValuesInPreferences(String key, String value) {
-        if (key == null) {
-            Log.d("MoaLib", "key is null");
-            return;
-        }
-        if (value == null) {
-            Log.d("MoaLib", "value is null");
-            return;
-        }
-        byte[] encryption = symmetric.getSymmetricData(
-                Cipher.ENCRYPT_MODE,
-                value.getBytes(StandardCharsets.UTF_8)
-        );
+    private void setValuesInPreferences(
+            String key,
+            String value
+    ) {
         SharedPreferences pref =
                 context.getSharedPreferences("androidIDManager", Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = pref.edit();
-        editor.putString(key, Base64.encodeToString(encryption, Base64.NO_WRAP));
+        editor.putString(
+                key,
+                Base64.encodeToString(
+                        symmetric.getSymmetricData(
+                                Cipher.ENCRYPT_MODE,
+                                value.getBytes(StandardCharsets.UTF_8)
+                        ),
+                        Base64.NO_WRAP
+                )
+        );
         editor.apply();
     }
 
     private String getValuesInPreferences(String key) {
-        if (key == null) {
-            Log.d("MoaLib", "key is null");
-            return "";
-        }
         SharedPreferences pref =
                 context.getSharedPreferences("androidIDManager", Context.MODE_PRIVATE);
         String value = pref.getString(key, "");
@@ -144,18 +130,19 @@ public class UserControl extends PINAuth {
             Log.d("MoaLib", "value not validate");
             return "";
         }
-        byte[] decryption = symmetric.getSymmetricData(
-                Cipher.DECRYPT_MODE,
-                Base64.decode(value, Base64.NO_WRAP)
+        return new String(
+                symmetric.getSymmetricData(
+                        Cipher.DECRYPT_MODE,
+                        Base64.decode(
+                                value,
+                                Base64.NO_WRAP
+                        )
+                ),
+                StandardCharsets.UTF_8
         );
-        return new String(decryption, StandardCharsets.UTF_8);
     }
 
     private boolean checkData(String data) {
-        if (data == null) {
-            Log.d("MoaLib", "data is null");
-            return false;
-        }
         StringTokenizer stringTokenizer = new StringTokenizer(data, "$");
         ArrayList<String> controlInfoArray = new ArrayList<>();
         while (stringTokenizer.hasMoreElements()) {

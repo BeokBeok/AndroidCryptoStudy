@@ -88,6 +88,10 @@ public class MoaAuthHelper {
             Log.d("MoaLib", "userControl is null");
             return;
         }
+        if (nonMemberId == null) {
+            Log.d("MoaLib", "nonMemberId is null");
+            return;
+        }
         userControl.setMemberInfo(nonMemberId, MoaMember.NON_MEMBER);
     }
 

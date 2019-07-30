@@ -67,10 +67,6 @@ public class AuthToken {
 
     @RequiresApi(api = Build.VERSION_CODES.M)
     public void set(String value) {
-        if (value == null) {
-            Log.d("MoaLib", "value is null");
-            return;
-        }
         String encryptedData = getEncryptContent(value);
         SharedPreferences pref = context.getSharedPreferences(
                 "androidAuthToken", Context.MODE_PRIVATE);
@@ -83,8 +79,11 @@ public class AuthToken {
         try {
             this.keyStore = KeyStore.getInstance("AndroidKeyStore");
             this.keyStore.load(null);
-        } catch (KeyStoreException | IOException |
-                NoSuchAlgorithmException | CertificateException e) {
+        } catch (KeyStoreException |
+                IOException |
+                NoSuchAlgorithmException |
+                CertificateException e
+        ) {
             Log.d("MoaLib", e.getMessage());
         }
     }
@@ -107,18 +106,16 @@ public class AuthToken {
                             .build()
             );
             keyGenerator.generateKey();
-        } catch (NoSuchAlgorithmException | NoSuchProviderException |
-                InvalidAlgorithmParameterException e) {
+        } catch (NoSuchAlgorithmException |
+                NoSuchProviderException |
+                InvalidAlgorithmParameterException e
+        ) {
             Log.d("MoaLib", e.getMessage());
         }
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)
     private String getEncryptContent(String content) {
-        if (content == null) {
-            Log.d("MoaLib", "content is null");
-            return "";
-        }
         try {
             if (!keyStore.containsAlias(keyAlias)) {
                 generateKey();
@@ -136,19 +133,20 @@ public class AuthToken {
                     cipher.doFinal(content.getBytes(StandardCharsets.UTF_8)),
                     Base64.NO_WRAP
             );
-        } catch (InvalidKeyException | NoSuchAlgorithmException |
-                KeyStoreException | UnrecoverableEntryException |
-                NoSuchPaddingException | BadPaddingException | IllegalBlockSizeException e) {
+        } catch (InvalidKeyException |
+                NoSuchAlgorithmException |
+                KeyStoreException |
+                UnrecoverableEntryException |
+                NoSuchPaddingException |
+                BadPaddingException |
+                IllegalBlockSizeException e
+        ) {
             Log.d("MoaLib", e.getMessage());
         }
         return "";
     }
 
     private String getDecryptContent(byte[] content) {
-        if (content == null) {
-            Log.d("MoaLib", "content is null");
-            return "";
-        }
         try {
             Cipher cipher = Cipher.getInstance(transformation);
             KeyStore.SecretKeyEntry secretKeyEntry =
@@ -163,10 +161,15 @@ public class AuthToken {
                     new GCMParameterSpec(128, getIV())
             );
             return new String(cipher.doFinal(content), StandardCharsets.UTF_8);
-        } catch (NoSuchPaddingException | NoSuchAlgorithmException |
-                InvalidAlgorithmParameterException | InvalidKeyException |
-                KeyStoreException | UnrecoverableEntryException |
-                IllegalBlockSizeException | BadPaddingException e) {
+        } catch (NoSuchPaddingException |
+                NoSuchAlgorithmException |
+                InvalidAlgorithmParameterException |
+                InvalidKeyException |
+                KeyStoreException |
+                UnrecoverableEntryException |
+                IllegalBlockSizeException |
+                BadPaddingException e
+        ) {
             Log.d("MoaLib", e.getMessage());
         }
         return "";
@@ -179,10 +182,6 @@ public class AuthToken {
     }
 
     private void setIV(byte[] iv) {
-        if (iv == null) {
-            Log.d("MoaLib", "iv is null");
-            return;
-        }
         SharedPreferences pref =
                 context.getSharedPreferences("IV_AuthToken", Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = pref.edit();

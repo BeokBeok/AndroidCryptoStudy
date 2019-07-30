@@ -40,7 +40,10 @@ public class FingerprintAuth {
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)
-    public void init(String ecdsaCurve, String ecdsaSignAlgorithmSuite) {
+    public void init(
+            String ecdsaCurve,
+            String ecdsaSignAlgorithmSuite
+    ) {
         if (ecdsaCurve == null || ecdsaSignAlgorithmSuite == null) {
             Log.d("MoaLib",
                     "ecdsaCurve is " + ecdsaCurve
@@ -77,15 +80,20 @@ public class FingerprintAuth {
                     publicKey.getEncoded()
             );
             return getSignedData(privateKey, combineAuthTokenWithPublicKey);
-        } catch (NoSuchAlgorithmException | KeyStoreException |
-                UnrecoverableKeyException e) {
+        } catch (NoSuchAlgorithmException |
+                KeyStoreException |
+                UnrecoverableKeyException e
+        ) {
             Log.d("MoaLib", e.getMessage());
         }
         return new byte[0];
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)
-    public byte[] getLoginSignature(String base64NonceOTP, String base64AuthToken) {
+    public byte[] getLoginSignature(
+            String base64NonceOTP,
+            String base64AuthToken
+    ) {
         if (base64NonceOTP == null) {
             Log.d("MoaLib", "base64NonceOTP is null");
             return new byte[0];
@@ -104,8 +112,10 @@ public class FingerprintAuth {
             }
             PrivateKey privateKey = (PrivateKey) keyStore.getKey(keyAlias, null);
             return getSignedData(privateKey, combineNonceOTPWithAuthToken);
-        } catch (KeyStoreException | NoSuchAlgorithmException |
-                UnrecoverableKeyException e) {
+        } catch (KeyStoreException |
+                NoSuchAlgorithmException |
+                UnrecoverableKeyException e
+        ) {
             Log.d("MoaLib", e.getMessage());
         }
         return new byte[0];
@@ -129,8 +139,11 @@ public class FingerprintAuth {
         try {
             this.keyStore = KeyStore.getInstance("AndroidKeyStore");
             this.keyStore.load(null);
-        } catch (KeyStoreException | IOException |
-                NoSuchAlgorithmException | CertificateException e) {
+        } catch (KeyStoreException |
+                IOException |
+                NoSuchAlgorithmException |
+                CertificateException e
+        ) {
             Log.d("MoaLib", e.getMessage());
         }
     }
@@ -151,43 +164,37 @@ public class FingerprintAuth {
                             .build()
             );
             keyPairGenerator.generateKeyPair();
-        } catch (NoSuchAlgorithmException | NoSuchProviderException |
-                InvalidAlgorithmParameterException e) {
+        } catch (NoSuchAlgorithmException |
+                NoSuchProviderException |
+                InvalidAlgorithmParameterException e
+        ) {
             Log.d("MoaLib", e.getMessage());
         }
     }
 
-    private byte[] getMergedByteArray(byte[] first, byte[] second) {
-        if (first == null) {
-            Log.d("MoaLib", "first is null");
-            return new byte[0];
-        }
-        if (second == null) {
-            Log.d("MoaLib", "second is null");
-            return new byte[0];
-        }
+    private byte[] getMergedByteArray(
+            byte[] first,
+            byte[] second
+    ) {
         byte[] targetByteArr = new byte[first.length + second.length];
         System.arraycopy(first, 0, targetByteArr, 0, first.length);
         System.arraycopy(second, 0, targetByteArr, first.length, second.length);
         return targetByteArr;
     }
 
-    private byte[] getSignedData(PrivateKey privateKey, byte[] targetData) {
-        if (privateKey == null) {
-            Log.d("MoaLib", "Private Key is null");
-            return new byte[0];
-        }
-        if (targetData == null) {
-            Log.d("MoaLib", "targetData is null");
-            return new byte[0];
-        }
+    private byte[] getSignedData(
+            PrivateKey privateKey,
+            byte[] targetData
+    ) {
         try {
             Signature signature = Signature.getInstance(signAlgorithmSuite);
             signature.initSign(privateKey);
             signature.update(targetData);
             return signature.sign();
-        } catch (NoSuchAlgorithmException | InvalidKeyException |
-                SignatureException e) {
+        } catch (NoSuchAlgorithmException |
+                InvalidKeyException |
+                SignatureException e
+        ) {
             Log.d("MoaLib", e.getMessage());
         }
         return new byte[0];
