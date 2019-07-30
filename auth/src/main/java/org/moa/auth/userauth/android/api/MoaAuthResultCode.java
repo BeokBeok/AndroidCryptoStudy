@@ -54,6 +54,10 @@ public enum MoaAuthResultCode {
     REGIST_RESTORE_WALLET_FAIL("0x5092"),
     /** 복원형 지갑 등록 시, 서버에 등록된 지갑이 존재 */
     REGIST_RESTORE_WALLET_EXIST("0x5093"),
+    /** 생성된 지갑 서명 검증 성공 */
+    REGIST_RESTORE_WALLET_VERIFY_SUCCESS("0x5095"),
+    /** 생성된 지갑 서명 검증 실패 */
+    REGIST_RESTORE_WALLET_VERIFY_FAIL("0x5095"),
     /** 지갑 복원 시, 서버에 등록된 지갑 정보 가져오기 성공 */
     RESTORE_WALLET_IMPORT_SUCCESS("0x509A"),
     /** 지갑 복원 시, 서버에 등록된 지갑 정보 가져오기 실패 */
