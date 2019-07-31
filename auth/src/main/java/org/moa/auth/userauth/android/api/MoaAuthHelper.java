@@ -3,6 +3,7 @@ package org.moa.auth.userauth.android.api;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.Build;
+import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
 import android.util.Log;
 
@@ -46,7 +47,7 @@ public class MoaAuthHelper {
      *
      * @param context 해당 Activity 의 Context
      */
-    public void setContext(Context context) {
+    public void setContext(@NonNull Context context) {
         this.context = context;
     }
 
@@ -55,13 +56,13 @@ public class MoaAuthHelper {
      *
      * <p><strong>주의사항</strong></br>
      * 1) setContext 함수가 선행 호출된 상태이어야 한다.</br>
-     * 2) ({@code uniqueDeviceID == null || uniqueDeviceID.length() < 1}) 이면 안된다.</p>
+     * 2) ({@code uniqueDeviceID.length() < 1}) 이면 안된다.</p>
      *
      * @param uniqueDeviceID unique device ID 값
      */
-    public void setUniqueDeviceID(String uniqueDeviceID) {
-        if (uniqueDeviceID == null || uniqueDeviceID.length() < 1) {
-            Log.d("MoaLib", "uniqueDeviceID is : " + uniqueDeviceID);
+    public void setUniqueDeviceID(@NonNull String uniqueDeviceID) {
+        if (uniqueDeviceID.length() < 1) {
+            Log.d("MoaLib", "uniqueDeviceID not validate");
             return;
         }
         if (context == null) {
@@ -77,19 +78,11 @@ public class MoaAuthHelper {
     /**
      * 비회원 정보를 설정한다.
      *
-     * <p><strong>주의사항</strong></br>
-     * 1) 비회원 ID가 null 이면 안된다.</br>
-     * 2) (@{code context == null || uniqueDeviceID == null}) 인 상태에서 setUniqueDeviceID 함수가 호출된 상태이면 안된다.</p>
-     *
      * @param nonMemberId 비회원 ID
      */
-    public void setNonMemberPIN(String nonMemberId) {
+    public void setNonMemberPIN(@NonNull String nonMemberId) {
         if (userControl == null) {
             Log.d("MoaLib", "userControl is null");
-            return;
-        }
-        if (nonMemberId == null) {
-            Log.d("MoaLib", "nonMemberId is null");
             return;
         }
         userControl.setMemberInfo(nonMemberId, MoaMember.NON_MEMBER);
@@ -97,9 +90,6 @@ public class MoaAuthHelper {
 
     /**
      * 현재 Member ID 를 얻어온다.
-     *
-     * <p><strong>주의사항</strong></br>
-     * 2) (@{code context == null || uniqueDeviceID == null}) 인 상태에서 setUniqueDeviceID 함수가 호출된 상태이면 안된다.</p>
      *
      */
     public String getCurrentMemberID() {
@@ -116,21 +106,13 @@ public class MoaAuthHelper {
      * <p>Pie(9) 버전부터 Bouncy Castle Provider 미지원으로 인하여,</br>
      * Bouncy Castle Provider 를 제거하여 동작하도록 구현했다.</p>
      *
-     * <p><strong>주의사항</strong></br>
-     * (@{code id == null || password == null}) 이면 안된다.</p>
-     *
      * @param id       회원 ID
      * @param password 패스워드
      */
-    public String generatePINRegisterMessage(String id, String password) {
-        if (id == null) {
-            Log.d("MoaLib", "id is null");
-            return "";
-        }
-        if (password == null) {
-            Log.d("MoaLib", "password is null");
-            return "";
-        }
+    public String generatePINRegisterMessage(
+            @NonNull String id,
+            @NonNull String password
+    ) {
         if (userControl == null) {
             Log.d("MoaLib", "userControl is null");
             return "";
@@ -144,26 +126,15 @@ public class MoaAuthHelper {
      * <p>Pie(9) 버전부터 Bouncy Castle Provider 미지원으로 인하여,</br>
      * Bouncy Castle Provider 를 제거하여 동작하도록 구현했다.</p>
      *
-     * <p><strong>주의사항</strong></br>
-     * (@{code id == null || password == null || nonceOTP == null}) 이면 안된다.</p>
-     *
      * @param id       회원 ID
      * @param password 패스워드
      * @param nonceOTP 서버에서 전달받은 nonce 값
      */
-    public String generatePINLoginRequestMessage(String id, String password, String nonceOTP) {
-        if (id == null) {
-            Log.d("MoaLib", "id is null");
-            return "";
-        }
-        if (password == null) {
-            Log.d("MoaLib", "password is null");
-            return "";
-        }
-        if (nonceOTP == null) {
-            Log.d("MoaLib", "nonceOTP is null");
-            return "";
-        }
+    public String generatePINLoginRequestMessage(
+            @NonNull String id,
+            @NonNull String password,
+            @NonNull String nonceOTP
+    ) {
         if (userControl == null) {
             Log.d("MoaLib", "userControl is null");
             return "";
@@ -177,21 +148,13 @@ public class MoaAuthHelper {
      * <p>Pie(9) 버전부터 Bouncy Castle Provider 미지원으로 인하여,</br>
      * Bouncy Castle Provider 를 제거하여 동작하도록 구현했다.</p>
      *
-     * <p><strong>주의사항</strong></br>
-     * (@{code id == null || resetPw == null}) 이면 안된다.</p>
-     *
      * @param id      회원 ID
      * @param resetPw 초기화 할 패스워드
      */
-    public String generatePINResetRequestMessage(String id, String resetPw) {
-        if (id == null) {
-            Log.d("MoaLib", "id is null");
-            return "";
-        }
-        if (resetPw == null) {
-            Log.d("MoaLib", "resetPw is null");
-            return "";
-        }
+    public String generatePINResetRequestMessage(
+            @NonNull String id,
+            @NonNull String resetPw
+    ) {
         if (userControl == null) {
             Log.d("MoaLib", "userControl is null");
             return "";
@@ -205,26 +168,15 @@ public class MoaAuthHelper {
      * <p>Pie(9) 버전부터 Bouncy Castle Provider 미지원으로 인하여,</br>
      * Bouncy Castle Provider 를 제거하여 동작하도록 구현했다.</p>
      *
-     * <p><strong>주의사항</strong></br>
-     * (@{code id == null || resetPw == null}) 이면 안된다.</p>
-     *
      * @param id        회원 ID
      * @param currentPw 현재 패스워드
      * @param newPw     새 패스워드
      */
-    public String generatePINChangeRequestMessage(String id, String currentPw, String newPw) {
-        if (id == null) {
-            Log.d("MoaLib", "id is null");
-            return "";
-        }
-        if (currentPw == null) {
-            Log.d("MoaLib", "currentPw is null");
-            return "";
-        }
-        if (newPw == null) {
-            Log.d("MoaLib", "newPw is null");
-            return "";
-        }
+    public String generatePINChangeRequestMessage(
+            @NonNull String id,
+            @NonNull String currentPw,
+            @NonNull String newPw
+    ) {
         if (userControl == null) {
             Log.d("MoaLib", "userControl is null");
             return "";
@@ -236,8 +188,8 @@ public class MoaAuthHelper {
      * 지문 등록 시 서버에 요청하는 메시지를 생성하여 리턴한다.
      *
      * <p><strong>주의사항</strong></br>
-     * 1) (@{code Build.VERSION.SDK_INT >= Build.VERSION_CODES.M}) 이어야 한다.</br>
-     * 2) (@{code fingerprintRegisterData == null || fingerprintRegisterData.size != 3}) 이면 안된다.</br>
+     * 1) ({@code Build.VERSION.SDK_INT >= Build.VERSION_CODES.M}) 이어야 한다.</br>
+     * 2) ({@code fingerprintRegisterData.size != 3}) 이면 안된다.</br>
      *
      * @param fingerprintRegisterData curve, suite, authToken 데이터</br>
      *                                HashMap 으로 키 별(curve, suite, authToken) 데이터 설정 및 전달</br>
@@ -248,8 +200,8 @@ public class MoaAuthHelper {
      *                                <pre>{@code fingerprintRegisterData.put("authToken", base64AuthToken);}}</pre>
      */
     @RequiresApi(api = Build.VERSION_CODES.M)
-    public byte[] getFingerprintRegisterECDSASign(Map<String, String> fingerprintRegisterData) {
-        if (fingerprintRegisterData == null || fingerprintRegisterData.size() != 3) {
+    public byte[] getFingerprintRegisterECDSASign(@NonNull Map<String, String> fingerprintRegisterData) {
+        if (fingerprintRegisterData.size() != 3) {
             Log.d("MoaLib", "fingerprintRegisterData not validate");
             return new byte[0];
         }
@@ -269,8 +221,8 @@ public class MoaAuthHelper {
      * 지문 로그인 시 서버에 요청하는 메시지를 생성하여 리턴한다.
      *
      * <p><strong>주의사항</strong></br>
-     * 1) (@{code Build.VERSION.SDK_INT >= Build.VERSION_CODES.M}) 이어야 한다.</br>
-     * 2) (@{code fingerprintLoginData == null || fingerprintLoginData.size != 4}) 이면 안된다.</br>
+     * 1) ({@code Build.VERSION.SDK_INT >= Build.VERSION_CODES.M}) 이어야 한다.</br>
+     * 2) ({@code fingerprintLoginData.size != 4}) 이면 안된다.</br>
      *
      * @param fingerprintLoginData curve, suite, authToken, nonce 데이터</br>
      *                             HashMap 으로 키 별(curve, suite, authToken, nonce) 데이터 설정 및 전달</br>
@@ -282,8 +234,8 @@ public class MoaAuthHelper {
      *                             <pre>{@code fingerprintRegisterData.put("nonce", nonceOTP);}}</pre>
      */
     @RequiresApi(api = Build.VERSION_CODES.M)
-    public byte[] getFingerprintLoginECDSASign(Map<String, String> fingerprintLoginData) {
-        if (fingerprintLoginData == null || fingerprintLoginData.size() != 4) {
+    public byte[] getFingerprintLoginECDSASign(@NonNull Map<String, String> fingerprintLoginData) {
+        if (fingerprintLoginData.size() != 4) {
             Log.d("MoaLib", "fingerprintLoginData not validate");
             return new byte[0];
         }
@@ -300,7 +252,7 @@ public class MoaAuthHelper {
      * 인증 토큰 값을 리턴한다.
      *
      * <p><strong>주의사항</strong></br>
-     * (@{code Build.VERSION.SDK_INT >= Build.VERSION_CODES.M}) 이어야 한다.</p>
+     * ({@code Build.VERSION.SDK_INT >= Build.VERSION_CODES.M}) 이어야 한다.</p>
      */
     @RequiresApi(api = Build.VERSION_CODES.M)
     public String getAuthTokenData() {
@@ -314,7 +266,7 @@ public class MoaAuthHelper {
      *
      * <p>주로 서명 검증 시 필요하다.</p>
      * <p><strong>주의사항</strong></br>
-     * (@{code Build.VERSION.SDK_INT >= Build.VERSION_CODES.M}) 이어야 한다.</p>
+     * ({@code Build.VERSION.SDK_INT >= Build.VERSION_CODES.M}) 이어야 한다.</p>
      */
     @RequiresApi(api = Build.VERSION_CODES.M)
     public PublicKey getFingerprintPublicKey() {
@@ -325,10 +277,6 @@ public class MoaAuthHelper {
     /**
      * Control Info 에 Member 정보를 저장한다.
      *
-     * <p><strong>주의사항</strong></br>
-     * 1) ({@code id == null || moaMember == null}) 이면 안된다.</br>
-     * 2) (@{code context == null || uniqueDeviceID == null}) 인 상태에서 setUniqueDeviceID 함수가 호출된 상태이면 안된다.</p>
-     *
      * @param id        회원 ID; null 이면 안된다.
      * @param moaMember MoaMember 열거타입</br>
      *                  Example:</br>
@@ -336,15 +284,10 @@ public class MoaAuthHelper {
      *                  MEMBER_PIN: 회원&PIN</br>
      *                  MEMBER_FINGER: 회원&지문</br>
      */
-    public void setControlInfoData(String id, MoaMember moaMember) {
-        if (id == null) {
-            Log.d("MoaLib", "id is null");
-            return;
-        }
-        if (moaMember == null) {
-            Log.d("MoaLib", "moaMember is null");
-            return;
-        }
+    public void setControlInfoData(
+            @NonNull String id,
+            @NonNull MoaMember moaMember
+    ) {
         if (userControl == null) {
             Log.d("MoaLib", "userControl is null");
             return;
@@ -355,8 +298,6 @@ public class MoaAuthHelper {
     /**
      * 자동 로그인 정보를 리턴한다.
      *
-     * <p><strong>주의사항</strong></br>
-     * (@{code context == null || uniqueDeviceID == null}) 인 상태에서 setUniqueDeviceID 함수가 호출된 상태이면 안된다.</p>
      */
     public String getAutoLoginInfo() {
         if (autoLogin == null) {
@@ -368,9 +309,6 @@ public class MoaAuthHelper {
 
     /**
      * 자동 로그인 정보를 저장한다.
-     *
-     * <p><strong>주의사항</strong></br>
-     * (@{code context == null || uniqueDeviceID == null}) 인 상태에서 setUniqueDeviceID 함수가 호출된 상태이면 안된다.</p>
      *
      * @param password 자동 로그인 시 필요한 패스워드</br>
      *                 null 전달 시, 자동 로그인 비활성화
@@ -386,8 +324,6 @@ public class MoaAuthHelper {
     /**
      * Base Primary Info (as User ID, Sequence ID) 를 리턴한다.
      *
-     * <p><strong>주의사항</strong></br>
-     * (@{code context == null || uniqueDeviceID == null}) 인 상태에서 setUniqueDeviceID 함수가 호출된 상태이면 안된다.</p>
      */
     public String getBasePrimaryInfo() {
         if (userControl == null) {
@@ -400,17 +336,9 @@ public class MoaAuthHelper {
     /**
      * Base Primary Info (as User ID, Sequence ID) 를 저장한다.
      *
-     * <p><strong>주의사항</strong></br>
-     * 1) userSequenceIndex 가 null 이면 안된다.</br>
-     * 2) (@{code context == null || uniqueDeviceID == null}) 인 상태에서 setUniqueDeviceID 함수가 호출된 상태이면 안된다.</p>
-     *
      * @param userSequenceIndex Base Primary Info 값
      */
-    public void setBasePrimaryInfo(String userSequenceIndex) {
-        if (userSequenceIndex == null) {
-            Log.d("MoaLib", "userSequenceIndex is null");
-            return;
-        }
+    public void setBasePrimaryInfo(@NonNull String userSequenceIndex) {
         if (userControl == null) {
             Log.d("MoaLib", "userControl is null");
             return;
@@ -421,8 +349,6 @@ public class MoaAuthHelper {
     /**
      * 모든 Control Info 정보를 제거한다.
      *
-     * <p><strong>주의사항</strong></br>
-     * (@{code context == null || uniqueDeviceID == null}) 인 상태에서 setUniqueDeviceID 함수가 호출된 상태이면 안된다.</p>
      */
     public void removeControlInfo() {
         if (userControl == null) {
@@ -435,8 +361,6 @@ public class MoaAuthHelper {
     /**
      * 회원 ID 정보를 조회한다.
      *
-     * <p><strong>주의사항</strong></br>
-     * (@{code context == null || uniqueDeviceID == null}) 인 상태에서 setUniqueDeviceID 함수가 호출된 상태이면 안된다.</p>
      */
     public String getMemberID() {
         if (userControl == null) {
@@ -449,8 +373,6 @@ public class MoaAuthHelper {
     /**
      * 비회원 ID 정보를 조회한다.
      *
-     * <p><strong>주의사항</strong></br>
-     * (@{code context == null || uniqueDeviceID == null}) 인 상태에서 setUniqueDeviceID 함수가 호출된 상태이면 안된다.</p>
      */
     public String getNonMemberID() {
         if (userControl == null) {
