@@ -65,7 +65,11 @@ public enum MoaAuthResultCode {
     /** 지갑 복원 성공 */
     RESTORE_WALLET_SUCCESS("0x509C"),
     /** 지갑 복원 실패 */
-    RESTORE_WALLET_FAIL("0x509D");
+    RESTORE_WALLET_FAIL("0x509D"),
+    /** 지갑 패스워드 재설정을 위한 데이터 가져오기 성공 */
+    INIT_WALLET_PSW_DATA_IMPORT_SUCCESS("0x5111"),
+    /** 지갑 패스워드 재설정을 위한 데이터 가져오기 성공 */
+    INIT_WALLET_PSW_DATA_IMPORT_FAIL("0x5112");
 
     private String authCode;
 
