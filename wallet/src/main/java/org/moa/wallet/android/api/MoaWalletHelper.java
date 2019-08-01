@@ -194,31 +194,17 @@ public class MoaWalletHelper {
     }
 
     /**
-     * 패스워드 초기화 모드를 설정한다.
-     *
-     * <p><strong>주의사항</strong></br>
-     * 패스워드 초기화가 끝나면 반드시 setPswInitMode(false)를 호출해야 한다.</p>
-     *
-     * @param isPswInitMode 패스워드 초기화 모드
-     *                      true - 초기화
-     *                      false - 일반
-     */
-    public void setPswInitMode(boolean isPswInitMode) {
-        wallet.setPswInitMode(isPswInitMode);
-    }
-
-    /**
      * 패스워드 초기화 메시지를 생성한다.
      *
      * <p><strong>주의사항</strong></br>
      * setPswInitMode(true) 함수가 호출된 상태여야 한다.</p>
      *
      * @param walletData 지갑 패스워드 초기화를 위한 데이터
-     *                   server - encryptedHmacPsw, encPrk, encPukSalt,
+     *                   server - encryptedHmacPsw, restoreMsg [E(Prk) $ E(Puk) $ Salt],
      *                   client - id, psw, dateOfBirth
      */
     public String generateWalletInitMsg(@NonNull HashMap<String, String> walletData) {
-        if (walletData.size() != 6) {
+        if (walletData.size() != 5) {
             Log.d("MoaLib", "walletData not validate");
             return "";
         }
@@ -233,6 +219,13 @@ public class MoaWalletHelper {
      */
     public void updateWallet() {
         wallet.updateWallet();
+    }
+
+    /**
+     * 패스워드 초기화 시 미리 생성된 지갑을 제거한다.
+     */
+    public void removeTempWallet() {
+        wallet.removeTempWallet();
     }
 
     /**

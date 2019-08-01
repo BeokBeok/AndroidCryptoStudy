@@ -320,6 +320,13 @@ public class Wallet implements MoaECDSAReceiver {
         editor.apply();
     }
 
+    public void removeTempWallet() {
+        SharedPreferences sp =
+                context.getSharedPreferences("tempWallet", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sp.edit();
+        editor.clear().apply();
+    }
+
     public void throwWalletException(Throwable t) {
         if (receiver == null) {
             return;
@@ -351,15 +358,9 @@ public class Wallet implements MoaECDSAReceiver {
         return Arrays.equals(secondEncryptHmacPsw, newSecondEncryptHmacPsw);
     }
 
-    public void setPswInitMode(boolean isPswInitMode) {
-        this.isPswInitMode = isPswInitMode;
-    }
-
     public String generateBackUpRestoreDataFormat(@NonNull HashMap<String, String> walletData) {
-        if (!isPswInitMode) {
-            Log.d("MoLib", "isPswInitMode is false");
-            return "";
-        }
+        setPswInitMode(true);
+        initProperties();
         /* Decryption */
         /* HmacPsw */
         byte[] hmacPsw = getDecryptedHmacPsw(
@@ -367,29 +368,21 @@ public class Wallet implements MoaECDSAReceiver {
                 Objects.requireNonNull(walletData.get("dateOfBirth")),
                 Objects.requireNonNull(walletData.get("encryptedHmacPsw"))
         );
+        StringTokenizer st = new StringTokenizer(walletData.get("restoreMsg"), "$");
         /* Prk */
         byte[] prk = getPBKDF2Data(
                 Cipher.DECRYPT_MODE,
                 MoaCommon.getInstance().byteArrayToHexString(hmacPsw),
-                MoaBase58.getInstance().decode(Objects.requireNonNull(walletData.get("encPrk")))
+                Base64.decode(st.nextToken(), Base64.NO_WRAP)
         );
         /* Puk and Salt */
-        byte[] pukSalt = getPBKDF2Data(
+        byte[] puk = getPBKDF2Data(
                 Cipher.DECRYPT_MODE,
                 MoaCommon.getInstance().byteArrayToHexString(hmacPsw),
-                MoaBase58.getInstance().decode(Objects.requireNonNull(walletData.get("encPukSalt")))
-        );
-        byte[] puk = Arrays.copyOfRange(
-                pukSalt,
-                0,
-                pukSalt.length - 32
-        );
-        byte[] salt = Arrays.copyOfRange(
-                pukSalt,
-                pukSalt.length - 32,
-                pukSalt.length
+                Base64.decode(st.nextToken(), Base64.NO_WRAP)
         );
         /* save salt */
+        byte[] salt = Base64.decode(st.nextToken(), Base64.NO_WRAP);
         setValuesInPreferences("Salt.Value", MoaBase58.getInstance().encode(salt));
 
         /* Encrypt */
@@ -400,14 +393,12 @@ public class Wallet implements MoaECDSAReceiver {
         /* generate message */
         String backupDataFormat = generateRestoreDataFormat(prk, puk);
         password = "";
+        setPswInitMode(false);
         return backupDataFormat;
     }
 
     public void updateWallet() {
-        if (!isPswInitMode) {
-            Log.d("MoaLib", "isPswInitMode is false");
-            return;
-        }
+        setPswInitMode(true);
         /* get temp wallet */
         String cipheredData = getValuesInPreferences("Ciphered.Data");
         String puk = getValuesInPreferences("Wallet.PublicKey");
@@ -415,17 +406,14 @@ public class Wallet implements MoaECDSAReceiver {
         String mac = getValuesInPreferences("MAC.Data");
         String salt = getValuesInPreferences("Salt.Value");
         /* update wallet */
-        isPswInitMode = false;
+        setPswInitMode(false);
         setValuesInPreferences("Ciphered.Data", cipheredData);
         setValuesInPreferences("Wallet.PublicKey", puk);
         setValuesInPreferences("Wallet.Addr", addr);
         setValuesInPreferences("MAC.Data", mac);
         setValuesInPreferences("Salt.Value", salt);
         /* remove temp wallet */
-        isPswInitMode = true;
-        removeWallet();
-        /* look at the origin wallet */
-        isPswInitMode = false;
+        removeTempWallet();
     }
 
     private void initKeyStore() {
@@ -732,6 +720,10 @@ public class Wallet implements MoaECDSAReceiver {
 
     private String getPrefName() {
         return isPswInitMode ? "tempWallet" : "moaWallet";
+    }
+
+    private void setPswInitMode(boolean isPswInitMode) {
+        this.isPswInitMode = isPswInitMode;
     }
 
     private static class Singleton {
