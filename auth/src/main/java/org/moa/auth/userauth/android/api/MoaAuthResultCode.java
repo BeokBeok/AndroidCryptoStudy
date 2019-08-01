@@ -69,7 +69,33 @@ public enum MoaAuthResultCode {
     /** 지갑 패스워드 재설정을 위한 데이터 가져오기 성공 */
     INIT_WALLET_PSW_DATA_IMPORT_SUCCESS("0x5111"),
     /** 지갑 패스워드 재설정을 위한 데이터 가져오기 성공 */
-    INIT_WALLET_PSW_DATA_IMPORT_FAIL("0x5112");
+    INIT_WALLET_PSW_DATA_IMPORT_FAIL("0x5112"),
+    /** 지갑 패스워드 재설정 관련 생년월일 유효성 검증 성공 */
+    INIT_WALLET_PSW_DATE_OF_BIRTH_VALIDATE("0x5113"),
+    /** 지갑 패스워드 재설정 관련 생년월일 유효성 검증 실패 */
+    INIT_WALLET_PSW_DATE_OF_BIRTH_NOT_VALIDATE("0x5114"),
+    /** 지갑 패스워드 재설정 서버에 업데이트 성공 */
+    INIT_WALLET_PSW_SERVER_UPDATE_SUCCESS("0x5115"),
+    /** 지갑 패스워드 재설정 서버에 업데이트 실패 */
+    INIT_WALLET_PSW_SERVER_UPDATE_FAIL("0x5116"),
+    /** 패스워드 재설정된 지갑 생성 성공 */
+    INIT_WALLET_PSW_CREATE_SUCCESS("0x5117"),
+    /** 패스워드 재설정된 지갑 생성 실패 */
+    INIT_WALLET_PSW_CREATE_FAIL("0x5118"),
+    /** 지갑 패스워드 재설정 관련 입력 패스워드 검증 성공 */
+    INIT_WALLET_PSW_INPUT_PSW_VALIDATE_SUCCESS("0x5119"),
+    /** 지갑 패스워드 재설정 관련 입력 패스워드 검증 실패 */
+    INIT_WALLET_PSW_INPUT_PSW_VALIDATE_FAIL("0x5120"),
+    /** 지갑 패스워드 재설정 관련 패스워드 동기화 성공 */
+    INIT_WALLET_PSW_SYNC_SUCCESS("0x5121"),
+    /** 지갑 패스워드 재설정 관련 패스워드 동기화 실패 */
+    INIT_WALLET_PSW_SYNC_FAIL("0x5122"),
+    /** 지갑 패스워드 재설정 관련 서버에 등록된 지갑 롤백 성공 */
+    INIT_WALLET_PSW_ROLLBACK_SUCCESS("0x5123"),
+    /** 지갑 패스워드 재설정 관련 서버에 등록된 지갑 롤백 실패 */
+    INIT_WALLET_PSW_ROLLBACK_FAIL("0x5124"),
+    /** 지갑 패스워드 재설정 성공 */
+    INIT_WALLET_PSW_SUCCESS("0x5125");
 
     private String authCode;
 
