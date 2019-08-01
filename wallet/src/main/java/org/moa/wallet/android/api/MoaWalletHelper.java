@@ -201,7 +201,7 @@ public class MoaWalletHelper {
      *
      * @param walletData 지갑 패스워드 초기화를 위한 데이터
      *                   server - encryptedHmacPsw, restoreMsg [E(Prk) $ E(Puk) $ Salt],
-     *                   client - id, psw, dateOfBirth
+     *                   client - id, hmacPsw, dateOfBirth
      */
     public String generateWalletInitMsg(@NonNull HashMap<String, String> walletData) {
         if (walletData.size() != 5) {

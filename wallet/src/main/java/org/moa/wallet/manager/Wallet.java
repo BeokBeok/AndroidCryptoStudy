@@ -387,7 +387,7 @@ public class Wallet implements MoaECDSAReceiver {
 
         /* Encrypt */
         /* set password */
-        password = walletData.get("psw");
+        password = walletData.get("hmacPsw");
         /* save wallet */
         save(prk, puk);
         /* generate message */
