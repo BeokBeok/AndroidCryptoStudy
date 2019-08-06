@@ -229,6 +229,24 @@ public class MoaWalletHelper {
     }
 
     /**
+     * 본 지갑 또는 임시 지갑 모드를 선택한다.
+     *
+     * @param isPswInitMode true : 임시 지갑 모드
+     *                      false : 본 지갑 모드
+     */
+    public void setPswInitMode(boolean isPswInitMode) {
+        wallet.setPswInitMode(isPswInitMode);
+    }
+
+    /**
+     *  Salt 값을 반환한다.
+     *
+     */
+    public byte[] getSalt() {
+        return wallet.getSalt();
+    }
+
+    /**
      * Hex String 을 byte[] 로 변환한다.
      *
      * <p>자바스크립트에서 생성된 데이터는 Hex String 이므로, byte 배열로 변환이 필요하다</p>

@@ -325,6 +325,7 @@ public class Wallet implements MoaECDSAReceiver {
                 context.getSharedPreferences("tempWallet", Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sp.edit();
         editor.clear().apply();
+        setPswInitMode(false);
     }
 
     public void throwWalletException(Throwable t) {
@@ -363,6 +364,7 @@ public class Wallet implements MoaECDSAReceiver {
         initProperties();
         /* Decryption */
         /* HmacPsw */
+        setPswInitMode(false);
         byte[] hmacPsw = getDecryptedHmacPsw(
                 Objects.requireNonNull(walletData.get("id")),
                 Objects.requireNonNull(walletData.get("dateOfBirth")),
@@ -383,8 +385,8 @@ public class Wallet implements MoaECDSAReceiver {
         );
         /* save salt */
         byte[] salt = Base64.decode(st.nextToken(), Base64.NO_WRAP);
+        setPswInitMode(true);
         setValuesInPreferences("Salt.Value", MoaBase58.getInstance().encode(salt));
-
         /* Encrypt */
         /* set password */
         password = walletData.get("hmacPsw");
@@ -414,6 +416,23 @@ public class Wallet implements MoaECDSAReceiver {
         setValuesInPreferences("Salt.Value", salt);
         /* remove temp wallet */
         removeTempWallet();
+    }
+
+    public void setPswInitMode(boolean isPswInitMode) {
+        this.isPswInitMode = isPswInitMode;
+    }
+
+    public byte[] getSalt() {
+        /* 저장된 Salt가 없으면 생성, 있으면 저장된 Salt 리턴 */
+        String base58Salt = getValuesInPreferences("Salt.Value");
+        if (base58Salt == null || base58Salt.length() == 0) {
+            byte[] salt = new byte[32];
+            new SecureRandom().nextBytes(salt);
+            setValuesInPreferences("Salt.Value", MoaBase58.getInstance().encode(salt));
+            return salt;
+        } else {
+            return MoaBase58.getInstance().decode(base58Salt);
+        }
     }
 
     private void initKeyStore() {
@@ -486,19 +505,6 @@ public class Wallet implements MoaECDSAReceiver {
         setValuesInPreferences("ECC.Curve", "secp256r1");
         setValuesInPreferences("MAC.Alg", "HmacSHA256");
         setValuesInPreferences("Iteration.Count", "4096");
-    }
-
-    private byte[] getSalt() {
-        /* 저장된 Salt가 없으면 생성, 있으면 저장된 Salt 리턴 */
-        String base58Salt = getValuesInPreferences("Salt.Value");
-        if (base58Salt == null || base58Salt.length() == 0) {
-            byte[] salt = new byte[32];
-            new SecureRandom().nextBytes(salt);
-            setValuesInPreferences("Salt.Value", MoaBase58.getInstance().encode(salt));
-            return salt;
-        } else {
-            return MoaBase58.getInstance().decode(base58Salt);
-        }
     }
 
     private byte[] generateDerivedKey(String psw) {
@@ -714,16 +720,12 @@ public class Wallet implements MoaECDSAReceiver {
         return Arrays.copyOfRange(
                 symmetric.getSymmetricData(Cipher.DECRYPT_MODE, firstEncryptHmacPsw),
                 1,
-                14
+                15
         );
     }
 
     private String getPrefName() {
         return isPswInitMode ? "tempWallet" : "moaWallet";
-    }
-
-    private void setPswInitMode(boolean isPswInitMode) {
-        this.isPswInitMode = isPswInitMode;
     }
 
     private static class Singleton {
