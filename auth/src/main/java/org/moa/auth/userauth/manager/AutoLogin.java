@@ -39,7 +39,7 @@ public class AutoLogin extends PINAuth {
     private static final int NONE = 0xA0;
     private static final int AUTO_LOGIN = 0xA1;
     private final String keyAlias = "MoaAutoInfo";
-    private PBKDF2 pbkdf2;
+    private final PBKDF2 pbkdf2;
 
     private AutoLogin() {
         initKeyStore();

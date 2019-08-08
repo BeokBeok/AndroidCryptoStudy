@@ -21,14 +21,14 @@ import javax.crypto.spec.SecretKeySpec;
 
 abstract class PINAuth {
     private static final String transformation = "AES/CBC/PKCS7Padding";
-    private byte[] iv = hexStringToByteArray("00FF0000FF00FF000000FFFF000000FF");
+    private final byte[] iv = hexStringToByteArray("00FF0000FF00FF000000FFFF000000FF");
 
     Context context;
     String uniqueDeviceID;
     KeyStore keyStore;
     Symmetric symmetric;
 
-    public void init(
+    void init(
             Context context,
             String uniqueDeviceID
     ) {

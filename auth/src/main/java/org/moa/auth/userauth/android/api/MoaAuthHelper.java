@@ -43,7 +43,7 @@ public class MoaAuthHelper {
     }
 
     /**
-     * Context를 설정한다.
+     * Context 를 설정한다.
      *
      * @param context 해당 Activity 의 Context
      */
@@ -189,7 +189,7 @@ public class MoaAuthHelper {
      *
      * <p><strong>주의사항</strong></br>
      * 1) ({@code Build.VERSION.SDK_INT >= Build.VERSION_CODES.M}) 이어야 한다.</br>
-     * 2) ({@code fingerprintRegisterData.size != 3}) 이면 안된다.</br>
+     * 2) ({@code fingerprintRegisterData.size != 3}) 이면 안된다.</br></p>
      *
      * @param fingerprintRegisterData curve, suite, authToken 데이터</br>
      *                                HashMap 으로 키 별(curve, suite, authToken) 데이터 설정 및 전달</br>
@@ -222,7 +222,7 @@ public class MoaAuthHelper {
      *
      * <p><strong>주의사항</strong></br>
      * 1) ({@code Build.VERSION.SDK_INT >= Build.VERSION_CODES.M}) 이어야 한다.</br>
-     * 2) ({@code fingerprintLoginData.size != 4}) 이면 안된다.</br>
+     * 2) ({@code fingerprintLoginData.size != 4}) 이면 안된다.</br></p>
      *
      * @param fingerprintLoginData curve, suite, authToken, nonce 데이터</br>
      *                             HashMap 으로 키 별(curve, suite, authToken, nonce) 데이터 설정 및 전달</br>
@@ -392,6 +392,6 @@ public class MoaAuthHelper {
      */
     public static class Singleton {
         @SuppressLint("StaticFieldLeak")
-        private static MoaAuthHelper instance = new MoaAuthHelper();
+        private static final MoaAuthHelper instance = new MoaAuthHelper();
     }
 }

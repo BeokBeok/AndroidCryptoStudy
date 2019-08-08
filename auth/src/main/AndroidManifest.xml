@@ -1,2 +1,1 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="org.moa.auth.userauth.android.api" />
+<manifest package="org.moa.auth.userauth.android.api" />

@@ -11,9 +11,9 @@ public enum MoaMember {
     /** 회원 + 지문 */
     MEMBER_FINGER(0x72, 0x82, 0x92);
 
-    private int memberType;
-    private int authType;
-    private int walletType;
+    private final int memberType;
+    private final int authType;
+    private final int walletType;
 
     MoaMember(int memberType, int authType, int walletType) {
         this.memberType = memberType;
