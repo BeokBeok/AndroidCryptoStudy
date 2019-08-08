@@ -84,6 +84,6 @@ public class MoaBase58 {
     }
 
     private static class Singleton {
-        private static MoaBase58 instance = new MoaBase58();
+        private static final MoaBase58 instance = new MoaBase58();
     }
 }

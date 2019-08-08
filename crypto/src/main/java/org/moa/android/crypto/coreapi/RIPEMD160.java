@@ -149,6 +149,6 @@ public class RIPEMD160 {
     }
 
     private static class Singleton {
-        private static RIPEMD160 instance = new RIPEMD160();
+        private static final RIPEMD160 instance = new RIPEMD160();
     }
 }

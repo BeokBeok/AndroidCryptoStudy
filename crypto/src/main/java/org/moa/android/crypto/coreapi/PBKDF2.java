@@ -16,7 +16,7 @@ import javax.crypto.spec.SecretKeySpec;
  */
 public class PBKDF2 {
     private Mac hmacSHAn;
-    private String hashAlg;
+    private final String hashAlg;
     private int hLen = 64;
 
     public PBKDF2(String hashAlg) {
