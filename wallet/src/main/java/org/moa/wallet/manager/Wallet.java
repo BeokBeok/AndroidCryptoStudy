@@ -186,7 +186,7 @@ public class Wallet implements MoaECDSAReceiver {
         this.password = password;
     }
 
-    public boolean verifyPsw(String password, String msg) {
+    public boolean verifyHmacPsw(String password, String msg) {
         if (msg.length() == 0) {
             Log.d("MoaLib", "msg size is 0");
             return false;
@@ -335,7 +335,7 @@ public class Wallet implements MoaECDSAReceiver {
         receiver.onLibFail(t);
     }
 
-    public boolean verifyEncryptedHmacPsw(String dateOfBirth, String encryptedHmacPsw) {
+    public boolean verifyDateOfBirth(String dateOfBirth, String encryptedHmacPsw) {
         byte[] decodedEncryptedHmacPsw = Base64.decode(encryptedHmacPsw, Base64.NO_WRAP);
         byte[] firstEncryptHmacPsw = Arrays.copyOfRange(
                 decodedEncryptedHmacPsw,
@@ -433,6 +433,31 @@ public class Wallet implements MoaECDSAReceiver {
         } else {
             return MoaBase58.getInstance().decode(base58Salt);
         }
+    }
+
+    public byte[] getDecryptedHmacPsw(String id, String dateOfBirth, String encryptedHmacPsw) {
+        byte[] dk = pbkdf2.kdfGen(
+                dateOfBirth.getBytes(),
+                id.getBytes(),
+                10,
+                48
+        );
+        Symmetric symmetric = new Symmetric(
+                "AES/CBC/PKCS7Padding",
+                Arrays.copyOfRange(dk, 32, dk.length), // iv
+                Arrays.copyOf(dk, 32) // dbk
+        );
+        byte[] decodedEncryptedHmacPsw = Base64.decode(encryptedHmacPsw, Base64.NO_WRAP);
+        byte[] firstEncryptHmacPsw = Arrays.copyOfRange(
+                decodedEncryptedHmacPsw,
+                0,
+                decodedEncryptedHmacPsw.length / 2
+        );
+        return Arrays.copyOfRange(
+                symmetric.getSymmetricData(Cipher.DECRYPT_MODE, firstEncryptHmacPsw),
+                1,
+                15
+        );
     }
 
     private void initKeyStore() {
@@ -698,31 +723,6 @@ public class Wallet implements MoaECDSAReceiver {
                 + Base64.encodeToString(encryptedPrk, Base64.NO_WRAP) + "$"
                 + Base64.encodeToString(encryptedPuk, Base64.NO_WRAP) + "$"
                 + Base64.encodeToString(getSalt(), Base64.NO_WRAP);
-    }
-
-    private byte[] getDecryptedHmacPsw(String id, String dateOfBirth, String encryptedHmacPsw) {
-        byte[] dk = pbkdf2.kdfGen(
-                dateOfBirth.getBytes(),
-                id.getBytes(),
-                10,
-                48
-        );
-        Symmetric symmetric = new Symmetric(
-                "AES/CBC/PKCS7Padding",
-                Arrays.copyOfRange(dk, 32, dk.length), // iv
-                Arrays.copyOf(dk, 32) // dbk
-        );
-        byte[] decodedEncryptedHmacPsw = Base64.decode(encryptedHmacPsw, Base64.NO_WRAP);
-        byte[] firstEncryptHmacPsw = Arrays.copyOfRange(
-                decodedEncryptedHmacPsw,
-                0,
-                decodedEncryptedHmacPsw.length / 2
-        );
-        return Arrays.copyOfRange(
-                symmetric.getSymmetricData(Cipher.DECRYPT_MODE, firstEncryptHmacPsw),
-                1,
-                15
-        );
     }
 
     private String getPrefName() {

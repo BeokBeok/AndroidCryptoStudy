@@ -141,7 +141,7 @@ public class MoaWalletHelper {
             @NonNull String password,
             @NonNull String msg
     ) {
-        if (wallet.verifyPsw(password, msg)) { // onLibRestoreCompleted
+        if (wallet.verifyHmacPsw(password, msg)) { // onLibRestoreCompleted
             String[] restoreMsg = msg.split("%");
             wallet.save(password, restoreMsg[1]);
         } else { // onLibFail 호출
@@ -246,13 +246,34 @@ public class MoaWalletHelper {
     }
 
     /**
-     * 암호화된 Hmac Psw 유효성을 검증 결과를 리턴한다.
+     * 생년월일 검증 결과를 리턴한다.
      *
      * @param dateOfBirth      생년월일
      * @param encryptedHmacPsw 암호화된 Hmac Psw
      */
-    public boolean verifyEncryptedHmacPsw(String dateOfBirth, String encryptedHmacPsw) {
-        return wallet.verifyEncryptedHmacPsw(dateOfBirth, encryptedHmacPsw);
+    public boolean verifyDateOfBirth(String dateOfBirth, String encryptedHmacPsw) {
+        return wallet.verifyDateOfBirth(dateOfBirth, encryptedHmacPsw);
+    }
+
+    /**
+     * 암호화된 Hmac Psw 를 복호화하여 Hmac Psw를 리턴한다.
+     *
+     * @param id               회원 ID
+     * @param dateOfBirth      생년월일
+     * @param encryptedHmacPsw 암호화된 Hmac Psw
+     */
+    public byte[] getDecryptedHmacPsw(String id, String dateOfBirth, String encryptedHmacPsw) {
+        return wallet.getDecryptedHmacPsw(id, dateOfBirth, encryptedHmacPsw);
+    }
+
+    /**
+     * Hmac Psw 검증 결과를 리턴한다.
+     *
+     * @param password Hmac 패스워드 (Hex String)
+     * @param msg      E(Prk) $ E(Puk) # Salt
+     */
+    public boolean verifyHmacPsw(String password, String msg) {
+        return wallet.verifyHmacPsw(password, msg);
     }
 
     /**
