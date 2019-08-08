@@ -52,7 +52,7 @@ public class Wallet implements MoaECDSAReceiver {
     private KeyStore keyStore;
     private WebView webView;
     private String password = "";
-    private PBKDF2 pbkdf2 = new PBKDF2("SHA384");
+    private final PBKDF2 pbkdf2 = new PBKDF2("SHA384");
     private boolean isPswInitMode;
 
     private Wallet() {
@@ -731,6 +731,6 @@ public class Wallet implements MoaECDSAReceiver {
 
     private static class Singleton {
         @SuppressLint("StaticFieldLeak")
-        private static Wallet instance = new Wallet();
+        private static final Wallet instance = new Wallet();
     }
 }

@@ -3,7 +3,7 @@ package org.moa.wallet.android.api;
 import android.webkit.JavascriptInterface;
 
 public class MoaBridge {
-    private MoaECDSAReceiver moaECDSAReceiver;
+    private final MoaECDSAReceiver moaECDSAReceiver;
 
     public MoaBridge(MoaECDSAReceiver moaECDSAReceiver) {
         this.moaECDSAReceiver = moaECDSAReceiver;

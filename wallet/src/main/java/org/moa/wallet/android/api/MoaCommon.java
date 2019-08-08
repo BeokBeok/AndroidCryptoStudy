@@ -79,6 +79,6 @@ public class MoaCommon {
     }
 
     private static class Singleton {
-        private static MoaCommon instance = new MoaCommon();
+        private static final MoaCommon instance = new MoaCommon();
     }
 }

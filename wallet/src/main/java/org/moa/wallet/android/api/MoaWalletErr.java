@@ -3,7 +3,7 @@ package org.moa.wallet.android.api;
 public enum MoaWalletErr {
     RESTORE_PASSWORD_NOT_VERIFY("1142");
 
-    private String type;
+    private final String type;
 
     MoaWalletErr(String type) {
         this.type = type;

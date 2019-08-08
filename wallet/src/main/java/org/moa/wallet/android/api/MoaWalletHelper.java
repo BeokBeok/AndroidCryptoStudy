@@ -23,7 +23,7 @@ import java.util.HashMap;
  * @author 강현석
  */
 public class MoaWalletHelper {
-    private Wallet wallet;
+    private final Wallet wallet;
 
     private MoaWalletHelper() {
         wallet = Wallet.getInstance();
@@ -309,6 +309,6 @@ public class MoaWalletHelper {
      */
     public static class Singleton {
         @SuppressLint("StaticFieldLeak")
-        private static MoaWalletHelper instance = new MoaWalletHelper();
+        private static final MoaWalletHelper instance = new MoaWalletHelper();
     }
 }
