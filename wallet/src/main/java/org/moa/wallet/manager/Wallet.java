@@ -198,6 +198,7 @@ public class Wallet implements MoaECDSAReceiver {
                 .hmacDigest(
                         getValuesInPreferences("MAC.Alg"),
                         Base64.decode(msgSplit[1], Base64.NO_WRAP),
+                        // hexStringToByteArray 함수를 사용하여 처리했어야했지만, getBytes()로 처리
                         password.getBytes()
                 );
         return Arrays.equals(hmacEncryptedPuk, newHmacEncryptedPuk);
@@ -217,8 +218,7 @@ public class Wallet implements MoaECDSAReceiver {
     }
 
     public byte[] getEncryptedHmacPsw(String id, String psw, String dateOfBirth) {
-        /* hmac 생성 (14 byte);지갑 비밀번호 */
-        byte[] hmacPsw = getHmacPsw(psw);
+        byte[] hmacPsw = MoaCommon.getInstance().hexStringToByteArray(psw);
 
         /* 암호화된 hmac 생성 */
         // 생년월일 기반 PBKDF2 생성
@@ -335,7 +335,7 @@ public class Wallet implements MoaECDSAReceiver {
         receiver.onLibFail(t);
     }
 
-    public boolean verifyEncryptHmacPsw(String dateOfBirth, String encryptedHmacPsw) {
+    public boolean verifyEncryptedHmacPsw(String dateOfBirth, String encryptedHmacPsw) {
         byte[] decodedEncryptedHmacPsw = Base64.decode(encryptedHmacPsw, Base64.NO_WRAP);
         byte[] firstEncryptHmacPsw = Arrays.copyOfRange(
                 decodedEncryptedHmacPsw,
@@ -690,6 +690,7 @@ public class Wallet implements MoaECDSAReceiver {
         byte[] hmacEncryptedPuk = MoaCommon.getInstance().hmacDigest(
                 getValuesInPreferences("MAC.Alg"),
                 encryptedPuk,
+                // hexStringToByteArray 함수를 사용하여 처리했어야했지만, getBytes()로 처리
                 password.getBytes()
         );
         /* E[Hmac_puk] % E[prk] $ E[puk] $ salt */

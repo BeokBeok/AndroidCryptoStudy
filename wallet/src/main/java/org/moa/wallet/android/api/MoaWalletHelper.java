@@ -239,11 +239,20 @@ public class MoaWalletHelper {
     }
 
     /**
-     *  Salt 값을 반환한다.
-     *
+     * Salt 값을 반환한다.
      */
     public byte[] getSalt() {
         return wallet.getSalt();
+    }
+
+    /**
+     * 암호화된 Hmac Psw 유효성을 검증 결과를 리턴한다.
+     *
+     * @param dateOfBirth      생년월일
+     * @param encryptedHmacPsw 암호화된 Hmac Psw
+     */
+    public boolean verifyEncryptedHmacPsw(String dateOfBirth, String encryptedHmacPsw) {
+        return wallet.verifyEncryptedHmacPsw(dateOfBirth, encryptedHmacPsw);
     }
 
     /**
