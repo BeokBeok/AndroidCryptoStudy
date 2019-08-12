@@ -35,26 +35,30 @@ public class Symmetric {
             }
 
             keySpec = new SecretKeySpec(keyBytes, cryptoAlgName);
-            if (!modeType.equals("ECB"))
+            if (!modeType.equals("ECB")) {
                 ivSpec = new IvParameterSpec(ivBytes);
-
+            }
         } catch (NoSuchPaddingException | NoSuchAlgorithmException e) {
             Log.d("MoaLib", "[Symmetric]" + e.getMessage());
         }
     }
 
-    public byte[] getSymmetricData(int encOrDecMode, byte[] data) {
+    public synchronized byte[] getSymmetricData(int encOrDecMode, byte[] data) {
         byte[] result = {0, };
         if (data.length == 0)
             return result;
         try {
-            if (modeType.equals("ECB"))
+            if (modeType.equals("ECB")) {
                 cipher.init(encOrDecMode, keySpec);
-
+            }
             cipher.init(encOrDecMode, keySpec, ivSpec);
             result = cipher.doFinal(data);
             return result;
-        } catch (InvalidKeyException | InvalidAlgorithmParameterException | BadPaddingException | IllegalBlockSizeException e) {
+        } catch (InvalidKeyException |
+                InvalidAlgorithmParameterException |
+                BadPaddingException |
+                IllegalBlockSizeException |
+                IllegalStateException e) {
             Log.d("MoaLib", "[Symmetric][getSymmetricData]" + e.getMessage());
             return new byte[0];
         }
