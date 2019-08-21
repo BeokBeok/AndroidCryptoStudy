@@ -29,8 +29,11 @@ import java.util.Map;
  */
 public class MoaAuthHelper {
     private Context context;
-    private UserControl userControl;
+    private String uid;
+    private AuthToken authToken;
     private AutoLogin autoLogin;
+    private FingerprintAuth fingerprintAuth;
+    private UserControl userControl;
 
     private MoaAuthHelper() {
     }
@@ -48,31 +51,23 @@ public class MoaAuthHelper {
      * @param context 해당 Activity 의 Context
      */
     public void setContext(@NonNull Context context) {
-        this.context = context;
+        this.context = context.getApplicationContext();
     }
 
     /**
      * Unique Device ID를 설정하고, 이를 기반으로 UserControl, AutoLogin 클래스를 초기화한다.
      *
      * <p><strong>주의사항</strong></br>
-     * 1) setContext 함수가 선행 호출된 상태이어야 한다.</br>
-     * 2) ({@code uniqueDeviceID.length() < 1}) 이면 안된다.</p>
+     * ({@code uniqueDeviceID.length() < 1}) 이면 안된다.</p>
      *
      * @param uniqueDeviceID unique device ID 값
      */
     public void setUniqueDeviceID(@NonNull String uniqueDeviceID) {
-        if (uniqueDeviceID.length() < 1) {
+        if (uniqueDeviceID.length() == 0) {
             Log.d("MoaLib", "uniqueDeviceID not validate");
             return;
         }
-        if (context == null) {
-            Log.d("MoaLib", "context is null");
-            return;
-        }
-        userControl = UserControl.getInstance();
-        autoLogin = AutoLogin.getInstance();
-        userControl.init(context, uniqueDeviceID);
-        autoLogin.init(context, uniqueDeviceID);
+        this.uid = uniqueDeviceID;
     }
 
     /**
@@ -81,21 +76,24 @@ public class MoaAuthHelper {
      * @param nonMemberId 비회원 ID
      */
     public void setNonMemberPIN(@NonNull String nonMemberId) {
-        if (userControl == null) {
-            Log.d("MoaLib", "userControl is null");
+        if (isNullContextOrUid()) {
             return;
+        }
+        if (userControl == null) {
+            userControl = new UserControl(context, uid);
         }
         userControl.setMemberInfo(nonMemberId, MoaMember.NON_MEMBER);
     }
 
     /**
      * 현재 Member ID 를 얻어온다.
-     *
      */
     public String getCurrentMemberID() {
-        if (userControl == null) {
-            Log.d("MoaLib", "userControl is null");
+        if (isNullContextOrUid()) {
             return "";
+        }
+        if (userControl == null) {
+            userControl = new UserControl(context, uid);
         }
         return userControl.getMemberInfo(1);
     }
@@ -113,9 +111,11 @@ public class MoaAuthHelper {
             @NonNull String id,
             @NonNull String password
     ) {
-        if (userControl == null) {
-            Log.d("MoaLib", "userControl is null");
+        if (isNullContextOrUid()) {
             return "";
+        }
+        if (userControl == null) {
+            userControl = new UserControl(context, uid);
         }
         return userControl.generateRegisterMessage(id, password);
     }
@@ -135,9 +135,11 @@ public class MoaAuthHelper {
             @NonNull String password,
             @NonNull String nonceOTP
     ) {
-        if (userControl == null) {
-            Log.d("MoaLib", "userControl is null");
+        if (isNullContextOrUid()) {
             return "";
+        }
+        if (userControl == null) {
+            userControl = new UserControl(context, uid);
         }
         return userControl.generateLoginRequestMessage(id, password, nonceOTP);
     }
@@ -155,9 +157,11 @@ public class MoaAuthHelper {
             @NonNull String id,
             @NonNull String resetPw
     ) {
-        if (userControl == null) {
-            Log.d("MoaLib", "userControl is null");
+        if (isNullContextOrUid()) {
             return "";
+        }
+        if (userControl == null) {
+            userControl = new UserControl(context, uid);
         }
         return userControl.generatePINResetRequestMessage(id, resetPw);
     }
@@ -177,9 +181,11 @@ public class MoaAuthHelper {
             @NonNull String currentPw,
             @NonNull String newPw
     ) {
-        if (userControl == null) {
-            Log.d("MoaLib", "userControl is null");
+        if (isNullContextOrUid()) {
             return "";
+        }
+        if (userControl == null) {
+            userControl = new UserControl(context, uid);
         }
         return userControl.generatePINChangeRequestMessage(id, currentPw, newPw);
     }
@@ -205,15 +211,23 @@ public class MoaAuthHelper {
             Log.d("MoaLib", "fingerprintRegisterData not validate");
             return new byte[0];
         }
+        if (isNullContextOrUid()) {
+            return new byte[0];
+        }
         String curve = fingerprintRegisterData.get("curve");
         String suite = fingerprintRegisterData.get("suite");
         String authTokenData = fingerprintRegisterData.get("authToken");
-        AuthToken authToken = AuthToken.getInstance();
-        authToken.init(context);
+        if (authToken == null) {
+            authToken = new AuthToken(context);
+        }
         authToken.set(authTokenData);
 
-        FingerprintAuth fingerprintAuth = FingerprintAuth.getInstance();
-        fingerprintAuth.init(curve, suite);
+        if (curve == null || suite == null) {
+            return new byte[0];
+        }
+        if (fingerprintAuth == null) {
+            fingerprintAuth = new FingerprintAuth(curve, suite);
+        }
         return fingerprintAuth.getRegisterSignature(authTokenData);
     }
 
@@ -239,12 +253,19 @@ public class MoaAuthHelper {
             Log.d("MoaLib", "fingerprintLoginData not validate");
             return new byte[0];
         }
+        if (isNullContextOrUid()) {
+            return new byte[0];
+        }
         String curve = fingerprintLoginData.get("curve");
         String suite = fingerprintLoginData.get("suite");
         String authToken = fingerprintLoginData.get("authToken");
         String nonce = fingerprintLoginData.get("nonce");
-        FingerprintAuth fingerprintAuth = FingerprintAuth.getInstance();
-        fingerprintAuth.init(curve, suite);
+        if (curve == null || suite == null) {
+            return new byte[0];
+        }
+        if (fingerprintAuth == null) {
+            fingerprintAuth = new FingerprintAuth(curve, suite);
+        }
         return fingerprintAuth.getLoginSignature(nonce, authToken);
     }
 
@@ -256,8 +277,12 @@ public class MoaAuthHelper {
      */
     @RequiresApi(api = Build.VERSION_CODES.M)
     public String getAuthTokenData() {
-        AuthToken authToken = AuthToken.getInstance();
-        authToken.init(context);
+        if (isNullContextOrUid()) {
+            return "";
+        }
+        if (authToken == null) {
+            authToken = new AuthToken(context);
+        }
         return authToken.get();
     }
 
@@ -270,7 +295,12 @@ public class MoaAuthHelper {
      */
     @RequiresApi(api = Build.VERSION_CODES.M)
     public PublicKey getFingerprintPublicKey() {
-        FingerprintAuth fingerprintAuth = FingerprintAuth.getInstance();
+        if (isNullContextOrUid()) {
+            return null;
+        }
+        if (fingerprintAuth == null) {
+            return null;
+        }
         return fingerprintAuth.getPublicKey();
     }
 
@@ -288,21 +318,24 @@ public class MoaAuthHelper {
             @NonNull String id,
             @NonNull MoaMember moaMember
     ) {
-        if (userControl == null) {
-            Log.d("MoaLib", "userControl is null");
+        if (isNullContextOrUid()) {
             return;
+        }
+        if (userControl == null) {
+            userControl = new UserControl(context, uid);
         }
         userControl.setMemberInfo(id, moaMember);
     }
 
     /**
      * 자동 로그인 정보를 리턴한다.
-     *
      */
     public String getAutoLoginInfo() {
-        if (autoLogin == null) {
-            Log.d("MoaLib", "autoLogin is null");
+        if (isNullContextOrUid()) {
             return "";
+        }
+        if (autoLogin == null) {
+            autoLogin = new AutoLogin(context, uid);
         }
         return autoLogin.get();
     }
@@ -314,21 +347,24 @@ public class MoaAuthHelper {
      *                 null 전달 시, 자동 로그인 비활성화
      */
     public void setAutoLoginInfo(String password) {
-        if (autoLogin == null) {
-            Log.d("MoaLib", "autoLogin is null");
+        if (isNullContextOrUid()) {
             return;
+        }
+        if (autoLogin == null) {
+            autoLogin = new AutoLogin(context, uid);
         }
         autoLogin.set(password);
     }
 
     /**
      * Base Primary Info (as User ID, Sequence ID) 를 리턴한다.
-     *
      */
     public String getBasePrimaryInfo() {
-        if (userControl == null) {
-            Log.d("MoaLib", "userControl is null");
+        if (isNullContextOrUid()) {
             return "";
+        }
+        if (userControl == null) {
+            userControl = new UserControl(context, uid);
         }
         return userControl.getBasePrimaryInfo();
     }
@@ -339,47 +375,64 @@ public class MoaAuthHelper {
      * @param userSequenceIndex Base Primary Info 값
      */
     public void setBasePrimaryInfo(@NonNull String userSequenceIndex) {
-        if (userControl == null) {
-            Log.d("MoaLib", "userControl is null");
+        if (isNullContextOrUid()) {
             return;
+        }
+        if (userControl == null) {
+            userControl = new UserControl(context, uid);
         }
         userControl.setBasePrimaryInfo(userSequenceIndex);
     }
 
     /**
      * 모든 Control Info 정보를 제거한다.
-     *
      */
     public void removeControlInfo() {
-        if (userControl == null) {
-            Log.d("MoaLib", "userControl is null");
+        if (isNullContextOrUid()) {
             return;
+        }
+        if (userControl == null) {
+            userControl = new UserControl(context, uid);
         }
         userControl.removeControlInfo();
     }
 
     /**
      * 회원 ID 정보를 조회한다.
-     *
      */
     public String getMemberID() {
-        if (userControl == null) {
-            Log.d("MoaLib", "userControl is null");
+        if (isNullContextOrUid()) {
             return "";
+        }
+        if (userControl == null) {
+            userControl = new UserControl(context, uid);
         }
         return userControl.getMemberID();
     }
 
     /**
      * 비회원 ID 정보를 조회한다.
-     *
      */
     public String getNonMemberID() {
-        if (userControl == null) {
-            Log.d("MoaLib", "userControl is null");
+        if (isNullContextOrUid()) {
             return "";
         }
+        if (userControl == null) {
+            userControl = new UserControl(context, uid);
+        }
         return userControl.getNonMemberID();
+    }
+
+    private boolean isNullContextOrUid() {
+        if (this.context == null) {
+            Log.d("MoaLib", "context is null");
+            return true;
+        } else if (this.uid == null) {
+            Log.d("MoaLib", "uid is null");
+            return true;
+        } else {
+            return false;
+        }
     }
 
     /**

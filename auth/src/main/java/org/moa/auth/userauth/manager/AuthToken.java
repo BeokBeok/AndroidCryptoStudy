@@ -1,11 +1,11 @@
 package org.moa.auth.userauth.manager;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.security.keystore.KeyGenParameterSpec;
 import android.security.keystore.KeyProperties;
+import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
 import android.util.Base64;
 import android.util.Log;
@@ -28,14 +28,15 @@ import javax.crypto.KeyGenerator;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.GCMParameterSpec;
 
+@RequiresApi(api = Build.VERSION_CODES.M)
 public class AuthToken {
     private final String keyAlias = "MoaUserAuthToken";
     private final String transformation = "AES/GCM/NoPadding";
     private Context context;
     private KeyStore keyStore;
 
-    @RequiresApi(api = Build.VERSION_CODES.M)
-    private AuthToken() {
+    public AuthToken(@NonNull Context context) {
+        this.context = context;
         initKeyStore();
         try {
             if (!keyStore.containsAlias(keyAlias)) {
@@ -44,15 +45,6 @@ public class AuthToken {
         } catch (KeyStoreException e) {
             Log.d("MoaLib", e.getMessage());
         }
-    }
-
-    @RequiresApi(api = Build.VERSION_CODES.M)
-    public static AuthToken getInstance() {
-        return Singleton.instance;
-    }
-
-    public void init(Context context) {
-        this.context = context;
     }
 
     public String get() {
@@ -65,7 +57,6 @@ public class AuthToken {
         return getDecryptContent(encryptData);
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.M)
     public void set(String value) {
         String encryptedData = getEncryptContent(value);
         SharedPreferences pref = context.getSharedPreferences(
@@ -88,7 +79,6 @@ public class AuthToken {
         }
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.M)
     private void generateKey() {
         try {
             KeyGenerator keyGenerator = KeyGenerator.getInstance(
@@ -114,7 +104,6 @@ public class AuthToken {
         }
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.M)
     private String getEncryptContent(String content) {
         try {
             if (!keyStore.containsAlias(keyAlias)) {
@@ -187,11 +176,5 @@ public class AuthToken {
         SharedPreferences.Editor editor = pref.edit();
         editor.putString("iv", Base64.encodeToString(iv, Base64.NO_WRAP));
         editor.apply();
-    }
-
-    @RequiresApi(api = Build.VERSION_CODES.M)
-    private static class Singleton {
-        @SuppressLint("StaticFieldLeak")
-        private static final AuthToken instance = new AuthToken();
     }
 }

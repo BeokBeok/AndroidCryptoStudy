@@ -1,9 +1,9 @@
 package org.moa.auth.userauth.manager;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.security.KeyPairGeneratorSpec;
+import android.support.annotation.NonNull;
 import android.util.Base64;
 import android.util.Log;
 
@@ -41,21 +41,13 @@ public class AutoLogin extends PINAuth {
     private final String keyAlias = "MoaAutoInfo";
     private final PBKDF2 pbkdf2;
 
-    private AutoLogin() {
+    public AutoLogin(
+            @NonNull Context context,
+            @NonNull String uid
+    ) {
         initKeyStore();
         pbkdf2 = new PBKDF2("SHA384");
-    }
-
-    public static AutoLogin getInstance() {
-        return Singleton.instance;
-    }
-
-    @Override
-    public void init(
-            Context context,
-            String uniqueDeviceID
-    ) {
-        super.init(context, uniqueDeviceID);
+        super.init(context, uid);
         try {
             if (!keyStore.containsAlias(keyAlias)) {
                 generateKey();
@@ -200,7 +192,7 @@ public class AutoLogin extends PINAuth {
         int iterationCount = 8192;
         int keySize = 48;
         byte[] salt = getSalt();
-        byte[] pw = Base64.decode(uniqueDeviceID, Base64.NO_WRAP);
+        byte[] pw = Base64.decode(uid, Base64.NO_WRAP);
         return pbkdf2.kdfGen(pw, salt, iterationCount, keySize);
     }
 
@@ -260,10 +252,5 @@ public class AutoLogin extends PINAuth {
                 ),
                 StandardCharsets.UTF_8
         );
-    }
-
-    private static class Singleton {
-        @SuppressLint("StaticFieldLeak")
-        private static final AutoLogin instance = new AutoLogin();
     }
 }

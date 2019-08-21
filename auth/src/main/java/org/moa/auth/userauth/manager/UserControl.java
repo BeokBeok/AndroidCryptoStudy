@@ -1,8 +1,8 @@
 package org.moa.auth.userauth.manager;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.support.annotation.NonNull;
 import android.util.Base64;
 import android.util.Log;
 
@@ -16,19 +16,11 @@ import javax.crypto.Cipher;
 
 public class UserControl extends PINAuth {
 
-    private UserControl() {
-    }
-
-    public static UserControl getInstance() {
-        return Singleton.instance;
-    }
-
-    @Override
-    public void init(
-            Context context,
-            String uniqueDeviceID
+    public UserControl(
+            @NonNull Context context,
+            @NonNull String uid
     ) {
-        super.init(context, uniqueDeviceID);
+        super.init(context, uid);
     }
 
     public void setMemberInfo(
@@ -153,10 +145,5 @@ public class UserControl extends PINAuth {
             return false;
         }
         return true;
-    }
-
-    private static class Singleton {
-        @SuppressLint("StaticFieldLeak")
-        private static final UserControl instance = new UserControl();
     }
 }

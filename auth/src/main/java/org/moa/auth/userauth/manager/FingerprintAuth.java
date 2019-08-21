@@ -3,6 +3,7 @@ package org.moa.auth.userauth.manager;
 import android.os.Build;
 import android.security.keystore.KeyGenParameterSpec;
 import android.security.keystore.KeyProperties;
+import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
 import android.util.Base64;
 import android.util.Log;
@@ -24,33 +25,18 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.spec.ECGenParameterSpec;
 
+@RequiresApi(api = Build.VERSION_CODES.M)
 public class FingerprintAuth {
     private final String keyAlias = "MoaFingerKeyPair";
     private String curve;
     private String signAlgorithmSuite;
     private KeyStore keyStore;
 
-    private FingerprintAuth() {
-        initKeyStore();
-    }
-
-    @RequiresApi(api = Build.VERSION_CODES.M)
-    public static FingerprintAuth getInstance() {
-        return Singleton.instance;
-    }
-
-    @RequiresApi(api = Build.VERSION_CODES.M)
-    public void init(
-            String ecdsaCurve,
-            String ecdsaSignAlgorithmSuite
+    public FingerprintAuth(
+            @NonNull String ecdsaCurve,
+            @NonNull String ecdsaSignAlgorithmSuite
     ) {
-        if (ecdsaCurve == null || ecdsaSignAlgorithmSuite == null) {
-            Log.d("MoaLib",
-                    "ecdsaCurve is " + ecdsaCurve
-                            + " or ecdsaSignAlgorithmSuite is " + ecdsaSignAlgorithmSuite
-            );
-            return;
-        }
+        initKeyStore();
         this.curve = ecdsaCurve;
         this.signAlgorithmSuite = ecdsaSignAlgorithmSuite;
         try {
@@ -62,7 +48,6 @@ public class FingerprintAuth {
         }
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.M)
     public byte[] getRegisterSignature(String base64AuthToken) {
         if (base64AuthToken == null) {
             Log.d("MoaLib", "base64AuthToken is null");
@@ -89,7 +74,6 @@ public class FingerprintAuth {
         return new byte[0];
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.M)
     public byte[] getLoginSignature(
             String base64NonceOTP,
             String base64AuthToken
@@ -148,7 +132,6 @@ public class FingerprintAuth {
         }
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.M)
     private void generateKey() {
         try {
             KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance(
@@ -198,10 +181,5 @@ public class FingerprintAuth {
             Log.d("MoaLib", e.getMessage());
         }
         return new byte[0];
-    }
-
-    @RequiresApi(api = Build.VERSION_CODES.M)
-    private static class Singleton {
-        private static final FingerprintAuth instance = new FingerprintAuth();
     }
 }

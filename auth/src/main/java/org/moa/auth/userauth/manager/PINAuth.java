@@ -1,6 +1,7 @@
 package org.moa.auth.userauth.manager;
 
 import android.content.Context;
+import android.support.annotation.NonNull;
 import android.util.Base64;
 import android.util.Log;
 
@@ -24,16 +25,16 @@ abstract class PINAuth {
     private final byte[] iv = hexStringToByteArray("00FF0000FF00FF000000FFFF000000FF");
 
     Context context;
-    String uniqueDeviceID;
+    String uid;
     KeyStore keyStore;
     Symmetric symmetric;
 
     void init(
-            Context context,
-            String uniqueDeviceID
+            @NonNull Context context,
+            @NonNull String uniqueDeviceID
     ) {
         this.context = context;
-        this.uniqueDeviceID = uniqueDeviceID;
+        this.uid = uniqueDeviceID;
         setSymmetricInstance();
     }
 
@@ -187,7 +188,7 @@ abstract class PINAuth {
 
     private void setSymmetricInstance() {
         String transformation = "AES/CBC/PKCS7Padding";
-        byte[] src = Base64.decode(uniqueDeviceID, Base64.NO_WRAP);
+        byte[] src = Base64.decode(uid, Base64.NO_WRAP);
         byte[] key = new byte[32];
         System.arraycopy(src, 0, key, 0, key.length);
         byte[] iv = new byte[16];
