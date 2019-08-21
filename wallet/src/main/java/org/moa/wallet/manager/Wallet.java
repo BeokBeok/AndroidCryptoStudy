@@ -191,6 +191,10 @@ public class Wallet implements MoaECDSAReceiver {
             Log.d("MoaLib", "msg size is 0");
             return false;
         }
+        if (password.length() == 0) {
+            Log.d("MoaLib", "password size is 0");
+            return false;
+        }
         StringTokenizer st = new StringTokenizer(msg, "%");
         byte[] hmacEncryptedPuk = Base64.decode(st.nextToken(), Base64.NO_WRAP);
         String[] msgSplit = st.nextToken().split("\\$");
@@ -359,7 +363,7 @@ public class Wallet implements MoaECDSAReceiver {
         return Arrays.equals(secondEncryptHmacPsw, newSecondEncryptHmacPsw);
     }
 
-    public String generateBackUpRestoreDataFormat(@NonNull HashMap<String, String> walletData) {
+    public String generateBackUpRestoreDataFormat(@NonNull Map<String, String> walletData) {
         setPswInitMode(true);
         initProperties();
         /* Decryption */
@@ -453,11 +457,16 @@ public class Wallet implements MoaECDSAReceiver {
                 0,
                 decodedEncryptedHmacPsw.length / 2
         );
-        return Arrays.copyOfRange(
-                symmetric.getSymmetricData(Cipher.DECRYPT_MODE, firstEncryptHmacPsw),
-                1,
-                15
-        );
+        byte[] decryptedHmacPsw = symmetric.getSymmetricData(Cipher.DECRYPT_MODE, firstEncryptHmacPsw);
+        if (decryptedHmacPsw.length == 0) {
+            return new byte[0];
+        } else {
+            return Arrays.copyOfRange(
+                    decryptedHmacPsw,
+                    1,
+                    15
+            );
+        }
     }
 
     private void initKeyStore() {

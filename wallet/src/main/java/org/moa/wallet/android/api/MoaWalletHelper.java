@@ -9,7 +9,7 @@ import android.webkit.WebView;
 
 import org.moa.wallet.manager.Wallet;
 
-import java.util.HashMap;
+import java.util.Map;
 
 /**
  * 전자지갑 관련 생성 및 복원을 도와준다.
@@ -200,11 +200,11 @@ public class MoaWalletHelper {
      * setPswInitMode(true) 함수가 호출된 상태여야 한다.</p>
      *
      * @param walletData 지갑 패스워드 초기화를 위한 데이터
-     *                   server - encryptedHmacPsw, restoreMsg [E(Prk) $ E(Puk) $ Salt],
+     *                   server - encryptedHmacPsw, restoreMsg [E(Prk) $ E(Puk) $ Salt], moaPayPsw
      *                   client - id, hmacPsw, dateOfBirth
      */
-    public String generateWalletInitMsg(@NonNull HashMap<String, String> walletData) {
-        if (walletData.size() != 5) {
+    public String generateWalletInitMsg(@NonNull Map<String, String> walletData) {
+        if (walletData.size() != 6) {
             Log.d("MoaLib", "walletData not validate");
             return "";
         }
