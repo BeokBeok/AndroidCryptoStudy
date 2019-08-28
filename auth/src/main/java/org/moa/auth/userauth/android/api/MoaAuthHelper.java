@@ -67,7 +67,9 @@ public class MoaAuthHelper {
             Log.d("MoaLib", "uniqueDeviceID not validate");
             return;
         }
-        this.uid = uniqueDeviceID;
+        if (uid == null) {
+            this.uid = uniqueDeviceID;
+        }
     }
 
     /**
