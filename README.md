@@ -1,3 +1,3 @@
-# Moa Android Modules
+# 안드로이드 인증
 
-B2C MoaPlanet Auth Helper, Crypto and Wallet
+안드로이드 인증 라이브러리 구현
