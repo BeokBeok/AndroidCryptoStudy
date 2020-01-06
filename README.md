@@ -1,3 +1,3 @@
-# Moa Android Modules
+# 전자지갑
 
-B2C MoaPlanet Auth Helper, Crypto and Wallet
+EC 기반 전자지갑 기능 구현
