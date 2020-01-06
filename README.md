@@ -1,3 +1,3 @@
-# Moa Android Modules
+# 안드로이드 크립토
 
-B2C MoaPlanet Auth Helper, Crypto and Wallet
+안드로이드에서 제공하지 않는 크립토 라이브러리
