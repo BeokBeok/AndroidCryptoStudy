@@ -1,3 +1,3 @@
-### Android Wallet and Auth Module
+### 안드로이드 암복호화
 
-전자지갑 및 인증 
+안드로이드 암복호화에 대하여 학습합니다.
